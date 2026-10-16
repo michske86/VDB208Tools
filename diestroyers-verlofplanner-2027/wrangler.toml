@@ -1,0 +1,8 @@
+name = "diestroyers-verlof-2027"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "diestroyers-verlof-2027"
+database_id = "VERVANG_DOOR_JE_D1_DATABASE_ID"
