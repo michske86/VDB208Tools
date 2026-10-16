@@ -79,5 +79,8 @@ export default {async fetch(request,env){
   if(path.startsWith('/api/admin/request/')&&request.method==='DELETE'){await env.DB.prepare('DELETE FROM requests WHERE id=?').bind(Number(path.split('/').pop())).run();return reply({ok:true})}
  }
  return reply({error:'Niet gevonden'},404);
- }catch(e){return reply({error:'Serverfout. Controleer database/migratie.'},500)}
+}catch(e){
+  console.error('VERLOFPLANNER FOUT:', e);
+  return reply({error:'Serverfout. Controleer database/migratie.'},500);
+}
 }};
