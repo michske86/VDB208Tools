@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c6ff00">
+
+  <title>Diestroyers Tools</title>
+
+  <style>
+    :root {
+      --acid: #c6ff00;
+      --black: #080808;
+      --white: #f4f4ec;
+      --grey: #191919;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--black);
+      color: var(--white);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      padding: 32px 20px;
+      text-align: center;
+      background: var(--acid);
+      color: var(--black);
+      border-bottom: 6px solid var(--white);
+    }
+
+    header h1 {
+      font-size: clamp(38px, 8vw, 76px);
+      font-weight: 1000;
+      font-style: italic;
+      letter-spacing: -3px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    header p {
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    main {
+      width: min(100% - 36px, 760px);
+      margin: 65px auto;
+    }
+
+    .tools {
+      display: grid;
+      gap: 18px;
+    }
+
+    .tool {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      min-height: 120px;
+      padding: 22px;
+      color: var(--white);
+      text-decoration: none;
+      background: var(--grey);
+      border: 2px solid #353535;
+      border-left: 7px solid var(--acid);
+      transition: background .2s, color .2s, transform .2s;
+    }
+
+    .tool:hover,
+    .tool:focus-visible {
+      color: var(--black);
+      background: var(--acid);
+      border-color: var(--acid);
+      transform: translateX(6px);
+      outline: none;
+    }
+
+    .icon {
+      flex: 0 0 66px;
+      width: 66px;
+      height: 66px;
+      display: grid;
+      place-items: center;
+      background: var(--acid);
+      color: var(--black);
+      border: 2px solid var(--black);
+      border-radius: 12px;
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .tool:hover .icon,
+    .tool:focus-visible .icon {
+      background: var(--black);
+      color: var(--acid);
+      border-color: var(--black);
+    }
+
+    .tool-content {
+      flex: 1;
+    }
+
+    .tool-content h2 {
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+
+    .tool-content p {
+      margin-top: 8px;
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .tool:hover .tool-content p,
+    .tool:focus-visible .tool-content p {
+      color: #303600;
+    }
+
+    .arrow {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    footer {
+      padding: 25px 20px;
+      color: #777;
+      text-align: center;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 28px 12px;
+      }
+
+      header p {
+        font-size: 10px;
+        letter-spacing: 3px;
+      }
+
+      main {
+        margin: 35px auto;
+      }
+
+      .tool {
+        gap: 14px;
+        padding: 16px 12px;
+        min-height: 100px;
+      }
+
+      .icon {
+        flex-basis: 52px;
+        width: 52px;
+        height: 52px;
+        font-size: 27px;
+      }
+
+      .tool-content p {
+        font-size: 11px;
+      }
+
+      .arrow {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>DIESTROYERS</h1>
+    <p>Tools // No nonsense</p>
+  </header>
+
+  <main>
+    <div class="tools">
+
+      <a class="tool"
+         href="/diestroyers-verlofplanner-2027/index.html">
+        <div class="icon" aria-hidden="true">📅</div>
+        <div class="tool-content">
+          <h2>Verlofplanning 2027</h2>
+          <p>Bekijk en beheer de verlofplanning voor 2027.</p>
+        </div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <a class="tool" href="Vandenborre-Life-Tool.html">
+        <div class="icon" aria-hidden="true">♥</div>
+        <div class="tool-content">
+          <h2>Vanden Borre Life Tool</h2>
+          <p>Open de Vanden Borre Life-tool.</p>
+        </div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <a class="tool" href="telecom-vergelijker.html">
+        <div class="icon" aria-hidden="true">📶</div>
+        <div class="tool-content">
+          <h2>Abo Tool</h2>
+          <p>Vergelijk telecomabonnementen.</p>
+        </div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+
+    </div>
+  </main>
+
+  <footer>
+    © <span id="year"></span> DIESTROYERS
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>
