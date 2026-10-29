@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {parseExhibition} from '../worker/backend.js';
+const html=await readFile(new URL('./fixtures/exhibition.html',import.meta.url),'utf8');
+assert.equal(parseExhibition(html,'208').exhibited,true,'Diest: icon-check in de echte bron');
+assert.equal(parseExhibition(html,'210').exhibited,false,'icon-close betekent niet tentoongesteld');
+assert.equal(parseExhibition(html,'999').exhibited,null,'Ontbrekend filiaal is onbekend');
+assert.throws(()=>parseExhibition('<html>geen winkelgegevens</html>'));
+const row='<div class="border-btm-grey js-store-line "><a data-shopid="208">Diest</a><div class="col-availability">na 30 min.</div><div class="col-exposed"><p><i class="icon-close"></i></p></div></div>';
+assert.equal(parseExhibition(row).exhibited,false,'Snel afhaalbaar betekent niet tentoongesteld');
+assert.equal(parseExhibition(row.replace('icon-close','icon-onbekend')).exhibited,null,'Onherkenbare status niet als afwezig opslaan');
+console.log('Tentoonstelling: aanwezig, afwezig, ontbrekend filiaal, onbekend en afhaling apart gecontroleerd.');

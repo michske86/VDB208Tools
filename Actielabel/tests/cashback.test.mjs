@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {parseProductCashback} from '../worker/backend.js';
+const page=await readFile(new URL('./fixtures/product-cashback.html',import.meta.url),'utf8');
+assert.deepEqual(parseProductCashback(page,'7914857').amounts,{'8005':30},'Alleen het hoofdtoestel, niet de aanbevelingen of de prijs na cashback');
+assert.throws(()=>parseProductCashback(page,'7880324'),'Verkeerde VDB-code wordt geweigerd');
+assert.throws(()=>parseProductCashback(page.replaceAll('js-gtm-main-product-container','other'),'7914857'));
+assert.deepEqual(parseProductCashback(page.replaceAll('Cashback Oral-B : &euro;&nbsp;30,00','Geen cashback'),'7914857').amounts,{});
+assert.deepEqual(parseProductCashback(page.replaceAll('30,00','1.000,50'),'7914857').amounts,{'8005':1000.5});
+assert.deepEqual(parseProductCashback(page.replace('<h1>','<span class="help-tooltip">Cashback Oral-B : €40,00</span><h1>'),'7914857').amounts,{},'Conflicterende bedragen op dezelfde productpagina blijven onbevestigd');
+const other='<div class="action-item"><div class="sticker sticker-action">Cashback Oral-B</div><button data-modal-new=\'{"anchor":"special-action-9999"}\'>Meer informatie</button></div>';
+assert.deepEqual(parseProductCashback(page.replace('<div id="action" class="one-pager-section">','<div id="action" class="one-pager-section">'+other),'7914857').amounts,{},'Geen bedrag gokken bij twee gelijknamige acties');
+console.log('Productcashback: hoofdtoestel, code, actie-identiteit, bedragen en ambiguïteit gecontroleerd.');

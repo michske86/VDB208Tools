@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import {parseProductCashback} from '../worker/backend.js';
+const source=await readFile(new URL('../web/app.js',import.meta.url),'utf8');
+const transport=source.slice(source.indexOf('const transientError='),source.indexOf('\nfunction scanMessage'));
+const reconcile=source.slice(source.indexOf('function sourceSig('),source.indexOf('function applySnapshot('));
+let calls=0;const ctx=vm.createContext({AbortSignal,DOMException,setTimeout:(fn)=>{queueMicrotask(fn);return 1},clearTimeout:()=>{},fetch:async()=>{calls++;return {ok:calls>=3,json:async()=>calls>=3?{code:'1234567'}:{error:'Vanden Borre geeft HTTP 522'}}}});
+vm.runInContext(transport+'\n'+reconcile+'\nthis.api={getJSON,mergePresence,reconcileEdit};',ctx);let data=await ctx.api.getJSON('/api/exhibition');assert.equal(calls,3);assert.equal(data.code,'1234567');
+calls=0;ctx.fetch=async()=>{calls++;return {ok:false,json:async()=>({error:'Geen eenduidig bedrag'})}};await assert.rejects(ctx.api.getJSON('/api/cashback'));assert.equal(calls,1,'Geen herpoging bij onduidelijke voorwaarden');
+let old={code:'1234567',shop:'208',exhibited:true,checkedAt:'2026-10-29T00:00:00Z'},merged=ctx.api.mergePresence(old,{code:'1234567',shop:'208',exhibited:null,reason:'HTTP 522'});assert.equal(merged.exhibited,true);assert.equal(merged.checkedAt,old.checkedAt,'Vorige controledatum niet vernieuwen bij een fout');assert.equal(merged.lastAttemptError,'HTTP 522');assert.equal(ctx.api.mergePresence(old,{...old,exhibited:false}).exhibited,false,'Nieuwe bevestigde afwezigheid krijgt voorrang');
+let p={key:'1:1234567',action:'1',code:'1234567',name:'Naam',title:'Cashback merk',description:'Tot 100 euro cashback',start:'2026-01-01',end:'2027-01-01',amount:30,listAmount:30,type:'cashback',url:'https://www.vandenborre.be/muis/model',cashbackVerified:true,benefit:'€30 CASHBACK'};
+let edited={...p,name:'Eigen naam',cashbackVerified:true,needsReview:false};let current={...p,benefit:'€30 cashback',promotionVersion:1};let result=ctx.api.reconcileEdit(p,current,edited);assert.equal(result.name,'Eigen naam');assert.equal(result.needsReview,undefined,'Nieuwe parser of formattering veroorzaakt geen extra controle');assert.equal(result.amount,undefined,'Geen volledige oude snapshot bovenop actuele bron');
+let manual={...p,amount:35,cashbackVerified:true,needsReview:false,manualConfirmed:true};result=ctx.api.reconcileEdit(p,{...p,cashbackVerified:false},manual);assert.equal(result.amount,35);assert.equal(result.cashbackVerified,true,'Expliciete bevestiging bewaren bij ongewijzigde actie');
+result=ctx.api.reconcileEdit(p,{...p,amount:45,listAmount:45},manual);assert.equal(result?.amount,undefined,'Nieuw bevestigd productbedrag heeft voorrang');
+result=ctx.api.reconcileEdit(p,{...p,end:'2027-02-01',cashbackVerified:false},manual);assert.equal(result.needsReview,true,'Gewijzigde voorwaarden moeten opnieuw bevestigd worden');
+const base=await readFile(new URL('./fixtures/product-cashback.html',import.meta.url),'utf8');const normal=base.replace('<button data-modal-new=', '<div>Ontvang tot 55 euro cashback op een deelnemende tandenborstel.</div><button data-modal-new=');data=parseProductCashback(normal,'7914857');assert.equal(data.amounts['8005'],30);assert.equal(data.details['8005'].type,'cashback','Tot-bedrag maakt een gewone actie niet tot een combinatieactie');
+console.log('Import: tijdelijke fouten, vorige winkelcontrole, actuele productbedragen, bewerkingen en gewone tot-cashback gecontroleerd.');

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {parseProductCashback} from '../worker/backend.js';
+const original=await readFile(new URL('./fixtures/product-cashback.html',import.meta.url),'utf8');
+const page=original.replaceAll('7914857','7661959').replaceAll('special-action-8005','special-action-8127').replaceAll('Cashback Oral-B','Bruiswatertoestel of cashback van 100 euro').replaceAll('Bruiswatertoestel of cashback van 100 euro : &euro;&nbsp;30,00','Bruiswatertoestel of cashback van 100 euro');
+let result=parseProductCashback(page,'7661959');assert.equal(result.amounts['8127'],100);assert.equal(result.choices['8127'].giftChoice,'Bruiswatertoestel cadeau');
+assert.equal(parseProductCashback(page.replaceAll('100 euro','150 euro'),'7661959').amounts['8127'],150,'Bedrag uit de bron, niet hard gecodeerd');
+assert.equal(parseProductCashback(page.replaceAll('van 100 euro','van maximaal 100 euro'),'7661959').amounts['8127'],undefined);
+assert.equal(parseProductCashback(page.replaceAll('cashback van 100 euro','cashback van 100 euro of 150 euro cashback'),'7661959').amounts['8127'],undefined,'Meerdere bedragen niet gokken');
+assert.throws(()=>parseProductCashback(page,'7661983'),'Productcode moet overeenkomen');
+assert.equal(parseProductCashback(page.replaceAll('cashback van 100 euro','cashback van 100 euro').replace('<h1>','<span class="help-tooltip">Bruiswatertoestel of cashback van 100 euro : €200</span><h1>'),'7661959').amounts['8127'],undefined,'Tegenstrijdig apart bedrag blijft ter controle');
+const without=page.replaceAll('van 100 euro','');const modal='<div id="special-action-8127"><p>Ontvang een bruiswatertoestel of een cashback van 100 euro bij aankoop van een deelnemende Smeg-koelkast.</p></div>';
+assert.equal(parseProductCashback(without,'7661959',modal).amounts['8127'],100,'Ook het juiste actievenster mag het bedrag bevestigen');
+assert.equal(parseProductCashback(without,'7661959',modal.replaceAll('8127','9999')).amounts['8127'],undefined,'Geen bedrag uit een andere actie gebruiken');
+console.log('Keuzeactie: tekstbedrag, ander bedrag, maximum, conflict en actie-identiteit gecontroleerd.');

@@ -1,0 +1,4 @@
+Actielabel Lab - GitHub / Cloudflare export
+29/10/2026
+Broncommit: 131aa343e815b64f461004e26ac970666fe7cf91
+Inclusief PDF-export, 10 labels per A4 en aangepaste curve.

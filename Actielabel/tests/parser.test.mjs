@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {parseCatalog,parseProducts} from '../worker/backend.js';
+const action='<input class="accordion-checkbox js-accordion" id="accordion_9_8005_ORALB" data-univers="Beauty" data-call="//www.vandenborre.be/WEBV3/NL/Page278/LIB.WebRequest.cls?Detail=test"><label><strong>Oral-b</strong><div class="cashback-info"><span class="sticker sticker-action">Cashback Oral-B</span><div>Cashback op deelnemende toestellen</div></div><div>01.07.26 t.e.m. 30.06.27</div></label>';
+const [a]=parseCatalog(action);assert.equal(a.promoId,'8005');assert.equal(a.title,'Cashback Oral-B');assert.equal(a.start,'2026-07-01');
+const product='<div class="cashback-product col-xs-12"><a href="//www.vandenborre.be/elektrische-tandenborstel/io-10s-white"><img src="/WEB/images/products/100/test_7880324_1.jpg" alt="7880324"></a><h3>Oral-B iO &amp; Case</h3><span class="reduction">- &euro; 55</span></div>';
+let [p]=parseProducts(product,a);assert.equal(p.key,'8005:7880324');assert.equal(p.amount,55);assert.equal(p.name,'Oral-B iO & Case');assert.equal(p.type,'cashback');
+let [zero]=parseProducts(product.replace('55</span>','0</span>'),a);assert.equal(zero.amount,0);
+let [gift]=parseProducts(product.replace(/<span class="reduction">.*?<\/span>/,''),{...a,type:'gift',title:'Pannenset cadeau'});assert.equal(gift.amount,null);assert.equal(gift.benefit,'Pannenset cadeau');
+assert.throws(()=>parseProducts('<div class="row"></div>',a));assert.throws(()=>parseProducts(product.replace('alt="7880324"','alt=""'),a));assert.throws(()=>parseCatalog('<html>geen acties</html>'));
+console.log('Parser: cashback, cadeau, €0, identiteit en onvolledige bron gecontroleerd.');
