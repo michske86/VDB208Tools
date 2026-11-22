@@ -1,0 +1,23 @@
+TV-SLIDES UPDATE - 1 september 2026
+
+Nieuwe TV-volgorde:
+1. Omzet
+2. Service Overzicht Life (MTD + YTD)
+3. Service Overzicht Insurance (MTD + YTD)
+4. Service Overzicht Abonnementen (MTD + YTD)
+5. Service Overzicht DSP (MTD + YTD)
+6. Service Overzicht SPG (MTD + YTD)
+7. Service Overzicht SRP (MTD + YTD)
+8. Service Overzicht Omzet, Accessoires, Link en Monster (MTD + Omzet YTD)
+9. NPS
+10. District Ranking BIG 7
+11. Service Overzicht verkopers
+12+. Carrousel
+
+Life:
+- Portfolio wordt als duidelijke placeholder (—) getoond tot de brondata wordt geïmporteerd.
+- Life heeft in de huidige bron geen kansenveld; dit wordt als — getoond.
+
+Concretisatie:
+- De omzet-slide toont naast MTD ook het verschil met vorig jaar in procentpunten.
+- Wanneer historische concretisatiedata nog ontbreekt, verschijnt transparant: "vs LY: —".

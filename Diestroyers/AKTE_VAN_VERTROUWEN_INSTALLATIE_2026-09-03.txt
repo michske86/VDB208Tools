@@ -1,0 +1,17 @@
+AKTE VAN VERTROUWEN - TV-SLIDE
+
+De nieuwe TV-slide staat onmiddellijk na NPS.
+
+Berekening:
+- Akte van Vertrouwen en Laagste Prijs Garantie: alleen Ja is positief.
+  Nee, blanco en "ik weet het niet meer" tellen als niet positief.
+- Inlichtingen, wachttijd en vriendelijkheid: gemiddelde antwoordscore
+  op 5, omgerekend naar procent. Voorbeeld: 4/5 = 80%.
+
+Eenmalig voor toekomstige Dagstarts:
+1. Importeer/vervang VBA_Modules_COMPLETE\12_NPSImport.bas als NPSImport.
+2. Importeer VBA_Modules_COMPLETE\14_AkteVanVertrouwenExport.bas als
+   AkteVanVertrouwenExport.
+3. Sla de XLSM op en voer Dagstart / Website bijwerken uit.
+
+assets\avv-data.js bevat al data voor onmiddellijk testen in tv.html.

@@ -1,0 +1,38 @@
+{
+  "status": "OK",
+  "runtime_bridge": {
+    "active_sellers": 6,
+    "seller_names": [
+      "Bert",
+      "Burcu",
+      "Maya",
+      "Myron",
+      "Sam",
+      "Tom"
+    ],
+    "results_after_inactive_filter": 43,
+    "district_shops": 13,
+    "district_codes": [
+      "208",
+      "210",
+      "045",
+      "032",
+      "027",
+      "016",
+      "224",
+      "228",
+      "227",
+      "206",
+      "220",
+      "213",
+      "042"
+    ],
+    "targets": 240,
+    "current_store_S": {
+      "stuks": 36,
+      "euro": 6875.6,
+      "ratio": 12.7
+    }
+  },
+  "notes": "Alle datalagen en data-bridge.js zijn samen in Node uitgevoerd zonder runtimefout."
+}

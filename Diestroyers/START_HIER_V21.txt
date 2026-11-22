@@ -1,0 +1,22 @@
+THE DIESTROYERS - PROFESSIONEEL HERSTELDE VERSIE V21
+
+DIRECT HERSTELD IN DE MAP
+- Alle dynamische JS-bestanden zijn opnieuw geldige UTF-8-bestanden.
+- Website en TV laden opnieuw resultaten.
+- Winkel-S is gecorrigeerd naar 36 stuks, EUR 6.875,60 en 12,7%.
+- ShopNr is hersteld in targets-data.js.
+- Alle 13 actieve districtwinkels worden gekoppeld.
+- Alleen actieve verkopers uit Admin worden getoond; Nio blijft verwijderd.
+
+EENMALIGE VBA-INSTALLATIE
+De ingebedde macrocode in de aangeleverde XLSM bevat verborgen controlebytes. Het binaire vbaProject.bin kan buiten Excel niet veilig worden vervangen.
+1. Maak een reservekopie van diestroyers.xlsm.
+2. Alt+F11.
+3. Verwijder alle standaardmodules onder Modules; niet ThisWorkbook of werkbladobjecten.
+4. Importeer alle 11 BAS-bestanden uit VBA_Modules_COMPLETE in numerieke volgorde.
+5. Plak ThisWorkbook_CODE.txt in ThisWorkbook.
+6. Debug > Compile VBAProject.
+7. Sla op.
+8. Run TestLokaleProjectpaden.
+9. Run Diestroyers_HerstelEnPubliceerAlles.
+10. Herlaad website en TV met Ctrl+F5.

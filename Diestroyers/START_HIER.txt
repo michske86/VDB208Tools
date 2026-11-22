@@ -1,0 +1,26 @@
+THE DIESTROYERS — VOLLEDIG HERSTELD PROJECT V19
+================================================
+
+START HIER
+
+De website- en TV-bestanden in deze map zijn reeds hersteld en gecontroleerd.
+
+Voor blijvend correcte exports vanuit Excel moet je ook de meegeleverde
+VBA-modules importeren. Het bestaande XLSM-bestand kan in deze omgeving niet
+automatisch van nieuwe VBA-modules worden voorzien zonder Excel zelf.
+
+Snelste installatie:
+1. Maak een back-up van diestroyers.xlsm.
+2. Open diestroyers.xlsm en druk Alt+F11.
+3. Verwijder de oude standaardmodules:
+   DiestroyersCore, ImportEngine, ResultatenEngine, HistoriekEngine,
+   DistrictEngine, WebsiteExport, AdminSync, DashboardUI en HistoriekBackfill.
+4. Importeer alle bestanden uit VBA_Modules_COMPLETE in numerieke volgorde.
+5. Sla de XLSM op.
+6. Run SynchroniseerAdminConfiguratieMetMelding.
+7. Run Diestroyers_AlleenWebsiteUpdaten.
+8. Run Diestroyers_VoerVolledigeControleUit.
+
+De vaste dagelijkse knoppen blijven daarna werken:
+- DAGSTART
+- WEBSITE UPDATEN

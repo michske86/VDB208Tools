@@ -1,0 +1,18 @@
+THE DIESTROYERS V19 - VALIDATIERAPPORT
+
+Actieve verkopers (6): Bert, Burcu, Maya, Myron, Sam, Tom
+Nio in resultaten: 0
+Nio in KPI-detail: 0
+Nio in websitehistoriek: 0
+Diest S 2026-07: 13.59% | 32 stuks | EUR 7356.41
+Bert targets 2026-07: Omzet 130000 | Life 15
+Targetrijen: 240
+Dubbele targetkeys: 0
+Districtwinkels: 13
+
+Technische controles:
+- Alle JavaScriptbestanden: syntax OK
+- Alle inline HTML-scripts: syntax OK
+- Alle lokale HTML-verwijzingen: aanwezig
+- VBA-modules: sluitende Sub/Function-structuur
+- Dubbele publieke VBA-procedures: geen

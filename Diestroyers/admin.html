@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin | The Diestroyers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+  <style>
+    .admin-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+    .admin-tab{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#fff;border-radius:999px;padding:10px 15px;font-family:inherit;font-weight:900;text-transform:uppercase;cursor:pointer}
+    .admin-tab.active{border-color:var(--red);box-shadow:0 0 18px rgba(225,25,25,.35)}
+    .admin-section{display:none}
+    .admin-section.active{display:block}
+    .admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .admin-field{display:grid;gap:6px}
+    .admin-field label{font-weight:900;text-transform:uppercase;color:#ddd;letter-spacing:.06em}
+    .admin-field input,.admin-field select{background:#0d0d0d;color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 12px;font-family:inherit;font-size:18px;font-weight:800}
+    .admin-table{width:100%;border-collapse:collapse;background:rgba(0,0,0,.22);border-radius:20px;overflow:hidden}
+    .admin-table th,.admin-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .admin-table th{text-transform:uppercase;letter-spacing:.05em;color:#ddd;text-align:left}
+    .admin-table input,.admin-table select{width:100%;background:#0d0d0d;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px;font-family:inherit;font-weight:800}
+    .admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .admin-btn{border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#e11919,#8a1111);color:#fff;border-radius:999px;padding:11px 16px;font-family:inherit;font-size:18px;font-weight:900;text-transform:uppercase;cursor:pointer}
+    .admin-btn.secondary{background:rgba(255,255,255,.055)}
+    .admin-warning{border:1px solid rgba(242,201,76,.45);background:rgba(242,201,76,.08);border-radius:18px;padding:14px;font-weight:800;color:#ffe8a3;margin:12px 0}
+    .admin-ok{border:1px solid rgba(46,204,113,.45);background:rgba(46,204,113,.08);border-radius:18px;padding:14px;font-weight:800;color:#baffc9;margin:12px 0}
+    .admin-scroll{overflow:auto;max-height:60vh}
+    @media(max-width:900px){.admin-grid{grid-template-columns:1fr}}
+
+    .target-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:0 0 16px}
+    .target-toolbar .admin-field{min-width:170px}
+    .target-subtabs,.target-kpi-tabs{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 16px}
+    .target-subtab,.target-kpi-tab{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#fff;border-radius:999px;padding:9px 14px;font-family:inherit;font-weight:900;text-transform:uppercase;cursor:pointer}
+    .target-subtab.active,.target-kpi-tab.active{border-color:var(--red);box-shadow:0 0 14px rgba(225,25,25,.30);background:rgba(225,25,25,.10)}
+    .target-note{font-size:18px;font-weight:800;color:#bbb;margin:8px 0 14px}
+    .target-sheet{border:1px solid rgba(255,255,255,.10);background:linear-gradient(180deg,#151515,#0c0c0c);border-radius:22px;overflow:hidden;box-shadow:0 18px 46px rgba(0,0,0,.38)}
+    .target-sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .target-sheet-title{font-size:25px;font-weight:900;text-transform:uppercase}
+    .target-sheet-sub{font-size:16px;color:#aaa;font-weight:800}
+    .target-matrix-wrap{overflow:auto;max-height:61vh;padding:12px}
+    .target-matrix{width:100%;border-collapse:separate;border-spacing:0 7px;min-width:1180px}
+    .target-matrix th{position:sticky;top:0;background:#111;z-index:3;color:#ddd;text-transform:uppercase;font-size:16px;letter-spacing:.05em;padding:10px 8px;text-align:center}
+    .target-matrix th:first-child{left:0;z-index:4;text-align:left;min-width:210px}
+    .target-matrix td{padding:4px 6px;background:rgba(255,255,255,.025);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+    .target-matrix td:first-child{position:sticky;left:0;z-index:2;border-left:1px solid rgba(255,255,255,.06);border-radius:12px 0 0 12px;font-weight:900;font-size:18px;color:#fff;background:#171010;white-space:nowrap}
+    .target-matrix td:last-child{border-right:1px solid rgba(255,255,255,.06);border-radius:0 12px 12px 0}
+    .target-matrix input{width:100%;min-width:78px;background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 8px;font-family:inherit;font-weight:900;font-size:17px;text-align:right}
+    .target-matrix input:focus{outline:none;border-color:var(--red);box-shadow:0 0 12px rgba(225,25,25,.28)}
+    .target-empty{padding:28px;font-size:20px;font-weight:900;color:#aaa;text-align:center}
+
+  </style>
+</head>
+<body>
+<header class="topbar"><nav class="nav"><a class="brand" href="home.html">The <span>Diestroyers</span></a><button class="hamb">Menu</button><div class="menu"><a class="navitem" href="home.html">Home</a><a class="navitem" href="mission-control.html">Focus Analyse</a><a class="navitem" href="admin.html">Admin</a></div></nav></header>
+<main class="page">
+  <section class="intel-hero">
+    <div class="intel-kicker">Admin</div>
+    <h1 class="intel-title">Configuratiebeheer</h1>
+    <div class="intel-sub">Beheer winkel, district, verkopers en targets. De adminconfiguratie is de bron voor instellingen; de XLSM blijft de bron voor resultaten.</div>
+  </section>
+
+  <div class="admin-warning">
+    Klik na wijzigingen op <strong>Wijzigingen opslaan</strong>. Sla het bestand op als <strong>assets/config-data.js</strong>. Bij het openen of verwerken leest de XLSM deze configuratie automatisch in via de VBA-module.
+  </div>
+
+  <section class="intel-panel">
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="setup">Setup</button>
+      <button class="admin-tab" data-tab="district">District</button>
+      <button class="admin-tab" data-tab="verkopers">Verkopers</button>
+      <button class="admin-tab" data-tab="targets">Targets</button>
+      <button class="admin-tab" data-tab="validatie">Validatie</button>
+    </div>
+
+    <div id="setup" class="admin-section active">
+      <h2>Setup</h2>
+      <div class="admin-grid">
+        <div class="admin-field"><label>Winkelnummer</label><input id="shopNr"></div>
+        <div class="admin-field"><label>Winkelnaam</label><input id="shopName"></div>
+      </div>
+    </div>
+
+    <div id="district" class="admin-section">
+      <h2>District</h2>
+      <div class="admin-actions"><button class="admin-btn secondary" id="addDistrict">Winkel toevoegen</button></div>
+      <div class="admin-scroll"><table class="admin-table" id="districtTable"></table></div>
+    </div>
+
+    <div id="verkopers" class="admin-section">
+      <h2>Verkopers</h2>
+      <div class="admin-actions"><button class="admin-btn secondary" id="addSeller">Verkoper toevoegen</button></div>
+      <div class="admin-scroll"><table class="admin-table" id="sellerTable"></table></div>
+    </div>
+
+    <div id="targets" class="admin-section">
+      <h2>Targets</h2>
+      <div class="target-toolbar">
+        <div class="admin-field">
+          <label>Jaar</label>
+          <input id="targetYear" type="number" min="2020" max="2099">
+        </div>
+        <button class="admin-btn secondary" id="copyPreviousYear">Vorig jaar kopiëren</button>
+        <button class="admin-btn secondary" id="copyJanuaryTargets">Januari naar alle maanden</button>
+      </div>
+
+      <div class="target-subtabs">
+        <button class="target-subtab active" data-target-mode="verkopers">Verkopers</button>
+        <button class="target-subtab" data-target-mode="district">District winkels</button>
+        <button class="target-subtab" data-target-mode="winkel">Eigen winkel</button>
+      </div>
+
+      <div class="target-kpi-tabs" id="targetKpiTabs"></div>
+      <div class="target-note" id="targetNote"></div>
+
+      <div class="target-sheet">
+        <div class="target-sheet-head">
+          <div>
+            <div class="target-sheet-title" id="targetSheetTitle">Targets</div>
+            <div class="target-sheet-sub" id="targetSheetSub"></div>
+          </div>
+        </div>
+        <div class="target-matrix-wrap">
+          <table class="target-matrix" id="targetMatrix"></table>
+        </div>
+      </div>
+    </div>
+
+    <div id="validatie" class="admin-section">
+      <h2>Validatie</h2>
+      <div id="validationOutput"></div>
+    </div>
+
+    <div class="admin-actions">
+      <button class="admin-btn" id="saveConfig">Wijzigingen opslaan</button>
+      <button class="admin-btn secondary" id="downloadConfig">Download config-data.js</button>
+      <button class="admin-btn secondary" id="validateConfig">Controleer</button>
+    </div>
+    <div id="saveStatus"></div>
+  </section>
+</main>
+
+<script src="assets/config-data.js"></script>
+<script src="assets/nps-data.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/registry.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/navigation.js"></script>
+<script src="assets/admin.js"></script>
+<script src="assets/nps-ui.js"></script></body>
+</html>

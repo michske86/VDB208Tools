@@ -1,0 +1,18 @@
+{
+  "status": "OK",
+  "issues": [],
+  "period": "2026-07",
+  "active_sellers": 6,
+  "current_seller_rows": 6,
+  "district_shops": 13,
+  "targets": 240,
+  "store_S": {
+    "stuks": 36,
+    "euro": 6875.6,
+    "ratio": 12.7
+  },
+  "js_files_checked": 32,
+  "vba_modules_checked": 11,
+  "runtime_bridge_smoketest": "OK",
+  "vba_encoding": "ASCII-compatible CP1252, CRLF, no BOM/control bytes"
+}

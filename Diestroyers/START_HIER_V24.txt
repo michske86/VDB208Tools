@@ -1,0 +1,31 @@
+THE DIESTROYERS - HERSTEL V24
+
+De huidige fout ontstond omdat zowel de actuele Resultaten-rijen als de
+beschikbare fallbackbronnen nulwaarden bevatten. De code kon daardoor geen
+juiste waarde meer reconstrueren.
+
+V24 bevat een gecontroleerde snapshot van de Resultaten-tabel uit het door jou
+geüploade project:
+
+assets/resultaten-recovery.tsv
+
+EENMALIG HERSTEL
+
+1. Vervang de projectmap door deze V24-map.
+2. Verwijder in VBA alle standaardmodules onder Modules.
+3. Importeer alle BAS-bestanden uit VBA_Modules_COMPLETE.
+4. Kies Debug > Compile VBAProject.
+5. Run:
+   HerstelResultatenVanProjectSnapshot
+6. Run daarna:
+   ControleerWebsiteDatabestanden
+7. Herlaad website en TV met Ctrl+F5.
+
+NORMALE TOEKOMSTIGE WERKING
+
+Gebruik daarna opnieuw:
+HerstelResultatenUitHuidigeImportbladen
+
+Die macro controleert voortaan eerst of I_Acc, I_Life, I_Sales en I_LifeShops
+volledig beschikbaar zijn. Bij onvolledige bronnen worden correcte bestaande
+resultaten nooit meer naar nul overschreven.

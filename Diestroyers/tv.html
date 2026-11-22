@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Diestroyers TV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --red:#e11919; --red2:#8a1111; --bg:#050505; --panel:#111; --line:#2b2b2b;
+      --text:#f8f8f8; --muted:#aaa; --green:#2ecc71; --yellow:#f2c94c; --bad:#ff3434;
+      --gold:#ffd166; --silver:#d9e2ef; --bronze:#d08a4b;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:'Rajdhani',Arial,sans-serif;color:var(--text)}
+    body{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top left,rgba(225,25,25,.24),transparent 30%),linear-gradient(145deg,#120000,#050505 45%,#000)}
+    #stage{position:relative;width:1920px;height:1080px;overflow:hidden;transform-origin:center center;background:radial-gradient(circle at 20% 5%,rgba(225,25,25,.26),transparent 27%),radial-gradient(circle at 84% 0,rgba(255,255,255,.07),transparent 22%),#050505;padding:28px;}
+    #stage:before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.035) 0 1px,transparent 1px 94px),linear-gradient(30deg,rgba(225,25,25,.045),transparent 45%);pointer-events:none;}
+    .top{height:126px;display:flex;align-items:center;justify-content:flex-start;gap:18px;position:relative;z-index:2;margin-bottom:16px;}
+    .logoBox,.banner,.panel,.kpiCard{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;}
+    .logoBox:after,.banner:after,.panel:after,.kpiCard:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .logoBox{display:flex;align-items:center;justify-content:center;padding:12px 18px;text-decoration:none;color:inherit;cursor:pointer;}
+    .logoBox img{max-width:100%;max-height:102px;object-fit:contain;filter:drop-shadow(0 14px 24px rgba(0,0,0,.65));transition:transform .18s ease}.logoBox:hover img{transform:scale(1.035)}
+    .banner{padding:18px 26px 16px 32px;display:flex;flex-direction:column;justify-content:center;}
+    .bannerLabel{font-size:17px;text-transform:uppercase;letter-spacing:.1em;color:#ddd;font-weight:900;margin-bottom:7px;}
+    .bannerTitle{font-size:34px;font-weight:900;line-height:.95;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .bannerSub{margin-top:8px;color:#ddd;font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .salesPanel{position:relative;z-index:2;height:150px;padding:16px 18px 18px;margin-bottom:14px;}
+    .salesGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;height:84px;}
+    .salesCard{padding:12px 14px 10px 22px;min-width:0;display:grid;grid-template-rows:auto 1fr auto;align-items:center;}
+    .salesMain{font-size:28px;font-weight:900;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .salesMain small{font-size:17px;color:#ddd;font-weight:900;letter-spacing:.02em;}
+    .salesSub{font-size:17px;font-weight:900;text-transform:uppercase;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.035em;}
+    .salesCard.ok:after{background:var(--green);box-shadow:0 0 18px rgba(46,204,113,.7)}
+    .salesCard.close:after{background:var(--yellow);box-shadow:0 0 18px rgba(242,201,76,.7)}
+    .salesCard.bad:after{background:var(--bad);box-shadow:0 0 18px rgba(255,52,52,.7)}
+    .storePanel{position:relative;z-index:2;height:178px;padding:18px 22px 20px;margin-bottom:16px;}
+    .panelTitle{margin:0 0 12px;font-size:32px;line-height:1;text-transform:uppercase;letter-spacing:.05em;text-shadow:0 0 22px rgba(225,25,25,.33)}
+    .storeGrid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:1fr;gap:12px;height:106px;}
+    .kpiCard{padding:15px 16px 13px 24px;min-width:0;display:grid;grid-template-rows:auto 1fr auto;align-items:center;}
+    .kpiCard.ok:after{background:var(--green);box-shadow:0 0 18px rgba(46,204,113,.7)}
+    .kpiCard.close:after{background:var(--yellow);box-shadow:0 0 18px rgba(242,201,76,.7)}
+    .kpiCard.bad:after{background:var(--bad);box-shadow:0 0 18px rgba(255,52,52,.7)}
+    .kpiName{font-size:16px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.065em;align-self:start;}
+    .kpiValue{font-size:28px;font-weight:900;line-height:1.05;margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center;}
+    .todo{font-size:16px;font-weight:900;text-transform:uppercase;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em;align-self:end;}
+    .ok .todo{color:#baffc9}.close .todo{color:#ffe484}.bad .todo{color:#ffb0b0}
+    .sellerPanel{position:relative;z-index:2;height:500px;padding:22px;display:flex;flex-direction:column;min-width:0;}
+    .sellerTableWrap{flex:1;min-height:0;display:flex;align-items:stretch;}
+    .sellerTable{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;background:rgba(10,10,10,.72);border-radius:20px;overflow:hidden;}
+    .sellerTable th,.sellerTable td{border-bottom:1px solid #252525;padding:7px 7px;text-align:center;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .sellerTable th{height:45px;background:#171717;text-transform:uppercase;font-size:16px;letter-spacing:.045em;color:#fff;}
+    .sellerTable td{font-size:21px;}
+    .sellerTable td.name{text-align:left;font-size:24px;text-transform:uppercase;color:#fff;}
+    .sellerTable td.rank{font-size:25px;color:var(--red);width:58px;}
+    .nameWrap{display:flex;align-items:center;gap:10px;min-width:0}.miniAvatar{width:37px;height:37px;border-radius:50%;object-fit:cover;border:2px solid var(--red);box-shadow:0 0 14px rgba(225,25,25,.35);flex:0 0 auto;}
+    .valuePill{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:74px;max-width:100%;padding:4px 8px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:rgba(255,255,255,.035);line-height:1;font-weight:900;}
+    .todoBadge{position:absolute;right:-9px;top:-10px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;border:2px solid #070707;box-shadow:0 0 14px rgba(255,52,52,.75);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;line-height:1;z-index:3;}
+    .rankGold .valuePill{border-color:rgba(255,209,102,.95);box-shadow:0 0 0 2px rgba(255,209,102,.20),0 0 18px rgba(255,209,102,.35);}
+    .rankSilver .valuePill{border-color:rgba(217,226,239,.95);box-shadow:0 0 0 2px rgba(217,226,239,.18),0 0 16px rgba(217,226,239,.25);}
+    .rankBronze .valuePill{border-color:rgba(208,138,75,.95);box-shadow:0 0 0 2px rgba(208,138,75,.20),0 0 16px rgba(208,138,75,.25);}
+    .statusOk{color:#baffc9}.statusClose{color:#ffe484}.statusBad{color:#ffb0b0}
+    .foot{position:absolute;right:34px;bottom:10px;color:#777;text-transform:uppercase;letter-spacing:.08em;font-weight:800;font-size:14px;z-index:5;}
+    .empty{color:#aaa;font-size:24px;font-weight:800;text-transform:uppercase;}
+
+    #overviewContent{position:absolute;inset:28px;transition:transform .65s cubic-bezier(.22,.9,.24,1);z-index:2;}
+    .detailMode #overviewContent{transform:translateX(-105%);}
+    .missionSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
+    .detailMode .missionSlide{transform:translateX(0);}
+    .missionSlide.noTrans{transition:none!important;}
+    .missionSlide.outLeft{transform:translateX(-105%)!important;}
+    .missionSlide.outRight{transform:translateX(105%)!important;}
+    .missionSlide.outNone{transform:translateX(0)!important;}
+    .missionHeader{height:126px;display:flex;align-items:center;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .missionHeader:after,.missionAvatarBox:after,.missionTodoPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .missionLogo{height:100%;display:flex;align-items:center;justify-content:center;border-radius:18px;background:rgba(255,255,255,.025);overflow:hidden;}
+    .missionLogo img{max-width:210px;max-height:95px;object-fit:contain;filter:drop-shadow(0 12px 24px rgba(0,0,0,.65));}
+    .missionLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
+    .missionName{font-size:66px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
+    .missionLine{display:none;}
+    .missionBody{display:grid;grid-template-columns:440px 1fr;gap:18px;height:470px;min-height:0;}
+    .missionAvatarBox{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;display:flex;align-items:center;justify-content:center;padding:22px;}
+    .missionAvatarBox img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.65));}
+    .missionCards{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,1fr);gap:12px;min-width:0;}
+    .missionCard{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:22px;box-shadow:0 18px 44px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:13px 16px 11px 23px;display:grid;grid-template-rows:auto 1fr auto;align-items:center;min-width:0;}
+    .missionCard:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 18px rgba(255,52,52,.7)}
+    .missionCard.ok:after{background:var(--green);box-shadow:0 0 18px rgba(46,204,113,.7)}
+    .missionCard.close:after{background:var(--yellow);box-shadow:0 0 18px rgba(242,201,76,.7)}
+    .missionCard.bad:after{background:var(--bad);box-shadow:0 0 18px rgba(255,52,52,.7)}
+    .missionKpi{font-size:18px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.065em;}
+    .missionValue{font-size:34px;font-weight:900;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .missionTodo{font-size:17px;font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .missionCard.ok .missionTodo{color:#baffc9}.missionCard.close .missionTodo{color:#ffe484}.missionCard.bad .missionTodo{color:#ffb0b0}
+    .missionTodoPanel{height:340px;position:relative;display:grid;grid-template-columns:1.25fr .75fr;gap:18px;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:22px 24px 22px 32px;}
+    .missionTodoBlock h3{margin:0 0 12px;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.05em;text-shadow:0 0 22px rgba(225,25,25,.33)}
+    .missionTodoList{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .missionTodoItem{border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:15px 16px;min-width:0;}
+    .missionTodoItem .tKpi{font-size:17px;font-weight:900;text-transform:uppercase;color:#ddd;letter-spacing:.05em;}
+    .missionTodoItem .tVal{font-size:30px;font-weight:900;color:#ffb0b0;line-height:1.1;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .missionStrengths{display:grid;grid-template-columns:1fr;gap:10px;}
+    .strengthItem{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:10px 16px;font-size:22px;font-weight:900;}
+    .strengthItem strong{text-transform:uppercase;color:#ddd;}
+    .strengthItem.gold{border-color:rgba(255,209,102,.8);box-shadow:0 0 16px rgba(255,209,102,.22)}
+    .strengthItem.silver{border-color:rgba(217,226,239,.75);box-shadow:0 0 14px rgba(217,226,239,.18)}
+    .strengthItem.bronze{border-color:rgba(208,138,75,.75);box-shadow:0 0 14px rgba(208,138,75,.18)}
+    .tvControls{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);z-index:12;display:flex;gap:10px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 28px rgba(0,0,0,.45);}
+    .tvControls button{height:32px;min-width:78px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:linear-gradient(180deg,#1d1d1d,#0a0a0a);color:#fff;font-family:'Rajdhani',Arial,sans-serif;font-weight:900;font-size:17px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+    .tvControls button:hover{border-color:var(--red);box-shadow:0 0 16px rgba(225,25,25,.45);}
+    .tvControls button.playing{background:linear-gradient(180deg,#a81212,#4b0505);border-color:#ff3b3b;}
+
+    .carouselImageSlide{position:absolute;inset:28px;z-index:4;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 5%,rgba(225,25,25,.22),transparent 30%),linear-gradient(180deg,#080808,#020202);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:34px;}
+    .carouselImageSlide:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .carouselImageSlide img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 28px 48px rgba(0,0,0,.72));}
+    .mediaMode #overviewContent{transform:translateX(-105%);}
+    .mediaMode .missionSlide{transform:translateX(-105%);}
+    .mediaMode .carouselImageSlide{transform:translateX(0);}
+    .detailMode .carouselImageSlide{transform:translateX(105%);}
+
+
+
+
+
+    .npsSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:14px;}
+    .npsMode #overviewContent,.npsMode .revenueSlide,.npsMode .storeServiceSlide{transform:translateX(-105%);}
+    .npsMode .districtRankSlide,.npsMode .serviceSlide,.npsMode .missionSlide,.npsMode .carouselImageSlide{transform:translateX(105%);}
+    .npsMode .npsSlide{transform:translateX(0);}
+    .detailMode .npsSlide,.mediaMode .npsSlide,.revenueMode .npsSlide,.serviceMode .npsSlide,.storeServiceMode .npsSlide,.districtRankMode .npsSlide{transform:translateX(-105%);}
+    .npsTvHeader{height:105px;display:flex;align-items:center;justify-content:space-between;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:15px 30px 15px 36px;overflow:hidden}
+    .npsTvHeader:after,.npsTvPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .npsTvTitle{font-size:58px;line-height:1;font-weight:900;text-transform:uppercase}.npsTvPeriod{font-size:23px;color:#bbb;font-weight:900;text-transform:uppercase}
+    .npsTvStats{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,102px);gap:10px}
+    .npsTvCard{position:relative;border-radius:17px;background:linear-gradient(180deg,#171717,#0a0a0a);border:1px solid rgba(255,255,255,.09);padding:11px 16px 10px 20px;overflow:hidden}
+    .npsTvCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:#777}.npsTvCard.ok:before{background:var(--green)}.npsTvCard.close:before{background:var(--yellow)}.npsTvCard.bad:before{background:var(--bad)}
+    .npsTvCard span{font-size:17px;color:#bbb;text-transform:uppercase;font-weight:900}.npsTvCard strong{display:block;font-size:40px;line-height:1;margin:5px 0}.npsTvCard small{font-size:15px;color:#999;font-weight:800}
+    .npsTvBottom{display:grid;grid-template-columns:48% 52%;gap:14px;flex:1;min-height:0}
+    .npsTvPanel{position:relative;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:16px 18px 16px 26px;overflow:hidden}
+    .npsTvPanel h2{font-size:28px;text-transform:uppercase;margin:0 0 10px}
+    .npsRankTable{width:100%;border-collapse:separate;border-spacing:0 5px}.npsRankTable th{font-size:16px;color:#aaa;text-transform:uppercase;text-align:left;padding:0 8px 4px}.npsRankTable td{background:rgba(255,255,255,.04);padding:7px 8px;font-size:19px;font-weight:900}.npsRankTable td:first-child{border-radius:10px 0 0 10px;width:38px}.npsRankTable td:last-child{border-radius:0 10px 10px 0}
+    .npsRankNone{color:#888;font-size:16px}.npsTvComments{display:grid;gap:10px;height:calc(100% - 42px)}
+    .npsTvComment{border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-left:5px solid #777;padding:10px 14px;overflow:visible;min-height:0}
+    .npsTvComment.promotor{border-left-color:var(--green)}.npsTvComment.neutraal{border-left-color:var(--yellow)}.npsTvComment.detractor{border-left-color:var(--bad)}
+    .npsTvCommentHead{display:flex;justify-content:space-between;gap:12px;font-size:16px;font-weight:900}.npsTvCommentHead span:last-child{color:#aaa}
+    .npsTvComment p{margin:6px 0 0;font-size:18px;line-height:1.18;font-weight:700;white-space:pre-wrap}
+
+    .districtRankSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
+    .districtRankMode #overviewContent{transform:translateX(-105%);}
+    .districtRankMode .revenueSlide{transform:translateX(-105%);}
+    .districtRankMode .storeServiceSlide{transform:translateX(-105%);}
+    .districtRankMode .serviceSlide{transform:translateX(105%);}
+    .districtRankMode .missionSlide{transform:translateX(105%);}
+    .districtRankMode .carouselImageSlide{transform:translateX(105%);}
+    .districtRankMode .districtRankSlide{transform:translateX(0);}
+    .detailMode .districtRankSlide,.mediaMode .districtRankSlide,.revenueMode .districtRankSlide,.serviceMode .districtRankSlide,.storeServiceMode .districtRankSlide{transform:translateX(-105%);}
+    .districtRankHeader{height:126px;display:flex;align-items:center;justify-content:flex-start;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .districtRankHeader:after,.districtRankPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .districtRankLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
+    .districtRankName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
+    .districtRankPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:20px 24px 22px 32px;}
+    .districtRankTable{width:100%;height:100%;border-collapse:separate;border-spacing:0 8px;table-layout:fixed;}
+    .districtRankTable th{font-size:19px;text-transform:uppercase;letter-spacing:.07em;color:#ddd;font-weight:900;text-align:center;padding:0 8px 6px;white-space:nowrap;}
+    .districtRankTable th:nth-child(1){width:62px;}
+    .districtRankTable th:nth-child(2){width:230px;text-align:left;}
+    .districtRankTable th:nth-child(3){width:142px;}
+    .districtRankTable th:nth-child(4){width:92px;}
+    .districtRankTable td{padding:0 5px;vertical-align:middle;}
+    .districtRow{height:56px;}
+    .districtCell{height:56px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.018);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:20px;font-weight:900;line-height:1.05;}
+    .districtCell:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.55)}
+    .districtCell.ok:before{background:var(--green);box-shadow:0 0 12px rgba(46,204,113,.55)}
+    .districtCell.close:before{background:var(--yellow);box-shadow:0 0 12px rgba(242,201,76,.55)}
+    .districtCell.bad:before{background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.55)}
+    .districtPlace{font-size:26px;font-weight:900;color:#fff;}
+    .districtStore{text-align:left;justify-content:flex-start;padding-left:16px;font-size:24px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .districtOwn .districtCell{border-color:rgba(225,25,25,.58);background:linear-gradient(180deg,rgba(105,16,16,.38),rgba(35,8,8,.58));box-shadow:0 0 0 1px rgba(225,25,25,.12),0 0 13px rgba(225,25,25,.16),inset 0 0 16px rgba(225,25,25,.08);}
+    .districtOwn .districtStore{border-color:rgba(225,25,25,.86);box-shadow:0 0 0 2px rgba(225,25,25,.18),0 0 18px rgba(225,25,25,.28);}
+    .districtOmzet{font-size:21px;}
+    .districtScore{font-size:27px;}
+    .districtKpiVal{font-size:19px;}
+
+    .storeServiceSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
+    .storeServiceMode #overviewContent{transform:translateX(-105%);}
+    .storeServiceMode .revenueSlide{transform:translateX(-105%);}
+    .storeServiceMode .serviceSlide{transform:translateX(105%);}
+    .storeServiceMode .missionSlide{transform:translateX(105%);}
+    .storeServiceMode .carouselImageSlide{transform:translateX(105%);}
+    .storeServiceMode .storeServiceSlide{transform:translateX(0);}
+    .detailMode .storeServiceSlide,.mediaMode .storeServiceSlide,.revenueMode .storeServiceSlide,.serviceMode .storeServiceSlide{transform:translateX(-105%);}
+    .storeServiceHeader{height:126px;display:flex;align-items:center;justify-content:flex-start;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .storeServiceHeader:after,.storeServicePanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .storeServiceLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
+    .storeServiceName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
+    .storeServicePanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:22px 26px 24px 34px;}
+    .storeServiceGrid{height:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:16px;}
+    .storeServiceTile{position:relative;min-width:0;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 0 0 1px rgba(255,255,255,.018),0 14px 28px rgba(0,0,0,.24);overflow:hidden;padding:17px 18px 15px 22px;display:flex;flex-direction:column;justify-content:space-between;}
+    .storeServiceTile:before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--bad);box-shadow:0 0 14px rgba(255,52,52,.55)}
+    .storeServiceTile.ok:before{background:var(--green);box-shadow:0 0 14px rgba(46,204,113,.55)}
+    .storeServiceTile.close:before{background:var(--yellow);box-shadow:0 0 14px rgba(242,201,76,.55)}
+    .storeServiceTile.bad:before{background:var(--bad);box-shadow:0 0 14px rgba(255,52,52,.55)}
+    .storeTileKpi{font-size:29px;font-weight:900;text-transform:uppercase;letter-spacing:.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .storeTileResult{font-size:40px;font-weight:900;line-height:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:8px;}
+    .storeTileSub{font-size:18px;font-weight:900;color:#aaa;text-transform:uppercase;margin-top:6px;min-height:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .storeTileMeta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);}
+    .storeTileMetaBlock{min-width:0}
+    .storeTileMetaLabel{font-size:14px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+    .storeTileMetaValue{font-size:22px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .storeTileNeeded.ok{color:#baffc9}
+    .storeTileNeeded.close{color:#ffe484}
+    .storeTileNeeded.bad{color:#ffb0b0}
+
+    .serviceSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
+    .serviceMode #overviewContent{transform:translateX(-105%);}
+    .serviceMode .missionSlide{transform:translateX(105%);}
+    .serviceMode .carouselImageSlide{transform:translateX(105%);}
+    .serviceMode .revenueSlide{transform:translateX(-105%);}
+    .serviceMode .serviceSlide{transform:translateX(0);}
+    .detailMode .serviceSlide,.mediaMode .serviceSlide,.revenueMode .serviceSlide{transform:translateX(-105%);}
+    .serviceHeader{height:126px;display:flex;align-items:center;justify-content:flex-start;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .serviceHeader:after,.servicePanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .serviceLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
+    .serviceName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
+    .servicePanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:22px 24px 22px 32px;}
+    .serviceTableWrap{height:100%;overflow:hidden;}
+    .serviceTable{width:100%;height:100%;border-collapse:separate;border-spacing:0 8px;table-layout:fixed;}
+    .serviceTable th{font-size:18px;text-transform:uppercase;letter-spacing:.07em;color:#ddd;font-weight:900;text-align:center;padding:0 8px 7px;white-space:nowrap;}
+    .serviceTable th .serviceHeaderTarget{display:block;margin-top:5px;font-size:16px;line-height:1.15;font-weight:800;color:#2ecc71;letter-spacing:0;text-transform:none}
+    .serviceTable th:first-child{text-align:left;width:190px;}
+    .serviceTable td{padding:0 6px;vertical-align:middle;}
+    .serviceSeller{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .serviceSeller img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.16);background:#111;}
+    .serviceStoreRow .serviceCell{background:linear-gradient(135deg,rgba(225,25,25,.18),rgba(255,255,255,.045));border-color:rgba(255,83,83,.45);}
+    .serviceStoreLabel{color:#fff;text-shadow:0 0 18px rgba(225,25,25,.48);}
+    .serviceStoreLabel small{display:block;margin-top:2px;color:#d5a7a7;font-size:13px;letter-spacing:.1em;}
+    .serviceCell{position:relative;height:76px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.018);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:visible;}
+    .serviceCell:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bad);box-shadow:0 0 14px rgba(255,52,52,.55)}
+    .serviceCell.ok:before{background:var(--green);box-shadow:0 0 14px rgba(46,204,113,.55)}
+    .serviceCell.close:before{background:var(--yellow);box-shadow:0 0 14px rgba(242,201,76,.55)}
+    .serviceCell.bad:before{background:var(--bad);box-shadow:0 0 14px rgba(255,52,52,.55)}
+    .serviceCell.rankGold{border-color:rgba(255,209,102,.98);box-shadow:0 0 0 2px rgba(255,209,102,.18),0 0 16px rgba(255,209,102,.24),inset 0 0 0 1px rgba(255,255,255,.018);}
+    .serviceCell.rankSilver{border-color:rgba(217,226,239,.95);box-shadow:0 0 0 2px rgba(217,226,239,.16),0 0 16px rgba(217,226,239,.20),inset 0 0 0 1px rgba(255,255,255,.018);}
+    .serviceCell.rankBronze{border-color:rgba(208,138,75,.95);box-shadow:0 0 0 2px rgba(208,138,75,.16),0 0 16px rgba(208,138,75,.20),inset 0 0 0 1px rgba(255,255,255,.018);}
+    .serviceMain{font-size:27px;font-weight:900;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+    .serviceSub{font-size:15px;font-weight:900;color:#aaa;text-transform:uppercase;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;margin-top:4px;}
+    .serviceBubble{position:absolute;right:-7px;top:-8px;min-width:29px;height:29px;padding:0 8px;border-radius:999px;background:#6f6f6f;color:#fff;border:2px solid rgba(0,0,0,.65);box-shadow:0 0 10px rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;z-index:3;}
+
+    .revenueSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
+    .revenueMode #overviewContent{transform:translateX(-105%);}
+    .revenueMode .missionSlide{transform:translateX(105%);}
+    .revenueMode .carouselImageSlide{transform:translateX(105%);}
+    .revenueMode .revenueSlide{transform:translateX(0);}
+    .detailMode .revenueSlide,.mediaMode .revenueSlide{transform:translateX(-105%);}
+    .revenueHeader{height:126px;display:flex;align-items:center;justify-content:flex-start;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .revenueHeader:after,.revenueSummary:after,.revenueCalendarPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .revenueLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
+    .revenueName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
+    .revenueHeaderKpis{display:none;}
+    .revenueMini{border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:12px 16px;min-width:0;}
+    .revenueMiniLabel{font-size:15px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.07em;}
+    .revenueMiniValue{font-size:30px;font-weight:900;line-height:1.05;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .revenueMiniSub{font-size:16px;font-weight:900;color:#aaa;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .revenueSummary{height:128px;position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:12px 22px 12px 32px;}
+    .revenueSummaryCard{border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:5px 16px;min-width:0;}
+    .revenueSummaryCard.ok{border-color:rgba(46,204,113,.65);box-shadow:0 0 18px rgba(46,204,113,.16)}
+    .revenueSummaryCard.close{border-color:rgba(242,201,76,.65);box-shadow:0 0 18px rgba(242,201,76,.14)}
+    .revenueSummaryCard.bad{border-color:rgba(255,52,52,.65);box-shadow:0 0 18px rgba(255,52,52,.16)}
+    .revenueSummaryCard.targetToday{
+      border-color:rgba(52,145,255,.96);
+      box-shadow:0 0 0 1px rgba(52,145,255,.34),0 0 28px rgba(52,145,255,.34),inset 0 0 22px rgba(52,145,255,.10);
+      background:linear-gradient(180deg,rgba(15,62,118,.84),rgba(7,22,46,.94));
+    }
+    .revenueSummaryCard.targetToday .revSValue{
+      font-size:36px;
+      text-shadow:0 0 18px rgba(52,145,255,.50);
+    }
+    .revSLabel{font-size:16px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.07em;}
+    .revSValue{font-size:32px;font-weight:900;line-height:1.05;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .revSSub{font-size:17px;font-weight:900;color:#aaa;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .revenueCalendarPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:20px 22px 22px 32px;display:flex;flex-direction:column;}
+    .revenueCalendarTitle{margin:0 0 12px;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.05em;text-shadow:0 0 22px rgba(225,25,25,.33)}
+    .revenueDayGrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+    .dayTile{position:relative;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:10px 12px;overflow:hidden;min-width:0;display:grid;grid-template-rows:auto 1fr auto;}
+    .dayTile:after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#444;}
+    .dayTile.ok:after{background:var(--green);box-shadow:0 0 12px rgba(46,204,113,.6)}
+    .dayTile.close:after{background:var(--yellow);box-shadow:0 0 12px rgba(242,201,76,.55)}
+    .dayTile.bad:after{background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.6)}
+    .dayTile.future{opacity:.48;}
+    .dayTile.today{border-color:rgba(225,25,25,.85);box-shadow:0 0 18px rgba(225,25,25,.25)}
+    .dayTop{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:15px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.05em;}
+    .dayRevenue{font-size:25px;font-weight:900;line-height:1.05;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dayTarget{font-size:14px;font-weight:900;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dayMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:16px;font-weight:900;color:#ddd;white-space:nowrap;overflow:hidden;}
+    .dayMeta span{overflow:hidden;text-overflow:ellipsis;}
+
+  
+    #agendaPanel,#incentivePanel{display:none!important;}
+    .overviewMain{grid-template-columns:1fr!important;}
+    .overviewLeft{margin:0 auto;max-width:100%;}
+
+
+    .serviceTable th:first-child{width:170px;}
+    .serviceSeller{font-size:21px;}
+    .serviceSeller img{width:38px;height:38px;}
+    .serviceCell{height:72px;}
+    .serviceMain{font-size:24px;}
+    .serviceSub{font-size:15px;letter-spacing:.02em;}
+
+
+    .revenueTitleSentence{margin-top:9px;font-size:20px;color:#ddd;font-weight:800;line-height:1.12;text-transform:none;letter-spacing:0;max-width:1660px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dayTile.yoyMtd .dayTop{font-size:13px}.dayTile.yoyMtd .dayTarget{font-size:16px}.dayTile.yoyMtd .dayMeta{font-size:11px}
+    .dayTile.mtd{border-width:2px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(18,18,18,.96));}
+    .dayTile.mtd.ok{border-color:rgba(46,204,113,.90);box-shadow:0 0 0 1px rgba(46,204,113,.26),0 0 22px rgba(46,204,113,.24);}
+    .dayTile.mtd.close{border-color:rgba(242,201,76,.90);box-shadow:0 0 0 1px rgba(242,201,76,.24),0 0 22px rgba(242,201,76,.22);}
+    .dayTile.mtd.bad{border-color:rgba(255,52,52,.90);box-shadow:0 0 0 1px rgba(255,52,52,.25),0 0 22px rgba(255,52,52,.23);}
+
+
+    /* TV Clean Loop: Mission Diest en individuele verkopersslides uit de rotatie */
+    #overviewContent{display:none!important;}
+    #missionSlide{display:none!important;}
+
+
+
+    /* =========================================================
+       V14 - Volledige focuskaarten voor groen / geel / rood
+       ========================================================= */
+    .salesCard.ok,.kpiCard.ok,.missionCard.ok,.dayTile.ok,.mtd.ok,
+    .revenueSummaryCard.ok:not(.targetToday),.serviceCell.ok,
+    .storeServiceTile.ok,.districtCell.ok{
+      background:linear-gradient(180deg,rgba(18,92,54,.78),rgba(8,34,22,.94))!important;
+      border-color:rgba(46,204,113,.82)!important;
+      box-shadow:0 0 0 1px rgba(46,204,113,.22),0 0 27px rgba(46,204,113,.28),inset 0 0 24px rgba(46,204,113,.10)!important;
+    }
+
+    .salesCard.close,.kpiCard.close,.missionCard.close,.dayTile.close,.mtd.close,
+    .revenueSummaryCard.close:not(.targetToday),.serviceCell.close,
+    .storeServiceTile.close,.districtCell.close{
+      background:linear-gradient(180deg,rgba(108,82,12,.78),rgba(38,29,6,.94))!important;
+      border-color:rgba(242,201,76,.86)!important;
+      box-shadow:0 0 0 1px rgba(242,201,76,.20),0 0 27px rgba(242,201,76,.25),inset 0 0 24px rgba(242,201,76,.09)!important;
+    }
+
+    .salesCard.bad,.kpiCard.bad,.missionCard.bad,.dayTile.bad,.mtd.bad,
+    .revenueSummaryCard.bad:not(.targetToday),.serviceCell.bad,
+    .storeServiceTile.bad,.districtCell.bad{
+      background:linear-gradient(180deg,rgba(105,18,22,.80),rgba(38,7,10,.95))!important;
+      border-color:rgba(255,52,52,.84)!important;
+      box-shadow:0 0 0 1px rgba(255,52,52,.20),0 0 27px rgba(255,52,52,.27),inset 0 0 24px rgba(255,52,52,.10)!important;
+    }
+
+    .salesCard.ok:after,.kpiCard.ok:after,.missionCard.ok:after,.dayTile.ok:after,.mtd.ok:after,
+    .salesCard.close:after,.kpiCard.close:after,.missionCard.close:after,.dayTile.close:after,.mtd.close:after,
+    .salesCard.bad:after,.kpiCard.bad:after,.missionCard.bad:after,.dayTile.bad:after,.mtd.bad:after{
+      width:6px!important;
+    }
+
+    .serviceCell.ok:before,.serviceCell.close:before,.serviceCell.bad:before,
+    .storeServiceTile.ok:before,.storeServiceTile.close:before,.storeServiceTile.bad:before,
+    .districtCell.ok:before,.districtCell.close:before,.districtCell.bad:before{
+      width:6px!important;
+    }
+
+    .serviceCell.ok .serviceSub,.storeServiceTile.ok .storeTileSub,
+    .serviceCell.close .serviceSub,.storeServiceTile.close .storeTileSub,
+    .serviceCell.bad .serviceSub,.storeServiceTile.bad .storeTileSub{
+      color:rgba(255,255,255,.78)!important;
+    }
+
+    .districtOwn .districtCell.ok,
+    .districtOwn .districtCell.close,
+    .districtOwn .districtCell.bad{
+      outline:2px solid rgba(225,25,25,.62);
+      outline-offset:2px;
+    }
+
+
+
+    /* =========================================================
+       V16 - Compacte District Ranking + consistente fade
+       ========================================================= */
+
+    /* District Ranking compacter zodat alle actieve winkels passen */
+    .districtRankHeader{
+      height:104px!important;
+      padding:12px 30px!important;
+    }
+    .districtRankLabel{font-size:20px!important;}
+    .districtRankName{font-size:52px!important;margin-top:5px!important;}
+    .districtRankPanel{
+      padding:14px 20px 16px 28px!important;
+    }
+    .districtRankTable{
+      height:auto!important;
+      border-spacing:0 var(--district-row-gap,5px)!important;
+    }
+    .districtRankTable th{
+      font-size:16px!important;
+      padding:0 6px 4px!important;
+    }
+    .districtRankTable td{
+      padding:0 4px!important;
+    }
+    .districtRow{height:var(--district-row-h,48px)!important;}
+    .districtCell{
+      height:var(--district-row-h,48px)!important;
+      min-height:var(--district-row-h,48px)!important;
+      border-radius:calc(var(--district-row-h,48px) * .24)!important;
+      font-size:var(--district-base-font,18px)!important;
+    }
+    .districtPlace{font-size:var(--district-place-font,23px)!important;}
+    .districtStore{
+      font-size:var(--district-store-font,21px)!important;
+      padding-left:13px!important;
+    }
+    .districtOmzet{font-size:var(--district-money-font,19px)!important;}
+    .districtScore{font-size:var(--district-score-font,24px)!important;}
+    .districtKpiVal{font-size:var(--district-kpi-font,17px)!important;}
+
+    /* Gisteren: dagelijks winkel- en serviceoverzicht */
+    .yesterdaySlide{position:absolute;inset:28px;z-index:3;display:flex;flex-direction:column;gap:16px;}
+    .yesterdayHeader{height:126px;display:flex;align-items:center;justify-content:space-between;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
+    .yesterdayHeader:after,.yesterdayPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .yesterdayTitle{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36)}.yesterdayDate{font-size:23px;color:#bbb;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+    .yesterdayStoreGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;height:154px;}.yesterdayStoreCard{position:relative;border-radius:22px;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.09);padding:17px 22px 14px 30px;overflow:hidden}.yesterdayStoreCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 18px rgba(225,25,25,.65)}.yesterdayStoreCard strong{display:block;font-size:47px;line-height:1.05;font-weight:900;margin-top:7px}.yesterdayStoreCard span{font-size:19px;color:#bbb;text-transform:uppercase;font-weight:900;letter-spacing:.06em}.yesterdayStoreCard small{font-size:17px;color:#aaa;font-weight:800}
+    .yesterdayPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:18px 22px 20px 32px;overflow:hidden;display:flex;flex-direction:column}.yesterdayPanelHead{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:12px}.yesterdayPanelHead h2{margin:0;font-size:29px;text-transform:uppercase}.yesterdayPanelHead span{font-size:17px;color:#aaa;font-weight:800;text-transform:uppercase}.yesterdaySellerGrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(145px,1fr);gap:12px;flex:1;min-height:0}.yesterdaySeller{position:relative;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);padding:12px 14px 13px 20px;overflow:hidden}.yesterdaySeller:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red)}.yesterdaySellerName{font-size:25px;font-weight:900;text-transform:uppercase;line-height:1;margin-bottom:12px}.yesterdayKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.yesterdayKpi{border-radius:10px;background:rgba(0,0,0,.32);padding:5px 8px;min-width:0}.yesterdayKpi span{display:block;color:#aaa;font-size:13px;line-height:1;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.yesterdayKpi strong{display:block;font-size:25px;line-height:1.05;font-weight:900}    .yesterdayStoreCard.ok:before{background:var(--green);box-shadow:0 0 18px rgba(46,204,113,.7)}.yesterdayStoreCard.bad:before{background:var(--bad);box-shadow:0 0 18px rgba(255,52,52,.7)}
+    .yesterdaySellerTop{margin-bottom:8px;padding-right:calc(33.333% + 8px);min-height:25px}.yesterdaySellerTop .yesterdaySellerName{margin:0}.yesterdaySellerSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;min-height:60px}.yesterdayAvatarSlot{position:absolute;right:14px;top:12px;width:calc((100% - 48px)/3);height:93px;display:flex;align-items:center;justify-content:center}.yesterdayAvatar{width:66px;height:66px;border-radius:50%;object-fit:cover;border:2px solid var(--red);box-shadow:0 0 14px rgba(225,25,25,.42);flex:0 0 auto}.yesterdayOmzet{grid-column:span 2;display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-radius:10px;background:rgba(0,0,0,.32);padding:5px 9px;margin:0}.yesterdayOmzet span{font-size:14px;color:#aaa;text-transform:uppercase;font-weight:900}.yesterdayOmzet strong{font-size:22px;line-height:1;font-weight:900}.yesterdayKpi.written{background:linear-gradient(180deg,rgba(18,92,54,.78),rgba(8,34,22,.94));border:1px solid rgba(46,204,113,.82);box-shadow:0 0 13px rgba(46,204,113,.22)}.yesterdayEmpty{grid-column:1/-1;align-self:center;text-align:center;color:#aaa;font-size:26px;font-weight:800;text-transform:uppercase}
+    .revenueSummaryCard.comparisonSummary{display:flex;flex-direction:column;justify-content:center}.revenueSummaryCard.comparisonSummary .revSLabel{font-size:16px;line-height:1.2}.revenueSummaryCard.comparisonSummary .revSValue{font-size:32px;line-height:1.05;margin-top:4px}.revenueSummaryCard.comparisonSummary .revSSub{font-size:16px;font-weight:800;line-height:1.2;margin-top:4px;white-space:nowrap;text-transform:none}
+    .yesterdayPanelHead h2{flex-shrink:0}.yesterdayPanelHead span{text-align:right;line-height:1.2;max-width:1200px}
+    /* Alle TV-slides gebruiken dezelfde fade in plaats van horizontaal schuiven */
+    .yesterdaySlide,
+    .revenueSlide,
+    .storeServiceSlide,
+    .kpiServiceSlide,
+    .npsSlide,
+    .districtRankSlide,
+    .serviceSlide,
+    .carouselImageSlide{
+      transform:none!important;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:opacity .55s ease, visibility 0s linear .55s!important;
+    }
+
+    .yesterdayMode .yesterdaySlide,
+    .revenueMode .revenueSlide,
+    .storeServiceMode .storeServiceSlide,
+    .kpiServiceMode .kpiServiceSlide,
+    .npsMode .npsSlide,
+    .districtRankMode .districtRankSlide,
+    .serviceMode .serviceSlide,
+    .mediaMode .carouselImageSlide{
+      transform:none!important;
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+      transition:opacity .55s ease!important;
+      z-index:8!important;
+    }
+
+    /* Alle niet-actieve slides blijven uit beeld, ongeacht oudere transformregels */
+    .revenueMode .storeServiceSlide,
+    .revenueMode .kpiServiceSlide,
+    .revenueMode .npsSlide,
+    .revenueMode .districtRankSlide,
+    .revenueMode .serviceSlide,
+    .revenueMode .carouselImageSlide,
+    .storeServiceMode .revenueSlide,
+    .storeServiceMode .kpiServiceSlide,
+    .storeServiceMode .npsSlide,
+    .storeServiceMode .districtRankSlide,
+    .storeServiceMode .serviceSlide,
+    .storeServiceMode .carouselImageSlide,
+    .npsMode .revenueSlide,
+    .npsMode .kpiServiceSlide,
+    .npsMode .storeServiceSlide,
+    .npsMode .districtRankSlide,
+    .npsMode .serviceSlide,
+    .npsMode .carouselImageSlide,
+    .districtRankMode .revenueSlide,
+    .districtRankMode .kpiServiceSlide,
+    .districtRankMode .storeServiceSlide,
+    .districtRankMode .npsSlide,
+    .districtRankMode .serviceSlide,
+    .districtRankMode .carouselImageSlide,
+    .serviceMode .revenueSlide,
+    .serviceMode .kpiServiceSlide,
+    .serviceMode .storeServiceSlide,
+    .serviceMode .npsSlide,
+    .serviceMode .districtRankSlide,
+    .serviceMode .carouselImageSlide,
+    .mediaMode .revenueSlide,
+    .mediaMode .kpiServiceSlide,
+    .mediaMode .storeServiceSlide,
+    .mediaMode .npsSlide,
+    .mediaMode .districtRankSlide,
+    .mediaMode .serviceSlide{
+      transform:none!important;
+      opacity:0!important;
+      visibility:hidden!important;
+      pointer-events:none!important;
+    }
+
+
+    /* Akte van Vertrouwen */
+    .avvSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:14px}
+    .avvMode .avvSlide{transform:translateX(0)}
+    .avvMode .revenueSlide,.avvMode .kpiServiceSlide,.avvMode .npsSlide,.avvMode .districtRankSlide,.avvMode .serviceSlide,.avvMode .carouselImageSlide{transform:translateX(-105%)}
+    .avvHeader{height:105px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:15px 30px 15px 36px;position:relative;overflow:hidden}
+    .avvHeader:before,.avvColumn:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .avvTitle{font-size:43px;font-weight:1000;letter-spacing:1px;text-transform:uppercase}
+    .avvPeriod{font-size:20px;color:#bfbfbf;font-weight:900}
+    .avvTargetLegend{font-size:14px;color:#aaa;font-weight:800;text-align:right;margin-left:auto;margin-right:24px}
+    .avvColumns{display:grid;grid-template-columns:60% 40%;gap:14px;flex:1;min-height:0}
+    .avvColumn{position:relative;background:linear-gradient(145deg,#171717,#080808);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:18px 18px 18px 24px;min-height:0;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+    .avvColumnTitle{font-weight:1000;font-size:28px;line-height:1;text-transform:uppercase}
+    .avvStoreMetrics{display:grid;grid-template-columns:repeat(2,1fr) repeat(3,.72fr);gap:9px}
+    .avvMetric{border-radius:13px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);padding:9px 11px;min-width:0}
+    .avvMetric.primary{border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(225,25,25,.17),rgba(255,255,255,.04))}
+    .avvMetric label{display:block;color:#bbb;font-size:12px;font-weight:1000;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .avvMetric strong{display:block;font-size:27px;line-height:1.1;margin-top:4px;color:#fff}
+    .avvMetric small{display:block;color:#aaa;font-size:11px;margin-top:3px}
+    .avvSellerGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:9px;flex:1;min-height:0}
+    .avvSeller{background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px 11px;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:5px 9px;align-content:center}
+    .avvSellerName{grid-column:1/-1;font-weight:1000;font-size:17px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+    .avvSellerMetric{min-width:0}.avvSellerMetric span{display:block;color:#aaa;font-size:10px;font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.avvSellerMetric b{font-size:17px;line-height:1.1}
+    .avvSellerMetric.primary b{color:#fff}.avvSellerMetric.minor b{font-size:15px;color:#ddd}
+    .avvMetric.ok,.avvMetric.close,.avvMetric.bad{border-left:4px solid var(--red)}.avvMetric.ok{border-left-color:var(--green)}.avvMetric.close{border-left-color:var(--yellow)}
+    .avvSellerTableWrap{flex:1;min-height:0;overflow:hidden}
+    .avvSellerTable{width:100%;border-collapse:separate;border-spacing:0 8px;table-layout:fixed}
+    .avvSellerTable th{color:#999;font-size:12px;font-weight:1000;text-transform:uppercase;text-align:center;padding:0 5px 3px;white-space:nowrap}
+    .avvSellerTable th:first-child{width:7%}.avvSellerTable th:nth-child(2){text-align:left;width:23%}
+    .avvSellerTable td{background:rgba(255,255,255,.055);border-top:1px solid rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.09);padding:10px 6px;text-align:center;font-size:21px;font-weight:1000;line-height:1}
+    .avvSellerTable tbody tr{height:var(--avv-row-h,52px)}
+    .avvSellerTable td:first-child{border-left:4px solid var(--red);border-radius:12px 0 0 12px;text-align:center;padding-left:4px;color:var(--red);font-size:17px}
+    .avvSellerTable td:nth-child(2){text-align:left;padding-left:10px;text-transform:uppercase;font-size:20px}
+    .avvSellerTable td:last-child{border-radius:0 12px 12px 0;border-right:1px solid rgba(255,255,255,.09)}
+    .avvSellerTable .ok{color:var(--green)}.avvSellerTable .close{color:var(--yellow)}.avvSellerTable .bad{color:#ff7373}.avvSellerTable .none{color:#888}
+    .avvSellerTable small{display:block;color:#999;font-size:11px;font-weight:800;margin-top:4px;text-transform:none}
+    /* MTD en YTD zijn bewust visueel gelijkwaardig. */
+    .avvColumn.ytd{padding:18px 18px 18px 24px}
+    .avvColumn.ytd .avvColumnTitle{font-size:28px}.avvColumn.ytd .avvStoreMetrics{gap:9px}.avvColumn.ytd .avvMetric{padding:9px 11px}.avvColumn.ytd .avvMetric strong{font-size:27px}
+    .avvColumn.ytd .avvSellerTable{border-spacing:0 8px}.avvColumn.ytd .avvSellerTable th{font-size:12px}.avvColumn.ytd .avvSellerTable td{padding:10px 6px;font-size:21px}.avvColumn.ytd .avvSellerTable td:first-child{font-size:17px;padding-left:4px}.avvColumn.ytd .avvSellerTable td:nth-child(2){font-size:20px;padding-left:10px}.avvColumn.ytd .avvSellerTable small{font-size:11px;margin-top:4px}
+
+    /* Ook Akte van Vertrouwen gebruikt dezelfde fade als alle andere TV-slides. */
+    .avvSlide{transform:none!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility 0s linear .55s!important}
+    .avvMode .avvSlide{transform:none!important;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .55s ease!important;z-index:8!important}
+
+    /* NPS layout refinement */
+    .npsTvStats{
+      grid-template-rows:96px 72px!important;
+      gap:8px!important;
+    }
+    .npsTvCard{
+      padding:10px 16px 9px 20px!important;
+      display:grid!important;
+      grid-template-rows:auto 1fr auto!important;
+      align-items:center!important;
+    }
+    .npsTvCard span{
+      font-size:16px!important;
+      line-height:1.05!important;
+      align-self:start!important;
+    }
+    .npsTvCard strong{
+      font-size:36px!important;
+      line-height:1!important;
+      margin:4px 0!important;
+      align-self:center!important;
+    }
+    .npsTvCard small{
+      font-size:14px!important;
+      line-height:1.05!important;
+      align-self:end!important;
+      display:block!important;
+      padding-bottom:1px!important;
+    }
+    .npsTvCard.ytd{
+      padding:8px 14px 7px 18px!important;
+    }
+    .npsTvCard.ytd span{font-size:14px!important;}
+    .npsTvCard.ytd strong{font-size:31px!important;}
+    .npsTvCard.ytd small{font-size:13px!important;}
+
+    .npsTvBottom{
+      grid-template-columns:48% 52%!important;
+      gap:14px!important;
+      flex:1!important;
+      min-height:0!important;
+    }
+    .npsTvPanel{
+      display:flex!important;
+      flex-direction:column!important;
+      min-height:0!important;
+    }
+    .npsTvPanel h2{
+      flex:0 0 auto!important;
+    }
+
+    #npsTvRanking{
+      flex:1!important;
+      min-height:0!important;
+      overflow:hidden!important;
+    }
+    .npsRankTable{
+      width:100%!important;
+      height:100%!important;
+      border-collapse:separate!important;
+      border-spacing:0 var(--nps-rank-gap,7px)!important;
+      table-layout:fixed!important;
+    }
+    .npsRankTable thead{
+      height:34px!important;
+    }
+    .npsRankTable tbody tr{
+      height:var(--nps-rank-row-h,50px)!important;
+    }
+    .npsRankTable th{
+      font-size:17px!important;
+      padding:0 9px 5px!important;
+    }
+    .npsRankTable td{
+      padding:0 10px!important;
+      font-size:var(--nps-rank-font,20px)!important;
+      height:var(--nps-rank-row-h,50px)!important;
+      vertical-align:middle!important;
+    }
+
+    .npsTvComments{
+      flex:1!important;
+      min-height:0!important;
+      height:auto!important;
+      overflow:hidden!important;
+      align-content:start!important;
+    }
+    .npsTvComment{
+      padding:11px 14px!important;
+    }
+    .npsTvCommentHead{
+      font-size:17px!important;
+    }
+    .npsTvComment p{
+      font-size:18px!important;
+      line-height:1.2!important;
+      margin:7px 0 0!important;
+    }
+
+
+    /* NPS ranking: cleane maand/YTD-hiërarchie */
+    .npsRankTable{
+      border-spacing:0 var(--nps-rank-gap,8px)!important;
+    }
+    .npsRankTable tbody tr{
+      height:var(--nps-rank-row-h,62px)!important;
+    }
+    .npsRankTable td{
+      height:var(--nps-rank-row-h,62px)!important;
+      padding:6px 10px!important;
+      vertical-align:middle!important;
+    }
+    .npsRankTable td:first-child{
+      width:46px!important;
+      text-align:center!important;
+    }
+    .npsRankTable th:nth-child(1){width:46px!important;}
+    .npsRankTable th:nth-child(2){width:190px!important;}
+    .npsRankTable th:nth-child(3){width:130px!important;}
+    .npsRankTable th:nth-child(4){width:150px!important;}
+    .npsRankTable th:nth-child(5){width:110px!important;}
+
+    .npsRankPrimary{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:23px;
+      font-size:var(--nps-rank-font,20px);
+      font-weight:900;
+      line-height:1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .npsRankSecondary{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin-top:5px;
+      min-height:17px;
+      font-size:var(--nps-rank-sub-font,14px);
+      line-height:1;
+      color:#9f9f9f;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .npsRankSecondary .ytdLabel{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:33px;
+      height:17px;
+      padding:0 6px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.09);
+      color:#d5d5d5;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      flex:0 0 auto;
+    }
+    .npsMonthScore{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:58px;
+      height:32px;
+      padding:0 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      font-size:21px;
+      font-weight:900;
+      line-height:1;
+    }
+    .npsMonthScore.statusOk{
+      color:#baffc9;
+      border-color:rgba(46,204,113,.72);
+      background:rgba(46,204,113,.12);
+      box-shadow:0 0 14px rgba(46,204,113,.18);
+    }
+    .npsMonthScore.statusClose{
+      color:#ffe484;
+      border-color:rgba(242,201,76,.72);
+      background:rgba(242,201,76,.11);
+      box-shadow:0 0 14px rgba(242,201,76,.16);
+    }
+    .npsMonthScore.statusBad{
+      color:#ffb0b0;
+      border-color:rgba(255,52,52,.72);
+      background:rgba(255,52,52,.11);
+      box-shadow:0 0 14px rgba(255,52,52,.17);
+    }
+    .npsMonthScore.empty{
+      color:#8d8d8d;
+      border-color:rgba(255,255,255,.08);
+      background:rgba(255,255,255,.025);
+      box-shadow:none;
+    }
+    .npsSellerName{
+      font-size:21px;
+      font-weight:900;
+      text-transform:none;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .npsRankMuted{
+      color:#8c8c8c;
+    }
+
+    /* Negen verkopers passen volledig in de NPS-ranking; MTD blijft visueel dominant. */
+    .npsRankTable thead{height:30px!important;}
+    .npsRankTable td{padding:3px 8px!important;}
+    .npsRankPrimary{min-height:19px;gap:6px;}
+    .npsRankSecondary{min-height:13px;margin-top:2px;gap:5px;}
+    .npsRankSecondary .ytdLabel{min-width:28px;height:14px;padding:0 4px;font-size:9px;}
+    .npsMonthScore{min-width:52px;height:27px;padding:0 8px;font-size:18px;}
+    .npsSellerName{font-size:19px;}
+
+    .kpiServiceSlide{position:absolute;inset:28px;z-index:3;display:flex;flex-direction:column;gap:16px;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1)}
+    .kpiServiceHeader,.kpiServiceColumn{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden}
+    .kpiServiceHeader{height:126px;display:flex;align-items:center;padding:18px 34px}.kpiServiceHeader:after,.kpiServiceColumn:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .kpiServiceLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1}.kpiServiceName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px}
+    .kpiServiceSplit{display:grid;grid-template-columns:7fr 3fr;gap:16px;flex:1;min-height:0}.kpiServiceSplit.omzet{grid-template-columns:7fr 3fr}.kpiServiceColumn{min-height:0;padding:18px 18px 20px 26px;display:flex;flex-direction:column;gap:14px}.kpiServiceColumn.ytd{padding-left:22px}
+    .kpiServicePeriod,.kpiServiceColumn.ytd .kpiServicePeriod{font-size:34px;line-height:1;font-weight:900;text-transform:uppercase;color:#ddd}.kpiServiceShop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpiServiceShop.single{grid-template-columns:1fr}
+    .kpiShopCard{min-width:0;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);padding:9px 11px 8px 15px;position:relative;overflow:hidden}.kpiShopCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bad)}.kpiShopCard.ok:before{background:var(--green)}.kpiShopCard.close:before{background:var(--yellow)}
+    .kpiShopCard span{display:block;color:#bbb;font-size:17px;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiShopCard strong{display:block;font-size:38px;line-height:1;margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiShopCard small{display:block;font-size:16px;color:#ddd;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .kpiSellerTable{width:100%;border-collapse:separate;border-spacing:0 4px;table-layout:fixed}.kpiSellerTable th{font-size:14px;color:#aaa;text-transform:uppercase;text-align:right;padding:0 5px 3px;white-space:nowrap}.kpiSellerTable th:nth-child(-n+2){text-align:left}.kpiSellerTable td{background:rgba(255,255,255,.04);padding:7px 5px;font-size:17px;line-height:1;font-weight:900;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiSellerTable td:first-child{border-radius:10px 0 0 10px;width:32px;color:var(--red);text-align:left}.kpiSellerTable td:nth-child(2){text-align:left;text-transform:uppercase}.kpiSellerTable td:last-child{border-radius:0 10px 10px 0}.kpiSellerTable .ok{color:#baffc9}.kpiSellerTable .close{color:#ffe484}.kpiSellerTable .bad{color:#ffb0b0}.kpiPortfolioPlaceholder{color:#aaa!important;font-size:15px!important}
+    .kpiSellerCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:10px;flex:1;min-height:0}.kpiSellerCards.ytd{grid-template-columns:1fr;grid-template-rows:none;gap:9px}.kpiSellerTile{position:relative;min-width:0;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));padding:11px 13px 10px 18px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}.kpiSellerTile:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bad)}.kpiSellerTile.ok:before{background:var(--green)}.kpiSellerTile.close:before{background:var(--yellow)}.kpiSellerTile.bad:before{background:var(--bad)}
+    .kpiSellerTop{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.kpiSellerRank{font-size:18px;color:var(--red);font-weight:900}.kpiSellerName{font-size:23px;line-height:1;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}.kpiSellerMain{font-size:36px;line-height:1;font-weight:900;margin:6px 0}.kpiSellerFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kpiSellerFacts span{border-radius:8px;background:rgba(0,0,0,.28);padding:4px 6px;color:#ddd;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiSellerFacts strong{display:block;color:#fff;font-size:18px;line-height:1;margin-top:2px}.kpiSellerFacts .needsAttention{border:1px solid rgba(255,52,52,.58);box-shadow:0 0 18px rgba(255,52,52,.42),inset 0 0 12px rgba(255,52,52,.12);color:#ffd1d1}.kpiSellerFacts .metric-ok{border-left:4px solid var(--green)}.kpiSellerFacts .metric-close{border-left:4px solid var(--yellow)}.kpiSellerFacts .metric-bad{border-left:4px solid var(--bad)}
+    .kpiSellerAvatar{object-fit:cover;border-radius:50%;border:2px solid var(--red);box-shadow:0 0 16px rgba(225,25,25,.38);background:#111}.kpiSellerAvatar.mtd{position:absolute;right:13px;top:10px;width:76px;height:76px}.kpiSellerAvatar.podiumGold{border-color:var(--gold);box-shadow:0 0 20px rgba(255,209,102,.78)}.kpiSellerAvatar.podiumSilver{border-color:#d9dde3;box-shadow:0 0 20px rgba(217,221,227,.72)}.kpiSellerAvatar.podiumBronze{border-color:#cd7f32;box-shadow:0 0 20px rgba(205,127,50,.72)}.kpiSellerTop:has(.kpiSellerAvatar.mtd) .kpiSellerName{padding-right:80px}.kpiSellerCards.ytd .kpiSellerTile{min-height:0;padding:10px 13px 35px 19px;display:grid;grid-template-columns:32px minmax(0,1fr) 154px;grid-template-rows:auto;align-items:center;gap:8px}.kpiSellerCards.ytd .kpiSellerTile.noFacts{padding-bottom:10px;grid-template-columns:32px minmax(0,1fr) 154px}.kpiSellerCards.ytd .kpiSellerTop{display:contents}.kpiSellerCards.ytd .kpiSellerRank{grid-column:1;grid-row:1;font-size:18px}.kpiSellerCards.ytd .kpiSellerName{grid-column:2;grid-row:1;font-size:22px}.kpiSellerCards.ytd .kpiSellerMain{grid-column:3;grid-row:1;font-size:27px;margin:0;text-align:right}.kpiSellerCards.ytd .kpiSellerFacts{position:absolute!important;left:19px;right:13px;bottom:10px;width:auto!important;display:block!important;text-align:right;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}.kpiSellerCards.ytd .kpiYtdFacts{display:block;background:transparent!important;padding:0!important;border:0!important;color:#ddd;font-size:16px;font-weight:800;line-height:1.2}.kpiSellerExtra{font-size:15px;color:#bbb;font-weight:800;margin-top:7px}.kpiSellerCards.ytd .kpiSellerExtra{display:none}
+
+    .kpiStoreSummary{border-color:rgba(255,255,255,.27);background:linear-gradient(145deg,rgba(100,120,105,.24),rgba(255,255,255,.045))}.kpiStoreSummary.storeMtd{grid-column:2;grid-row:3}.kpiStoreSummary.storeYtd{grid-column:3;grid-row:3}.kpiStoreSummary .kpiSellerName{font-size:23px}.kpiStoreBadge{font-size:15px;letter-spacing:.08em;color:#baffc9;font-weight:900}.kpiStoreDetail{color:#ddd;font-size:17px;font-weight:800;line-height:1.25}.kpiStoreSummary .kpiSellerMain{font-size:36px}
+
+    /* Daily scoreboard: one aligned row per active seller. */
+    .yesterdayColumns,.yesterdaySeller{display:grid;grid-template-columns:minmax(250px,1.8fr) minmax(165px,1.1fr) repeat(6,minmax(0,1fr));gap:14px;align-items:center}
+    .yesterdayColumns{padding:0 18px 10px 20px;color:#aaa;font-size:19px;font-weight:900;text-transform:uppercase;text-align:center}.yesterdayColumns span:first-child{text-align:left}
+    .yesterdaySellerGrid{grid-template-columns:1fr;grid-template-rows:repeat(var(--seller-count,7),minmax(0,1fr));grid-auto-rows:auto;gap:10px}
+    .yesterdaySeller{padding:7px 18px 7px 20px;border-radius:14px;min-height:0}.yesterdayIdentity{display:flex;align-items:center;gap:16px;min-width:0}.yesterdayAvatar{width:64px;height:64px}.yesterdaySellerName{font-size:29px;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .yesterdaySeller .yesterdayOmzet{grid-column:auto;display:flex;align-items:center;justify-content:center;margin:0;height:100%;max-height:68px;padding:6px 8px;min-width:0}.yesterdaySeller .yesterdayOmzet strong{font-size:32px;white-space:nowrap}.yesterdaySeller .yesterdayOmzet span,.yesterdaySeller .yesterdayKpi span{display:none}
+    .yesterdaySeller .yesterdayKpi{height:100%;max-height:68px;display:flex;align-items:center;justify-content:center;padding:6px 8px;border:1px solid transparent}.yesterdaySeller .yesterdayKpi strong{font-size:36px}.yesterdaySeller .yesterdayKpi.written{border-color:rgba(46,204,113,.82)}
+    .yesterdaySource{flex-shrink:0;padding-top:10px;font-size:15px;color:#999;font-weight:700;line-height:1.2;text-transform:uppercase}.yesterdayPanel{padding-bottom:26px}
+
+    .tvExportOverlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;font-family:'Rajdhani',Arial,sans-serif;color:#fff}
+    .tvExportOverlay.show{display:flex}.tvExportCard{width:min(680px,calc(100vw - 48px));padding:34px;border-radius:24px;background:linear-gradient(180deg,#191919,#080808);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}.tvExportCard h2{margin:0 0 10px;font-size:40px;text-transform:uppercase}.tvExportCard p{margin:0 0 20px;color:#bbb;font-size:20px;font-weight:700}.tvExportCard button{border:1px solid #ff4545;border-radius:999px;background:linear-gradient(180deg,#c91515,#650707);color:#fff;padding:13px 24px;font:900 19px 'Rajdhani',Arial,sans-serif;text-transform:uppercase;cursor:pointer}
+
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="overviewContent">
+    <section class="missionHeader" style="margin-bottom:16px;">
+      <div>
+        <div class="missionName" id="hqTitle">Mission Diest: Edition</div>
+        <div id="hqSubtitle" style="margin-top:10px;font-size:24px;color:#ddd;font-weight:700"></div>
+      </div>
+    </section>
+
+    <section class="panel salesPanel">
+      <h2 class="panelTitle">Omzet</h2>
+      <div class="salesGrid" id="salesGrid"></div>
+    </section>
+
+    <section class="panel storePanel">
+      <h2 class="panelTitle">Winkelresultaten</h2>
+      <div class="storeGrid" id="storeGrid"></div>
+    </section>
+
+    <section class="panel sellerPanel">
+      <h2 class="panelTitle">Verkopersoverzicht</h2>
+      <div class="sellerTableWrap"><table class="sellerTable" id="sellerTable"></table></div>
+    </section>
+    </div>
+
+
+    <section class="yesterdaySlide" id="yesterdaySlide">
+      <div class="yesterdayHeader"><div class="yesterdayTitle">Laatste verkopen</div><div class="yesterdayDate" id="yesterdayDate">Laatste afgesloten dag</div></div>
+      <div class="yesterdayPanel"><div class="yesterdayPanelHead"><h2>Services per verkoper</h2><span id="yesterdayRevenuePeriod" style="font-size:18px;color:#ccc;text-transform:none"></span></div><div class="yesterdayColumns" aria-hidden="true"><span>Verkoper</span><span id="yesterdayRevenueLabel">Omzet</span><span>Life</span><span>Insurance</span><span>DSP</span><span>Abo</span><span>SPG</span><span>SRP</span></div><div class="yesterdaySellerGrid" id="yesterdaySellerGrid"></div><div class="yesterdaySource" id="yesterdayStatus"></div></div>
+    </section>
+    <section class="revenueSlide" id="revenueSlide">
+      <div class="revenueHeader">
+        <div>
+          <div class="revenueName">Omzet</div>
+          <div class="revenueTitleSentence" id="revenueTitleSentence"></div>
+        </div>
+        <div class="revenueHeaderKpis" id="revenueHeaderKpis"></div>
+      </div>
+      <div class="revenueSummary" id="revenueSummary"></div>
+      <div class="revenueCalendarPanel">
+        <h2 class="revenueCalendarTitle">Dagoverzicht huidige maand</h2>
+        <div class="revenueDayGrid" id="revenueDayGrid"></div>
+      </div>
+    </section>
+
+
+
+    <section class="kpiServiceSlide" id="kpiServiceSlide">
+      <div class="kpiServiceHeader">
+        <div>
+          <div class="kpiServiceLabel">Service Overzicht</div>
+          <div class="kpiServiceName" id="kpiServiceName">Life</div>
+        </div>
+      </div>
+      <div class="kpiServiceSplit" id="kpiServiceSplit"></div>
+    </section>
+
+
+    <section class="npsSlide" id="npsSlide">
+      <div class="npsTvHeader"><div class="npsTvTitle">NPS</div><div class="npsTvPeriod" id="npsTvPeriod"></div></div>
+      <div class="npsTvStats" id="npsTvStats"></div>
+      <div class="npsTvBottom">
+        <div class="npsTvPanel"><h2>Ranking verkopers</h2><div id="npsTvRanking"></div></div>
+        <div class="npsTvPanel"><h2>Recente commentaren</h2><div class="npsTvComments" id="npsTvComments"></div></div>
+      </div>
+    </section>
+
+    <section class="avvSlide" id="avvSlide">
+      <div class="avvHeader"><div class="avvTitle">Akte Van Vertrouwen</div><div class="avvTargetLegend">AVV &amp; LPG: 70% geel · 80% groen &nbsp;|&nbsp; Beleving: 90% geel · 95% groen</div><div class="avvPeriod" id="avvPeriod"></div></div>
+      <div class="avvColumns">
+        <div class="avvColumn"><div class="avvColumnTitle">MTD</div><div class="avvStoreMetrics" id="avvMonthStore"></div><div class="avvSellerTableWrap" id="avvMonthSellers"></div></div>
+        <div class="avvColumn ytd"><div class="avvColumnTitle">YTD</div><div class="avvStoreMetrics" id="avvYtdStore"></div><div class="avvSellerTableWrap" id="avvYtdSellers"></div></div>
+      </div>
+    </section>
+
+    <section class="districtRankSlide" id="districtRankSlide">
+      <div class="districtRankHeader">
+        <div>
+          <div class="districtRankLabel">District</div>
+          <div class="districtRankName">Ranking BIG 7</div>
+        </div>
+      </div>
+      <div class="districtRankPanel">
+        <table class="districtRankTable" id="districtRankTable"></table>
+      </div>
+    </section>
+
+    <section class="serviceSlide" id="serviceSlide">
+      <div class="serviceHeader">
+        <div>
+          <div class="serviceName">Service Overzicht</div>
+        </div>
+      </div>
+      <div class="servicePanel">
+        <div class="serviceTableWrap"><table class="serviceTable" id="serviceTable"></table></div>
+      </div>
+    </section>
+
+    <section class="missionSlide" id="missionSlide">
+      <div class="missionHeader">
+        <div>
+          <div class="missionLabel">Today's Mission</div>
+          <div class="missionName" id="missionName">Verkoper</div>
+          <div class="missionLine" id="missionLine">Laden...</div>
+        </div>
+      </div>
+      <div class="missionBody">
+        <div class="missionAvatarBox"><img id="missionAvatar" src="" alt=""></div>
+        <div class="missionCards" id="missionCards"></div>
+      </div>
+      <div class="missionTodoPanel">
+        <div class="missionTodoBlock">
+          <h3>To do vandaag</h3>
+          <div id="missionTodos" class="missionTodoList"></div>
+        </div>
+        <div class="missionTodoBlock">
+          <h3>Sterktes</h3>
+          <div id="missionStrengths" class="missionStrengths"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="carouselImageSlide" id="carouselImageSlide">
+      <img id="carouselImage" src="" alt="Carousel afbeelding">
+    </section>
+
+    <div class="tvControls">
+      <button id="prevSlide" title="Vorige">PREV</button>
+      <button id="playPause" title="Play/Pause">PLAY</button>
+      <button id="nextSlide" title="Volgende">NEXT</button>
+    </div>
+    <div class="foot" id="periodLabel"></div>
+  </div>
+
+  <div class="tvExportOverlay" id="tvExportOverlay"><div class="tvExportCard"><h2>TV PDF Export</h2><p id="tvExportStatus">De eerste vijf slides worden voorbereid.</p><button id="tvExportRetry" type="button">Download opnieuw</button></div></div>
+
+  <script src="assets/config-data.js"></script>
+  <script src="assets/district-data.js"></script>
+  <script src="assets/resultaten-data.js"></script>
+  <script src="assets/gisteren-service-data.js"></script>
+  <script src="assets/omzet-dag-data.js"></script>
+  <script src="assets/revenue-daily.js"></script>
+  <script src="assets/sales-extra-data.js"></script>
+  <script src="assets/sales-days-data.js"></script>
+  <script src="assets/historiek-dag-data.js"></script>
+  <script src="assets/verkopers-data.js"></script>
+  
+  <script src="assets/agenda-data.js"></script>
+  <script src="assets/carousel-data.js"></script>
+  <script src="assets/nps-data.js"></script>
+  <script src="assets/avv-data.js"></script>
+  <script src="assets/portfolio-data.js"></script>
+  <script src="assets/import-status-data.js"></script>
+  <script src="assets/calculations.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+  (function(){
+    const moneyFmt = new Intl.NumberFormat('nl-BE',{maximumFractionDigits:0});
+    const pctFmt = new Intl.NumberFormat('nl-BE',{maximumFractionDigits:1});
+    const data = Array.isArray(window.DIESTROYERS_RESULTATEN) ? window.DIESTROYERS_RESULTATEN : [];
+    const salesExtra = window.DIESTROYERS_SALES_EXTRA || {};
+    const gisterenService = window.DIESTROYERS_GISTEREN_SERVICE || {available:false,sellers:[]};
+    const salesDays = Array.isArray(window.DIESTROYERS_SALES_DAYS) ? window.DIESTROYERS_SALES_DAYS : [];
+    const historiekDays = Array.isArray(window.DIESTROYERS_HISTORIEK_DAG) ? window.DIESTROYERS_HISTORIEK_DAG : [];
+    const verkopers = Array.isArray(window.DIESTROYERS_VERKOPERS) ? window.DIESTROYERS_VERKOPERS : [];
+    const incentives = Array.isArray(window.DIESTROYERS_INCENTIVES) ? window.DIESTROYERS_INCENTIVES : [];
+    const agenda = Array.isArray(window.DIESTROYERS_AGENDA) ? window.DIESTROYERS_AGENDA : [];
+    const carouselImages = Array.isArray(window.DIESTROYERS_CAROUSEL) ? window.DIESTROYERS_CAROUSEL.filter(Boolean) : [];
+    const adminConfig = window.DIESTROYERS_CONFIG_DATA || {};
+    const rawDistrictRows = Array.isArray(window.DIESTROYERS_DISTRICT) ? window.DIESTROYERS_DISTRICT : [];
+    const npsData = window.DIESTROYERS_NPS || {};
+    const avvData = window.DIESTROYERS_AVV || {};
+
+    const kpis = [
+      {key:'Omzet', label:'Omzet', type:'amount', val:'Omzet', target:'OmzetTarget', unit:'€'},
+      {key:'Life', label:'Life', type:'count', val:'Life', target:'LifeTarget', unit:'stuks'},
+      {key:'Insurance', label:'Insurance', short:'Ins', type:'ratio', teller:'InsuranceStuks', noemer:'InsuranceKansen', target:'InsuranceTargetPct'},
+      {key:'Abo', label:'Abo', type:'ratio', teller:'AboStuks', noemer:'AboKansen', target:'AboTargetPct'},
+      {key:'DSP', label:'DSP', type:'ratio', teller:'DSPStuks', noemer:'DSPKansen', target:'DSPTargetPct'},
+      {key:'SPG', label:'SPG', type:'ratio', teller:'SPGStuks', noemer:'SPGKansen', target:'SPGTargetPct'},
+      {key:'SRP', label:'SRP', type:'ratio', teller:'SRPStuks', noemer:'SRPKansen', target:'SRPTargetPct'},
+      {key:'Accessoires', label:'Accessoires', short:'Acc', type:'accessoires', val:'Accessoires', target:'AccessoiresTargetPct', unit:'€'},
+      {key:'Link', label:'Link', type:'pct', val:'LinkPct', target:'LinkTargetPct'},
+      {key:'Monster', label:'Monster', short:'Monster', type:'amount', val:'Monster', target:'MonsterTarget', unit:'€'},
+      {key:'S', label:'S', type:'s', val:'SRatio'}
+    ];
+    const storeOrder = ['Life','Insurance','Abo','DSP','SPG','SRP','Link'];
+    const tableOrder = ['Omzet','Life','Insurance','Abo','DSP','SPG','SRP','Accessoires','Link','Monster'];
+    const stukAchterstandBadges = new Set(['Life','Insurance','Abo','DSP','SPG','SRP']);
+    const serviceOrder = ['Omzet','Life','Insurance','Abo','DSP','SPG','SRP','Accessoires','Link','Monster'];
+
+    function s(v){return String(v ?? '').trim()}
+    function n(v){if(v===null||v===undefined||v==='') return 0; return Number(String(v).replace(',','.'))||0}
+    function servicePercentage(stuks,kansen){
+      const central=window.Diestroyers?.calculations?.servicePercentage;
+      if(typeof central==='function') return central(stuks,kansen);
+      // Compatibiliteit met een oudere, door Excel gepubliceerde calculations.js:
+      // de TV blijft werken met exact dezelfde officiële serviceformule.
+      const actual=n(stuks), opportunities=n(kansen);
+      return actual===0&&opportunities===0?0:actual/Math.max(1,opportunities)*100;
+    }
+    function norm(v){return s(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+    const portfolioByBips=new Map(Object.entries(window.DIESTROYERS_PORTFOLIO||{}).map(([bips,pct])=>[s(bips),n(pct)]));
+    const sellerBipsByName=new Map(verkopers.map(v=>[norm(v.Naam||v.naam),s(v.PersoneelsNr||v.personeelsNr||v.id)]));
+    function portfolioPercentage(row){if(window.DIESTROYERS_PORTFOLIO_STATUS?.available===false)return null;return portfolioByBips.get(s(row.PersoneelsNr||row.personeelsNr||row.Bips||row.bips||sellerBipsByName.get(norm(row.Naam||row.naam))))||0}
+    function shopKey(v){
+      const raw=s(v);
+      if(!raw) return '';
+      const digits=raw.replace(/\D/g,'');
+      if(digits) return String(parseInt(digits,10));
+      return norm(raw);
+    }
+    function activeFlag(v){
+      return !['nee','no','0','false','inactief','n'].includes(norm(v));
+    }
+    function mergeDistrictRows(){
+      const configured=Array.isArray(adminConfig.district)
+        ? adminConfig.district.filter(d=>activeFlag(d.Actief ?? 'JA') && (s(d.ShopNr)||s(d.Winkel)))
+        : [];
+
+      const rawMap=new Map();
+      rawDistrictRows.forEach(row=>{
+        const key=shopKey(row.ShopNr || row.Winkel);
+        if(key) rawMap.set(key,{...row});
+      });
+
+      // config-data.js is de leidende lijst: elke actieve winkel moet zichtbaar zijn,
+      // zelfs wanneer de XLSM-export voor die winkel tijdelijk geen cijfers bevat.
+      if(configured.length){
+        return configured.map(cfg=>{
+          const key=shopKey(cfg.ShopNr || cfg.Winkel);
+          const exported=rawMap.get(key) || {};
+          return {
+            ...exported,
+            ...cfg,
+            // Cijfers uit de XLSM-export behouden voor zover beschikbaar.
+            Periode: exported.Periode || period,
+            ShopNr: s(cfg.ShopNr) || s(exported.ShopNr),
+            Winkel: s(cfg.Winkel) || s(exported.Winkel) || s(cfg.ShopNr),
+            Regio: s(cfg.Regio) || s(exported.Regio) || 'Regio',
+            Actief: s(cfg.Actief) || s(exported.Actief) || 'JA',
+            EigenWinkel: s(exported.EigenWinkel) ||
+              (shopKey(cfg.ShopNr)===shopKey(adminConfig.shop?.shopNr || '208') ? 'JA' : 'NEE')
+          };
+        });
+      }
+
+      return rawDistrictRows.filter(row=>activeFlag(row.Actief ?? 'JA'));
+    }
+    function esc(v){return s(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+    function todayStr(){const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+    function currentPeriod(){const p=data.map(r=>s(r.Periode)).filter(Boolean).sort(); return p.at(-1)||new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')}
+    const period = currentPeriod();
+    const districtRows = mergeDistrictRows();
+    const maanden=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+    {
+      const m=period.split('-');
+      const maand=(m.length===2?maanden[parseInt(m[1],10)-1]:period);
+      let yoy=n(salesExtra.omzetMtdVsLy);
+      if(Math.abs(yoy)>0&&Math.abs(yoy)<=1) yoy*=100;
+      document.getElementById('hqTitle').textContent=`Mission Diest: ${maand} Edition`;
+      document.getElementById('hqSubtitle').textContent=
+      `Gisteren deden we € ${moneyFmt.format(n(salesExtra.omzetGisteren))}, dankzij een concretisatie van ${pctDisplayValue(salesExtra.concretisatieGisteren)} op ${moneyFmt.format(n(salesExtra.klantenGisteren))} klanten. Dat brengt ons deze maand op ${yoy>=0?'+':''}${pctFmt.format(yoy)}% ten opzichte van vorig jaar.`;
+    }
+    document.getElementById('periodLabel').textContent = 'Periode ' + period;
+    function isActieveVerkoper(row){
+      const id = s(row.PersoneelsNr);
+      const naam = s(row.Naam);
+      const v = verkopers.find(x =>
+        (id && s(x.PersoneelsNr) === id) ||
+        (naam && norm(x.Naam) === norm(naam))
+      );
+      return !v || !['nee','no','0','false','inactief'].includes(norm(v.Actief));
+    }
+    const sellers = data.filter(r=>s(r.Periode)===period && norm(r.EntiteitType)==='verkoper' && isActieveVerkoper(r));
+    const store = data.find(r=>s(r.Periode)===period && (norm(r.EntiteitType)==='winkel'||norm(r.Naam)==='diest')) || {};
+    function def(key){return kpis.find(k=>norm(k.key)===norm(key))}
+
+    function metric(row,k){
+      let actual=0,target=0,pct=0,display='—',todo='—';
+      if(k.type==='ratio'){
+        const teller=n(row[k.teller]), noemer=n(row[k.noemer]); target=n(row[k.target]); actual=servicePercentage(teller,noemer); pct=target?actual/target*100:0;
+        display=`${pctFmt.format(actual)}%`;
+        const need=Math.max(0,Math.ceil(target/100*Math.max(1,noemer)-teller)); todo=need>0?`${need} to do`:'On track';
+      } else if(k.type==='accessoires'){
+        actual=n(row[k.val]); target=n(row.Omzet)*n(row[k.target])/100; pct=target?actual/target*100:0;
+        display='€ '+moneyFmt.format(actual); const diff=Math.max(0,target-actual); todo=diff>0?`€ ${moneyFmt.format(diff)} to do`:'On track';
+      } else if(k.type==='pct'){
+        actual=n(row[k.val]); target=n(row[k.target]); pct=target?actual/target*100:0;
+        display=pctFmt.format(actual)+'%'; const diff=Math.max(0,target-actual); todo=diff>0?`${pctFmt.format(diff)}% to do`:'On track';
+      } else {
+        actual=n(row[k.val]); target=n(row[k.target]); pct=target?actual/target*100:0;
+        display=k.unit==='€'?'€ '+moneyFmt.format(actual):moneyFmt.format(actual);
+        const diff=Math.max(0,target-actual); todo=diff>0?(k.unit==='€'?`€ ${moneyFmt.format(diff)} to do`:`${moneyFmt.format(diff)} to do`):'On track';
+      }
+      const points = pct>=100?3:(pct>=90?1:0);
+      return {actual,target,pct,display,todo,points,status:pct>=100?'ok':(pct>=90?'close':'bad')};
+    }
+    function sellerScore(row){return tableOrder.reduce((a,key)=>a+metric(row,def(key)).points,0)}
+    function avatar(name){const v=verkopers.find(x=>norm(x.Naam)===norm(name)); return v&&s(v.Avatar)?'assets/'+s(v.Avatar):'assets/'+norm(name)+'.png'}
+
+    function topRanks(){
+      const ranks = {};
+      for(const key of tableOrder){
+        const k=def(key);
+        const sorted = sellers.map(r=>({name:s(r.Naam), value:metric(r,k).actual}))
+          .filter(x=>x.name && isFinite(x.value))
+          .sort((a,b)=>b.value-a.value);
+        ranks[key] = {};
+        let place=0, last=null, seen=0;
+        for(const item of sorted){
+          seen++;
+          if(last===null || item.value!==last){place=seen; last=item.value;}
+          if(place<=3 && item.value>0) ranks[key][norm(item.name)] = place;
+        }
+      }
+      return ranks;
+    }
+    const podium = topRanks();
+    function podiumClass(name,key){const p=podium[key]?.[norm(name)]; return p===1?'rankGold':p===2?'rankSilver':p===3?'rankBronze':''}
+    function stukAchterstand(row,k){
+      if(k.type==='ratio'){
+        const teller=n(row[k.teller]), noemer=n(row[k.noemer]), target=n(row[k.target]);
+        return Math.max(0,Math.ceil(target/100*Math.max(1,noemer)-teller));
+      }
+      return Math.max(0,Math.ceil(n(row[k.target])-n(row[k.val])));
+    }
+    function badgeHtml(row,key){
+      if(!stukAchterstandBadges.has(key)) return '';
+      const achter=stukAchterstand(row,def(key));
+      return achter>0?`<span class="todoBadge">${esc(achter)}</span>`:'';
+    }
+
+
+
+
+    function monthProgressRatio(){
+      const wdMaand=n(salesExtra.werkdagenMaand);
+      const wdVoorbij=n(salesExtra.werkdagenVoorbij);
+      if(wdMaand>0 && wdVoorbij>0) return Math.max(0,Math.min(1,wdVoorbij/wdMaand));
+
+      const parts=period.split('-').map(Number);
+      const year=parts[0]||new Date().getFullYear();
+      const month=parts[1]||new Date().getMonth()+1;
+      const now=new Date();
+      const sameMonth=now.getFullYear()===year && now.getMonth()+1===month;
+      const daysInMonth=new Date(year,month,0).getDate();
+      const elapsed=sameMonth?Math.max(1,now.getDate()-1):daysInMonth;
+      return Math.max(0,Math.min(1,elapsed/daysInMonth));
+    }
+    function paceStatus(row,k){
+      const actual=n(row[k.val]);
+      const fullTarget=n(row[k.target]);
+      const expected=fullTarget*monthProgressRatio();
+      const pacePct=expected?actual/expected*100:0;
+      return pacePct>=100?'ok':(pacePct>=90?'close':'bad');
+    }
+
+    function revenuePaceStatus(actual,fullTarget){
+      const expected=fullTarget*monthProgressRatio();
+      const pacePct=expected?actual/expected*100:0;
+      return pacePct>=100?'ok':(pacePct>=90?'close':'bad');
+    }
+
+
+    function sGreenTarget(){
+      const m=(period.split('-')[1]||'');
+      return (m==='01'||m==='07')?50:35;
+    }
+    function sYellowTarget(){
+      const m=(period.split('-')[1]||'');
+      return (m==='01'||m==='07')?40:28;
+    }
+    function pctPointNeed(actual,target){
+      const diff=Math.max(0,target-actual);
+      return diff>0?`+${pctFmt.format(diff)} pp`:'On track';
+    }
+    function storeServiceMetric(key){
+      const k=def(key);
+      if(!k) return {kpi:key, main:'—', sub:'', target:'—', needed:'—', status:'bad'};
+
+      if(key==='Life'){
+        const actual=n(store.Life), target=n(store.LifeTarget);
+        const expected=target*monthProgressRatio();
+        const status=paceStatus(store,k);
+        const needed=Math.max(0,Math.ceil(expected-actual));
+        return {kpi:'Life', main:`${moneyFmt.format(actual)} stuks`, sub:status==='ok'?'On track':'', target:`${moneyFmt.format(target)} stuks`, needed:needed>0?`${moneyFmt.format(needed)} stuks`:'On track', status};
+      }
+
+      if(k.type==='ratio'){
+        const teller=n(store[k.teller]), noemer=n(store[k.noemer]), target=n(store[k.target]);
+        const actual=servicePercentage(teller,noemer);
+        const pct=target?actual/target*100:0;
+        const needed=Math.max(0,Math.ceil(target/100*Math.max(1,noemer)-teller));
+        return {kpi:k.short||k.label, main:`${pctFmt.format(actual)}%`, sub:`${moneyFmt.format(teller)} / ${moneyFmt.format(noemer)}`, target:`${pctFmt.format(target)}%`, needed:needed>0?`${moneyFmt.format(needed)} stuks`:'On track', status:pct>=100?'ok':(pct>=90?'close':'bad')};
+      }
+
+      if(k.type==='pct'){
+        const actual=n(store[k.val]), target=n(store[k.target]);
+        const pct=target?actual/target*100:0;
+        return {kpi:k.label, main:`${pctFmt.format(actual)}%`, sub:'', target:`${pctFmt.format(target)}%`, needed:pctPointNeed(actual,target), status:pct>=100?'ok':(pct>=90?'close':'bad')};
+      }
+
+      if(k.type==='accessoires'){
+        const omzet=n(store.Omzet), actualEuro=n(store.Accessoires), targetPct=n(store.AccessoiresTargetPct);
+        const actualPct=omzet?actualEuro/omzet*100:0;
+        const targetEuro=omzet*targetPct/100;
+        const pct=targetEuro?actualEuro/targetEuro*100:0;
+        const need=Math.max(0,targetEuro-actualEuro);
+        return {kpi:k.short||k.label, main:omzet?`${pctFmt.format(actualPct)}%`:'—', sub:`€ ${moneyFmt.format(actualEuro)}`, target:`${pctFmt.format(targetPct)}%`, needed:need>0?`€ ${moneyFmt.format(need)}`:'On track', status:pct>=100?'ok':(pct>=90?'close':'bad')};
+      }
+
+      if(key==='Monster'){
+        const actual=n(store.Monster), target=n(store.MonsterTarget), pct=target?actual/target*100:0, need=Math.max(0,target-actual);
+        return {kpi:'Monster', main:`€ ${moneyFmt.format(actual)}`, sub:'', target:`€ ${moneyFmt.format(target)}`, needed:need>0?`€ ${moneyFmt.format(need)}`:'On track', status:pct>=100?'ok':(pct>=90?'close':'bad')};
+      }
+
+      if(key==='S'){
+        const actual=n(store.SRatio), green=sGreenTarget(), yellow=sYellowTarget();
+        return {kpi:'S', main:`${pctFmt.format(actual)}%`, sub:'', target:`${pctFmt.format(green)}%`, needed:pctPointNeed(actual,green), status:actual>=green?'ok':(actual>=yellow?'close':'bad')};
+      }
+
+      const m=metric(store,k);
+      return {kpi:k.short||k.label, main:m.display, sub:'', target:k.unit==='€'?`€ ${moneyFmt.format(m.target)}`:moneyFmt.format(m.target), needed:m.todo, status:m.status};
+    }
+    const serviceKpiSlides=[
+      {key:'Omzet',label:'Omzet'}, {key:'Life',label:'Life'}, {key:'Insurance',label:'Insurance'},
+      {key:'Abo',label:'Abonnementen'}, {key:'DSP',label:'DSP'}, {key:'SPG',label:'SPG'}, {key:'SRP',label:'SRP'}
+    ];
+    function sellerRowsForYear(row){
+      const id=s(row.PersoneelsNr), name=norm(row.Naam);
+      return data.filter(r=>s(r.Periode).startsWith(period.slice(0,4)+'-') && norm(r.EntiteitType)==='verkoper' && ((id&&s(r.PersoneelsNr)===id)||(!id&&norm(r.Naam)===name)));
+    }
+    function storeRowsForYear(){return data.filter(r=>s(r.Periode).startsWith(period.slice(0,4)+'-') && (norm(r.EntiteitType)==='winkel'||norm(r.Naam)==='diest'));}
+    function aggregateRows(rows){
+      const out=rows.reduce((sum,row)=>{Object.keys(row).forEach(key=>{if(typeof row[key]==='number')sum[key]=(sum[key]||0)+n(row[key]);});return sum;},{});
+      Object.keys(out).filter(key=>/TargetPct$/i.test(key)).forEach(key=>{out[key]=rows.length?out[key]/rows.length:0;});
+      return out;
+    }
+    function serviceKpiData(row,key,isYtd=false){
+      const k=def(key);
+      if(key==='Life'){
+        const stuks=n(row.Life), target=isYtd?n(row.LifeTarget):n(row.LifeTarget), needed=Math.max(0,Math.ceil(target-stuks));
+        const pct=target?stuks/target*100:0;
+        return {main:`${moneyFmt.format(stuks)} stuks`,detail:`${moneyFmt.format(stuks)} stuks`,target:`Target ${moneyFmt.format(target)} · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:stuks,stuks,kansen:null,needed,portfolio:portfolioPercentage(row)===null?'—':`${pctFmt.format(portfolioPercentage(row))}%`};
+      }
+      if(k?.type==='ratio'){
+        const stuks=n(row[k.teller]), kansen=n(row[k.noemer]);
+        const weightedTarget=n(row[k.target]);
+        const actual=servicePercentage(stuks,kansen), needed=Math.max(0,Math.ceil(weightedTarget/100*Math.max(1,kansen)-stuks)), pct=weightedTarget?actual/weightedTarget*100:0;
+        return {main:`${pctFmt.format(actual)}%`,detail:`${moneyFmt.format(stuks)} stuks / ${moneyFmt.format(kansen)} kansen`,target:`Target ${pctFmt.format(weightedTarget)}% · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,stuks,kansen,needed};
+      }
+      if(key==='Omzet'){
+        const actual=n(row.Omzet), target=n(row.OmzetTarget), needed=Math.max(0,target-actual), pct=target?actual/target*100:0;
+        return {main:`€ ${moneyFmt.format(actual)}`,detail:`Target € ${moneyFmt.format(target)}`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
+      }
+      if(key==='Accessoires'){
+        const actual=n(row.Accessoires), target=n(row.Omzet)*n(row.AccessoiresTargetPct)/100, pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
+        return {main:`€ ${moneyFmt.format(actual)}`,detail:`${pctFmt.format(n(row.Omzet)?actual/n(row.Omzet)*100:0)}% van omzet`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
+      }
+      if(key==='Link'){
+        const actual=n(row.LinkPct), target=n(row.LinkTargetPct), pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
+        return {main:`${pctFmt.format(actual)}%`,detail:`Target ${pctFmt.format(target)}%`,target:`Nog ${pctFmt.format(needed)} pp`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
+      }
+      const actual=n(row.Monster), target=n(row.MonsterTarget), pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
+      return {main:`€ ${moneyFmt.format(actual)}`,detail:`Target € ${moneyFmt.format(target)}`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
+    }
+    function serviceShopCard(label,m){return `<div class="kpiShopCard ${esc(m.status)}"><span>${esc(label)}</span><strong>${esc(m.main)}</strong><small>${esc(m.detail)} · ${esc(m.target)}</small></div>`;}
+    function sellerTile(x,index,key,isYtd){
+      const m=x.m, life=key==='Life';
+      const profile=avatar(x.row.Naam);
+      const name=esc(x.row.Naam);
+      const place=x.place||index+1;
+      const podiumClass=!isYtd&&m.rank>0&&(place===1?'podiumGold':place===2?'podiumSilver':place===3?'podiumBronze':'');
+      const facts=isYtd&&key==='Omzet' ? '' : isYtd
+        ? `<span class="kpiYtdFacts">${life?'Nog ':`${esc(moneyFmt.format(m.stuks||0))} stuks / ${m.kansen===null?'—':esc(moneyFmt.format(m.kansen||0))} kansen - Nog `}${esc(moneyFmt.format(m.needed||0))}</span>`
+        : key==='Omzet'
+        ? ['Accessoires','Link','Monster'].map(metricKey=>{const metric=serviceKpiData(x.data,metricKey,false);const label=metricKey==='Accessoires'?'ACC':metricKey.toUpperCase();return `<span class="metric-${esc(metric.status)}">${label}<strong>${esc(metric.main)}</strong></span>`;}).join('')
+        : life
+        ? `<span>STUKS<strong>${esc(moneyFmt.format(m.stuks||0))}</strong></span><span>PORTFOLIO<strong>${esc(m.portfolio||'—')}</strong></span><span class="${m.needed>0?'needsAttention':''}">NOG<strong>${esc(moneyFmt.format(m.needed||0))}</strong></span>`
+        : `<span>STUKS<strong>${esc(moneyFmt.format(m.stuks||0))}</strong></span><span>KANSEN<strong>${m.kansen===null?'—':esc(moneyFmt.format(m.kansen||0))}</strong></span><span class="${!isYtd&&m.needed>0?'needsAttention':''}">NOG<strong>${esc(moneyFmt.format(m.needed||0))}</strong></span>`;
+      return `<article class="kpiSellerTile ${esc(m.status)} ${!facts?'noFacts':''}"><div class="kpiSellerTop"><span class="kpiSellerRank">#${place}</span><span class="kpiSellerName">${name}</span>${!isYtd?`<img class="kpiSellerAvatar mtd ${podiumClass}" src="${esc(profile)}" onerror="this.style.display='none'">`:''}</div><div class="kpiSellerMain ${esc(m.status)}">${esc(m.main)}</div>${facts?`<div class="kpiSellerFacts">${facts}</div>`:''}</article>`;
+    }
+    function rankServiceValues(values){
+      let previousPositiveRank=null, previousPlace=0;
+      values.forEach((x,index)=>{
+        const rank=n(x.m.rank);
+        if(rank<=0) x.place=values.length;
+        else if(previousPositiveRank===null||rank!==previousPositiveRank){x.place=index+1;previousPlace=x.place;previousPositiveRank=rank;}
+        else x.place=previousPlace;
+      });
+      return values;
+    }
+    function storeSummaryTiles(key,isYtd,sellerCount){
+      if(isYtd) return '';
+      return [false,true].map(year=>{
+        const row=year?aggregateRows(storeRowsForYear()):store;
+        const m=serviceKpiData(row,key,year);
+        // With seven sellers these occupy the two empty cells. For larger teams,
+        // append them after all sellers instead of covering seller cards.
+        const position=sellerCount<=7?(year?'storeYtd':'storeMtd'):'';
+        return `<article class="kpiSellerTile kpiStoreSummary ${position} ${esc(m.status)}" data-store-period="${year?'YTD':'MTD'}"><div class="kpiSellerTop"><span class="kpiSellerName">Diestroyers ${year?'YTD':'MTD'}</span><span class="kpiStoreBadge">WINKEL</span></div><div class="kpiSellerMain">${esc(m.main)}</div><div class="kpiStoreDetail">${esc(m.detail)}<br>${esc(m.target)}</div></article>`;
+      }).join('');
+    }
+    function singleKpiTable(rows,key,isYtd){
+      const values=rankServiceValues(rows.map(row=>({row,data:isYtd?aggregateRows(sellerRowsForYear(row)):row,m:serviceKpiData(isYtd?aggregateRows(sellerRowsForYear(row)):row,key,isYtd)})).sort((a,b)=>b.m.rank-a.m.rank||s(a.row.Naam).localeCompare(s(b.row.Naam))));
+      return `<div class="kpiSellerCards ${isYtd?'ytd':''}">${values.map((x,i)=>sellerTile(x,i,key,isYtd)).join('')}${storeSummaryTiles(key,isYtd,rows.length)}</div>`;
+    }
+    function omzetTable(rows,isYtd){
+      const values=rankServiceValues(rows.map(row=>{const data=isYtd?aggregateRows(sellerRowsForYear(row)):row;return {row,data,m:serviceKpiData(data,'Omzet',isYtd)};}).sort((a,b)=>b.m.rank-a.m.rank||s(a.row.Naam).localeCompare(s(b.row.Naam))));
+      return `<div class="kpiSellerCards ${isYtd?'ytd':''}">${values.map((x,i)=>sellerTile(x,i,'Omzet',isYtd)).join('')}${storeSummaryTiles('Omzet',isYtd,rows.length)}</div>`;
+    }
+    function renderKpiServiceSlide(index){
+      const slide=serviceKpiSlides[index]||serviceKpiSlides[0], key=slide.key, root=document.getElementById('kpiServiceSplit');
+      const ytdStore=aggregateRows(storeRowsForYear());
+      document.getElementById('kpiServiceName').textContent=slide.label;
+      root.classList.toggle('omzet',key==='Omzet');
+      const mtdShop=key==='Omzet'?['Omzet','Accessoires','Link','Monster'].map(k=>serviceShopCard(def(k)?.label||k,serviceKpiData(store,k,false))).join(''):serviceShopCard(slide.label,serviceKpiData(store,key,false));
+      const ytdShop=serviceShopCard(key==='Omzet'?'Omzet YTD':slide.label+' YTD',serviceKpiData(ytdStore,key,true));
+      root.innerHTML=`<section class="kpiServiceColumn mtd"><div class="kpiServicePeriod">MTD · ${esc(period)}</div><div class="kpiServiceShop ${key==='Omzet'?'':'single'}">${mtdShop}</div>${key==='Omzet'?omzetTable(sellers,false):singleKpiTable(sellers,key,false)}</section><section class="kpiServiceColumn ytd"><div class="kpiServicePeriod">YTD · ${esc(period.slice(0,4))}</div><div class="kpiServiceShop single">${ytdShop}</div>${key==='Omzet'?omzetTable(sellers,true):singleKpiTable(sellers,key,true)}</section>`;
+    }
+
+    function serviceMetric(row,key){
+      const k=def(key);
+      if(!k) return {main:'—', sub:'', status:'bad', rankValue:0, bubble:0};
+      if(k.type==='ratio'){
+        const teller=n(row[k.teller]), noemer=n(row[k.noemer]), target=n(row[k.target]);
+        const actual=servicePercentage(teller,noemer);
+        const pct=target?actual/target*100:0;
+        const need=Math.max(0,Math.ceil(target/100*Math.max(1,noemer)-teller));
+        return {main:`${pctFmt.format(actual)}%`, sub:`${moneyFmt.format(teller)} / ${moneyFmt.format(noemer)}`, status:pct>=100?'ok':(pct>=90?'close':'bad'), rankValue:actual, bubble:need};
+      }
+      if(k.type==='accessoires'){
+        const omzet=n(row.Omzet), acc=n(row.Accessoires), targetPct=n(row[k.target]);
+        const actual=omzet?acc/omzet*100:0;
+        const pct=targetPct?actual/targetPct*100:0;
+        return {main:omzet?`${pctFmt.format(actual)}%`:'—', sub:`€ ${moneyFmt.format(acc)}`, status:pct>=100?'ok':(pct>=90?'close':'bad'), rankValue:actual, bubble:0};
+      }
+      if(k.type==='pct'){
+        const actual=n(row[k.val]), target=n(row[k.target]);
+        const pct=target?actual/target*100:0;
+        return {main:`${pctFmt.format(actual)}%`, sub:'', status:pct>=100?'ok':(pct>=90?'close':'bad'), rankValue:actual, bubble:0};
+      }
+      const m=metric(row,k);
+      const status=(key==='Omzet'||key==='Life')?paceStatus(row,k):m.status;
+      const sub=((key==='Omzet'||key==='Life') && status==='ok')?'On track':'';
+      return {main:m.display, sub:sub, status:status, rankValue:m.actual, bubble:stukAchterstandBadges.has(key)?stukAchterstand(row,k):0};
+    }
+    function serviceRanks(){
+      const ranks={};
+      for(const key of serviceOrder){
+        const sorted=sellers.map(r=>({name:s(r.Naam), value:serviceMetric(r,key).rankValue}))
+          .filter(x=>x.name && isFinite(x.value))
+          .sort((a,b)=>b.value-a.value);
+        ranks[key]={};
+        sorted.forEach((x,i)=>{ranks[key][norm(x.name)]=i+1});
+      }
+      return ranks;
+    }
+    const servicePodium = serviceRanks();
+    function servicePodiumClass(name,key){ return ''; }
+
+    const districtBig7 = ['Life','SPG','SRP','DSP','Abo','Insurance','Link'];
+
+    function districtName(row){
+      return s(row.Winkel)||s(row.Naam)||s(row.ShopNaam)||s(row.ShopNr)||'Winkel';
+    }
+    function districtShopNr(row){return s(row.ShopNr)}
+    function districtTargetRow(row){
+      const name=norm(districtName(row));
+      const shop=districtShopNr(row);
+      const shopNorm=shopKey(shop);
+      const targets=Array.isArray(adminConfig.targets)?adminConfig.targets:[];
+      return targets.find(t=>s(t.Periode)===period && (norm(t.EntiteitType)==='districtwinkel'||norm(t.EntiteitType)==='winkel') && (norm(t.Naam)===name || shopKey(t.ShopNr)===shopNorm))
+        || targets.find(t=>s(t.Periode)===period && norm(t.EntiteitType)==='winkel' && norm(t.Naam)==='diest')
+        || {};
+    }
+    function districtValue(row,key){
+      const k=def(key);
+      if(key==='Link') return n(row.LinkPct);
+      if(k.type==='ratio'){
+        const teller=n(row[k.teller]), noemer=n(row[k.noemer]);
+        return servicePercentage(teller,noemer);
+      }
+      return n(row[k.val]);
+    }
+    function districtTarget(row,key){
+      const k=def(key);
+      const trow=districtTargetRow(row);
+      if(key==='Link') return n(trow.LinkTargetPct || row.LinkTargetPct);
+      if(k.type==='ratio') return n(trow[k.target] || row[k.target]);
+      return n(trow[k.target] || row[k.target]);
+    }
+    function districtLifeStatus(row){
+      const trow=districtTargetRow(row);
+      const actual=n(row.Life);
+      const fullTarget=n(trow.LifeTarget || row.LifeTarget);
+      const expected=fullTarget*monthProgressRatio();
+      const pacePct=expected?actual/expected*100:0;
+      return pacePct>=100?'ok':(pacePct>=90?'close':'bad');
+    }
+    function districtKpiMetric(row,key){
+      if(key==='Life'){
+        const target=n(districtTargetRow(row).LifeTarget || row.LifeTarget);
+        const status=districtLifeStatus(row);
+        return {display:moneyFmt.format(n(row.Life)), status, points:status==='ok'?3:status==='close'?1:0};
+      }
+      const actual=districtValue(row,key);
+      const target=districtTarget(row,key);
+      const pct=target?actual/target*100:0;
+      const status=pct>=100?'ok':(pct>=90?'close':'bad');
+      return {display:key==='Link'?pctFmt.format(actual)+'%':pctFmt.format(actual)+'%', status, points:status==='ok'?3:status==='close'?1:0};
+    }
+    function districtScore(row){return districtBig7.reduce((sum,key)=>sum+districtKpiMetric(row,key).points,0);}
+
+    function fitDistrictRankingRows(){
+      const panel=document.querySelector('.districtRankPanel');
+      const table=document.getElementById('districtRankTable');
+      if(!panel || !table) return;
+
+      const rows=table.querySelectorAll('tbody tr.districtRow');
+      if(!rows.length) return;
+
+      const head=table.querySelector('thead');
+      const rowCount=rows.length;
+      const headHeight=head?head.getBoundingClientRect().height:28;
+      const available=Math.max(0,panel.clientHeight-headHeight-8);
+
+      let gap=rowCount>=18?2:(rowCount>=14?3:5);
+      let rowHeight=Math.floor((available-gap*(rowCount+1))/rowCount);
+
+      // Alle actieve winkels moeten altijd passen. Bij grotere districten
+      // schaalt de tabel verder terug, zonder verticale clipping.
+      rowHeight=Math.max(29,Math.min(53,rowHeight));
+
+      const scale=rowHeight/48;
+      table.style.setProperty('--district-row-h',rowHeight+'px');
+      table.style.setProperty('--district-row-gap',gap+'px');
+      table.style.setProperty('--district-base-font',Math.max(16,Math.min(20,18*scale))+'px');
+      table.style.setProperty('--district-place-font',Math.max(20,Math.min(25,23*scale))+'px');
+      table.style.setProperty('--district-store-font',Math.max(18,Math.min(23,21*scale))+'px');
+      table.style.setProperty('--district-money-font',Math.max(17,Math.min(21,19*scale))+'px');
+      table.style.setProperty('--district-score-font',Math.max(21,Math.min(26,24*scale))+'px');
+      table.style.setProperty('--district-kpi-font',Math.max(15,Math.min(19,17*scale))+'px');
+    }
+
+    function npsTargetFor(name, type){
+      const rows=Array.isArray(adminConfig.targets)?adminConfig.targets:[];
+      const r=rows.find(x=>s(x.Periode)===period && norm(x.EntiteitType)===norm(type) && norm(x.Naam)===norm(name));
+      return n(r?.NPSTarget)||70;
+    }
+    function npsStatus(value,target){
+      if(value===null||value===undefined||!isFinite(Number(value))) return 'none';
+      return Number(value)>=target?'ok':Number(value)>=target*.9?'close':'bad';
+    }
+    function npsStatCard(label,value,sub,status){
+      return `<div class="npsTvCard ${/ytd/i.test(label)?'ytd ':''}${esc(status||'none')}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(sub||'')}</small></div>`;
+    }
+
+    function fitNpsRankingRows(){
+      const wrap=document.getElementById('npsTvRanking');
+      const table=wrap?.querySelector('.npsRankTable');
+      if(!wrap||!table) return;
+
+      const rows=table.querySelectorAll('tbody tr').length;
+      const available=Math.max(180,wrap.clientHeight);
+      const header=30;
+      const gap=5;
+      const maxRow=64;
+      const minRow=44;
+      const rowH=Math.max(minRow,Math.min(maxRow,Math.floor((available-header-(rows+1)*gap)/Math.max(rows,1))));
+      const font=Math.max(15,Math.min(20,Math.floor(rowH*.32)));
+      const subFont=Math.max(11,Math.min(14,Math.floor(rowH*.22)));
+
+      table.style.setProperty('--nps-rank-row-h',rowH+'px');
+      table.style.setProperty('--nps-rank-font',font+'px');
+      table.style.setProperty('--nps-rank-sub-font',subFont+'px');
+      table.style.setProperty('--nps-rank-gap',Math.max(4,Math.min(8,Math.floor(rowH*.11)))+'px');
+    }
+
+    function chooseFittingNpsComments(comments){
+      const container=document.getElementById('npsTvComments');
+      if(!container) return [];
+
+      const maxCount=Math.min(5,comments.length);
+      const dateLabel=v=>{const d=new Date(String(v).replace(' ','T'));return isNaN(d)?s(v):d.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit'});};
+      const render=list=>list.map(c=>`<article class="npsTvComment ${norm(c.type)}"><div class="npsTvCommentHead"><span>${esc(c.score)} · ${esc(c.type)}</span><span>${esc(dateLabel(c.dateIso||c.date))} · ${esc(c.sellerName||'Winkel')}</span></div><p>${esc(c.comment)}</p></article>`).join('');
+
+      for(let count=maxCount;count>=1;count--){
+        const candidate=comments.slice(0,count);
+        container.innerHTML=render(candidate);
+        if(container.scrollHeight<=container.clientHeight+2) return candidate;
+      }
+      return comments.length?[comments[0]]:[];
+    }
+
+    function renderNpsSlide(){
+      const liveNpsData = window.DIESTROYERS_NPS || npsData || {};
+      const p=liveNpsData.latestPeriod||period;
+      const month=liveNpsData.store?.month?.[p]||{};
+      const ytd=liveNpsData.store?.ytd?.[p]||{};
+      const target=npsTargetFor(adminConfig.shop?.naam||'Diest','Winkel');
+      const fmt=v=>v===null||v===undefined?'—':pctFmt.format(Number(v));
+      document.getElementById('npsTvPeriod').textContent=p;
+      const hasNpsData = !!(liveNpsData.store && liveNpsData.store.month && Object.keys(liveNpsData.store.month).length);
+      if(!hasNpsData){
+        document.getElementById('npsTvStats').innerHTML=npsStatCard('NPS','—','Geen NPS-data gevonden','bad');
+        document.getElementById('npsTvRanking').innerHTML='<div class="empty">assets/nps-data.js ontbreekt of bevat geen gegevens</div>';
+        document.getElementById('npsTvComments').innerHTML='<div class="empty">Voer eerst Dagstart / Website bijwerken uit</div>';
+        return;
+      }
+      const cards=[
+        ['NPS maand',fmt(month.nps),`Target ${pctFmt.format(target)}`,npsStatus(month.nps,target)],
+        ['Promotoren',month.promoters||0,'Score 9–10','ok'],
+        ['Neutralen',month.passives||0,'Score 7–8','close'],
+        ['Detractoren',month.detractors||0,'Score 0–6','bad'],
+        ['Kaartjes',month.cards||0,'Huidige maand','none'],
+        ['NPS YTD',fmt(ytd.nps),`Target ${pctFmt.format(target)}`,npsStatus(ytd.nps,target)],
+        ['Promotoren YTD',ytd.promoters||0,'Score 9–10','ok'],
+        ['Neutralen YTD',ytd.passives||0,'Score 7–8','close'],
+        ['Detractoren YTD',ytd.detractors||0,'Score 0–6','bad'],
+        ['Kaartjes YTD',ytd.cards||0,'Year to date','none']
+      ];
+      document.getElementById('npsTvStats').innerHTML=cards.map(x=>npsStatCard(...x)).join('');
+
+      const configured=(adminConfig.verkopers||[]);
+      const sellerRows=configured.map(v=>{
+        const id=s(v.PersoneelsNr), data=liveNpsData.sellers?.[id]||{};
+        const m=data.month?.[p]||{nps:null,cards:0,promoters:0,passives:0,detractors:0};
+        const y=data.ytd?.[p]||{nps:null,cards:0,promoters:0,passives:0,detractors:0};
+        return {
+          id,
+          name:s(v.Naam)||data.name||id,
+          active:norm(v.Actief||'ja')!=='nee',
+          month:m,
+          ytd:y
+        };
+      }).filter(x=>x.active || x.month.cards>0 || x.ytd.cards>0)
+        .sort((a,b)=>{
+          if(!a.month.cards&&!b.month.cards)return a.name.localeCompare(b.name);
+          if(!a.month.cards)return 1;
+          if(!b.month.cards)return -1;
+          return Number(b.month.nps)-Number(a.month.nps)||b.month.cards-a.month.cards||a.name.localeCompare(b.name);
+        });
+
+      const scoreClass=r=>{
+        if(!r.month.cards) return 'empty';
+        const st=npsStatus(r.month.nps,target);
+        return st==='ok'?'statusOk':st==='close'?'statusClose':'statusBad';
+      };
+      const ytdRow=value=>`<span class="npsRankSecondary"><span class="ytdLabel">YTD</span><span>${value}</span></span>`;
+
+      document.getElementById('npsTvRanking').innerHTML=`<table class="npsRankTable">
+        <thead>
+          <tr><th>#</th><th>Verkoper</th><th>NPS</th><th>P/N/D</th><th>Kaartjes</th></tr>
+        </thead>
+        <tbody>
+          ${sellerRows.map((r,i)=>`<tr>
+            <td><span class="npsRankPrimary">${i+1}</span></td>
+            <td>
+              <span class="npsRankPrimary npsSellerName">${esc(r.name)}</span>
+              <span class="npsRankSecondary npsRankMuted">${r.month.cards?'Huidige maand':'Geen maanddata'}</span>
+            </td>
+            <td>
+              <span class="npsRankPrimary"><span class="npsMonthScore ${scoreClass(r)}">${r.month.cards?esc(fmt(r.month.nps)):'—'}</span></span>
+              ${ytdRow(r.ytd.cards?esc(fmt(r.ytd.nps)):'—')}
+            </td>
+            <td>
+              <span class="npsRankPrimary">${r.month.cards?`${r.month.promoters}/${r.month.passives}/${r.month.detractors}`:'—'}</span>
+              ${ytdRow(r.ytd.cards?`${r.ytd.promoters}/${r.ytd.passives}/${r.ytd.detractors}`:'—')}
+            </td>
+            <td>
+              <span class="npsRankPrimary">${r.month.cards||0}</span>
+              ${ytdRow(r.ytd.cards||0)}
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+      const comments=(liveNpsData.comments||[]).slice().sort((a,b)=>String(b.dateIso||b.date).localeCompare(String(a.dateIso||a.date)));
+      const commentsContainer=document.getElementById('npsTvComments');
+      if(!comments.length){
+        commentsContainer.innerHTML='<div class="empty">Geen commentaren.</div>';
+      }else{
+        chooseFittingNpsComments(comments);
+      }
+      requestAnimationFrame(fitNpsRankingRows);
+    }
+
+    function renderAvvSlide(){
+      const live=window.DIESTROYERS_AVV||avvData||{};
+      const avvPeriod=s(live.latestPeriod)||s(npsData.latestPeriod)||period;
+      const labels={trust:'Akte van Vertrouwen',price:'Laagste Prijs Garantie',information:'Inlichtingen',wait:'Wachttijd',friendly:'Vriendelijkheid'};
+      const emptyMetric={value:null,responses:0};
+      const emptyStats={trust:emptyMetric,price:emptyMetric,information:emptyMetric,wait:emptyMetric,friendly:emptyMetric};
+      const valueText=m=>m&&m.value!==null&&m.value!==undefined&&isFinite(Number(m.value))?pctFmt.format(Number(m.value))+'%':'—';
+      const responseText=m=>`${n(m?.responses)} ${n(m?.responses)===1?'antwoord':'antwoorden'}`;
+      const metricStatus=(key,m)=>{
+        if(!m||m.value===null||m.value===undefined||!isFinite(Number(m.value))) return 'none';
+        const v=Number(m.value), main=(key==='trust'||key==='price');
+        return v>=(main?80:95)?'ok':v>=(main?70:90)?'close':'bad';
+      };
+      const metricCard=(key,m,primary=false)=>`<div class="avvMetric ${primary?'primary':''} ${metricStatus(key,m)}"><label>${esc(labels[key])}</label><strong>${esc(valueText(m))}</strong><small>${esc(responseText(m))}</small></div>`;
+      const sellerTable=(allSellers,scope)=>{
+        const rows=allSellers.map(seller=>{
+          const stats=live.sellers?.[seller.id]?.[scope]||emptyStats;
+          const avv=stats.trust||emptyMetric, lpg=stats.price||emptyMetric;
+          const hasScore=n(avv.responses)>0||n(lpg.responses)>0;
+          const score=hasScore?(n(avv.value)+n(lpg.value)):null;
+          return {seller,stats,score};
+        }).sort((a,b)=>{
+          if(a.score===null&&b.score===null) return a.seller.name.localeCompare(b.seller.name);
+          if(a.score===null) return 1;
+          if(b.score===null) return -1;
+          return b.score-a.score||a.seller.name.localeCompare(b.seller.name);
+        });
+        const heads=[['trust','AVV'],['price','LPG'],['information','Info'],['wait','Wacht'],['friendly','Vriend.']];
+        let previousScore=null, previousRank=0;
+        rows.forEach((row,index)=>{
+          if(row.score===null){row.rank=rows.length;return;}
+          if(previousScore===null||Math.abs(row.score-previousScore)>.001) previousRank=index+1;
+          row.rank=previousRank;previousScore=row.score;
+        });
+        const rowHeight=Math.max(45,Math.min(68,Math.floor(470/Math.max(rows.length,1))));
+        return `<table class="avvSellerTable" style="--avv-row-h:${rowHeight}px"><thead><tr><th>#</th><th>Verkoper</th>${heads.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>{
+          const sample=Math.max(...heads.map(x=>n(row.stats[x[0]]?.responses)));
+          return `<tr><td>#${row.rank}</td><td>${esc(row.seller.name)}<small>n = ${sample}</small></td>${heads.map(x=>{const m=row.stats[x[0]]||emptyMetric;return `<td class="${metricStatus(x[0],m)}">${esc(valueText(m))}</td>`}).join('')}</tr>`;
+        }).join('')}</tbody></table>`;
+      };
+      const configured=(adminConfig.verkopers||[]).map(v=>({id:s(v.PersoneelsNr),name:s(v.Naam)||s(v.PersoneelsNr),active:norm(v.Actief||'ja')!=='nee'})).filter(v=>v.active);
+      const sellers=configured.length?configured:Object.entries(live.sellers||{}).map(([id,x])=>({id,name:s(x.name)||id,active:true}));
+      const storeMonth=live.store?.month||emptyStats, storeYtd=live.store?.ytd||emptyStats;
+      document.getElementById('avvPeriod').textContent=avvPeriod?`PERIODE ${avvPeriod}`:'GEEN NPS-DATA';
+      document.getElementById('avvMonthStore').innerHTML=['trust','price','information','wait','friendly'].map((key,i)=>metricCard(key,storeMonth[key]||emptyMetric,i<2)).join('');
+      document.getElementById('avvYtdStore').innerHTML=['trust','price','information','wait','friendly'].map((key,i)=>metricCard(key,storeYtd[key]||emptyMetric,i<2)).join('');
+      document.getElementById('avvMonthSellers').innerHTML=sellerTable(sellers,'month');
+      document.getElementById('avvYtdSellers').innerHTML=sellerTable(sellers,'ytd');
+    }
+
+    function renderDistrictRankingSlide(){
+      const table=document.getElementById('districtRankTable');
+      if(!table) return;
+      const rows=(districtRows.length?districtRows:[]).filter(r=>activeFlag(r.Actief ?? 'JA'))
+        .sort((a,b)=>districtScore(b)-districtScore(a) || n(b.Omzet)-n(a.Omzet));
+      const heads=districtBig7.map(key=>`<th>${esc(def(key).short||def(key).label)}</th>`).join('');
+      const body=rows.map((row,i)=>{
+        const own = shopKey(districtShopNr(row))===shopKey(adminConfig.shop?.shopNr || '208') || norm(districtName(row))===norm(adminConfig.shop?.naam || 'Diest') || norm(row.EigenWinkel)==='ja';
+        const cells=districtBig7.map(key=>{
+          const m=districtKpiMetric(row,key);
+          return `<td><div class="districtCell ${esc(m.status)}"><span class="districtKpiVal">${esc(m.display)}</span></div></td>`;
+        }).join('');
+        return `<tr class="districtRow ${own?'districtOwn':''}"><td><div class="districtCell"><span class="districtPlace">${i+1}</span></div></td><td><div class="districtCell districtStore">${esc(districtName(row))}</div></td><td><div class="districtCell districtOmzet">€ ${esc(moneyFmt.format(n(row.Omzet)))}</div></td><td><div class="districtCell districtScore">${districtScore(row)}</div></td>${cells}</tr>`;
+      }).join('');
+      table.innerHTML=`<thead><tr><th>#</th><th>Winkel</th><th>Omzet</th><th>Score</th>${heads}</tr></thead><tbody>${body || '<tr><td colspan="11"><div class="empty">Geen districtdata gevonden</div></td></tr>'}</tbody>`;
+      requestAnimationFrame(fitDistrictRankingRows);
+    }
+
+
+    function serviceStoreTarget(key){
+      const k=def(key),raw=k?.target?store[k.target]:null;
+      if(raw===null||raw===undefined||s(raw)==='')return '—';
+      const value=n(raw);
+      if(k.type==='amount')return '€ '+moneyFmt.format(value);
+      if(k.type==='count')return moneyFmt.format(value)+' stuks';
+      return pctFmt.format(value)+'%';
+    }
+    function renderServiceSlide(){
+      const table=document.getElementById('serviceTable');
+      if(!table) return;
+      const rows=getRankedSellers();
+      const heads=serviceOrder.map(key=>`<th>${esc(def(key).short||def(key).label)}<span class="serviceHeaderTarget">${esc(serviceStoreTarget(key))}</span></th>`).join('');
+      const storeCells=serviceOrder.map(key=>{
+        const sm=serviceMetric(store,key);
+        const bubble=sm.bubble>0?`<span class="serviceBubble">${esc(sm.bubble)}</span>`:'';
+        return `<td><div class="serviceCell ${esc(sm.status)}"><div class="serviceMain">${esc(sm.main)}</div><div class="serviceSub">${esc(sm.sub)}</div>${bubble}</div></td>`;
+      }).join('');
+      const storeRow=`<tr class="serviceStoreRow"><td><div class="serviceSeller serviceStoreLabel"><span>Diestroyers<small>Winkelresultaat</small></span></div></td>${storeCells}</tr>`;
+      const body=rows.map(r=>{
+        const name=s(r.Naam);
+        const cells=serviceOrder.map(key=>{
+          const sm=serviceMetric(r,key);
+          const bubble=sm.bubble>0?`<span class="serviceBubble">${esc(sm.bubble)}</span>`:'';
+          return `<td><div class="serviceCell ${esc(sm.status)} ${servicePodiumClass(name,key)}"><div class="serviceMain">${esc(sm.main)}</div><div class="serviceSub">${esc(sm.sub)}</div>${bubble}</div></td>`;
+        }).join('');
+        return `<tr><td><div class="serviceSeller"><img src="${avatar(name)}" onerror="this.style.display='none'"><span>${esc(name)}</span></div></td>${cells}</tr>`;
+      }).join('');
+      table.innerHTML=`<thead><tr><th>Verkoper</th>${heads}</tr></thead><tbody>${storeRow}${body}</tbody>`;
+    }
+
+
+    function pctDisplayValue(value){
+      let v=n(value);
+      if(Math.abs(v)>0 && Math.abs(v)<=1) v=v*100;
+      return pctFmt.format(v)+'%';
+    }
+    function pctInlineValue(value){
+      let v=n(value);
+      if(Math.abs(v)>0 && Math.abs(v)<=1) v=v*100;
+      if(!isFinite(v) || v===0) return '';
+      const sign = v>0 ? '+' : '';
+      return sign + pctFmt.format(v) + '%';
+    }
+    function lyStatus(current,previous){
+      if(n(previous)<=0) return 'close';
+      return n(current)>=n(previous)?'ok':'bad';
+    }
+    function lyPercentText(value){
+      if(value===null||value===undefined||value==='') return 'vs LY: —';
+      const delta=n(value);
+      return `${delta>=0?'+':''}${pctFmt.format(delta)}% vs LY`;
+    }
+    function lyPointsText(current,previous){
+      if(n(previous)<=0) return 'vs LY: —';
+      const delta=n(current)-n(previous);
+      return `${delta>=0?'+':''}${pctFmt.format(delta)} pp vs LY`;
+    }
+    function concretisatieMtdVsLyText(){
+      const supplied=n(salesExtra.concretisatieMaandVsLy);
+      if(supplied) return `${supplied>=0?'+':''}${pctFmt.format(supplied)} pp vs LY`;
+      const rows=historiekDays.filter(r=>s(r.Periode||r.periode)===period && n(r.KlantenLY??r.klantenLy)>0 && n(r.ConcretisatieLYPct??r.concretisatieLyPct)!==0);
+      const totalKlantenLy=rows.reduce((sum,r)=>sum+n(r.KlantenLY??r.klantenLy),0);
+      if(!totalKlantenLy) return 'vs LY: —';
+      const ly=rows.reduce((sum,r)=>{let pct=n(r.ConcretisatieLYPct??r.concretisatieLyPct);if(Math.abs(pct)<=1)pct*=100;return sum+pct*n(r.KlantenLY??r.klantenLy);},0)/totalKlantenLy;
+      const delta=n(salesExtra.concretisatieMaand)-ly;
+      return `${delta>=0?'+':''}${pctFmt.format(delta)} pp vs LY`;
+    }
+    function salesStatus(pct){return pct>=100?'ok':(pct>=90?'close':'bad')}
+    function sStatus(value){
+      const v=n(value);
+      const m=(period.split('-')[1]||'');
+      const lvl1=(m==='01'||m==='07')?40:28;
+      const lvl2=(m==='01'||m==='07')?50:35;
+      return v>=lvl2?'ok':(v>=lvl1?'close':'bad');
+    }
+    function renderSales(){
+      const grid=document.getElementById('salesGrid');
+      const concMtdVsLy=concretisatieMtdVsLyText();
+      const omzetMtd=n(store.Omzet)||n(salesExtra.omzetMaand);
+      const omzetTarget=n(store.OmzetTarget);
+      const wdMaand=n(salesExtra.werkdagenMaand);
+      const wdVoorbij=n(salesExtra.werkdagenVoorbij);
+      const targetVandaag=(omzetTarget && wdMaand)?omzetTarget/wdMaand*wdVoorbij:0;
+      const dagPct=targetVandaag?omzetMtd/targetVandaag*100:0;
+      const omzetTodo=omzetTarget-omzetMtd;
+      const accessoires=n(store.Accessoires);
+      const accPct=omzetMtd?accessoires/omzetMtd*100:0;
+      const monsterMetric=metric(store,def('Monster'));
+      const cards = [
+        {label:'Omzet gisteren', value:'€ '+moneyFmt.format(n(salesExtra.omzetGisteren)), html:null, sub:'', status:'ok'},
+        {label:'Klanten', value:'', html:`${esc(moneyFmt.format(n(salesExtra.klantenGisteren)))} <small>(${esc(lyPercentText(salesExtra.klantenGisterenVsLy))} · MTD: ${esc(moneyFmt.format(n(salesExtra.klantenMaand)))})</small>`, sub:'', status:lyStatus(salesExtra.klantenGisteren,salesExtra.klantenGisterenLy)},
+        {label:'Concretisatie', value:'', html:`${esc(pctDisplayValue(salesExtra.concretisatieGisteren))} <small>(${esc(lyPointsText(salesExtra.concretisatieGisteren,salesExtra.concretisatieGisterenLy))} · MTD: ${esc(pctDisplayValue(salesExtra.concretisatieMaand))} · ${esc(concMtdVsLy)})</small>`, sub:'', status:lyStatus(salesExtra.concretisatieGisteren,salesExtra.concretisatieGisterenLy)},
+        {label:'Omzet MTD', value:'', html:`€ ${esc(moneyFmt.format(omzetMtd))}${pctInlineValue(salesExtra.omzetMtdVsLy)?` <small>(${esc(pctInlineValue(salesExtra.omzetMtdVsLy))} vs LY)</small>`:''}`, sub:'', status:salesStatus(dagPct||metric(store,def('Omzet')).pct)},
+        {label:'Accessoires', value:'', html:`€ ${esc(moneyFmt.format(accessoires))} <small>(${esc(pctFmt.format(accPct))}%)</small>`, sub:'', status:metric(store,def('Accessoires')).status},
+        {label:'Monster', value:monsterMetric.display, html:null, sub:'', status:monsterMetric.status},
+        {label:'Laatste stuks - S', value:'', html:`${esc(pctDisplayValue(salesExtra.laatsteStuksPct))}`, sub:'', status:sStatus(salesExtra.laatsteStuksPct)}
+      ];
+      grid.innerHTML = cards.map(c=>`<div class="kpiCard salesCard ${c.status}"><div class="kpiName">${esc(c.label)}</div><div class="salesMain">${c.html || esc(c.value)}</div><div class="salesSub">${esc(c.sub)}</div></div>`).join('');
+    }
+
+
+    function dayNameShort(dateStr){
+      const d=new Date(dateStr+'T00:00:00');
+      return ['ZO','MA','DI','WO','DO','VR','ZA'][d.getDay()] || '';
+    }
+    function dayNum(dateStr){return Number((dateStr||'').slice(-2))||0;}
+    function revenueStatus(pct){return pct>=100?'ok':(pct>=90?'close':'bad')}
+    function adaptiveRevenueTarget(monthDays,monthTarget,date){
+      const targetDate=s(date);
+      if(!targetDate) return 0;
+      const achieved=monthDays.filter(d=>s(d.datum)<targetDate).reduce((sum,d)=>sum+n(d.omzet),0);
+      const remaining=monthDays.filter(d=>s(d.datum)>=targetDate);
+      const remainingWeight=remaining.reduce((sum,d)=>sum+(n(d.gewicht||d.weight||1)||1),0);
+      const day=remaining.find(d=>s(d.datum)===targetDate);
+      const dayWeight=n(day?.gewicht||day?.weight||1)||1;
+      return remainingWeight>0?Math.max(0,n(monthTarget)-achieved)*dayWeight/remainingWeight:0;
+    }
+    function pvmNumber(value){
+      if(value===null||value===undefined||s(value)==='')return null;
+      const result=Number(value);return Number.isFinite(result)?result:null;
+    }
+    function pvmText(value){const number=pvmNumber(value);return number===null?'—':'€ '+moneyFmt.format(number);}
+    function pvmValues(day){
+      const sameDay=salesExtra.pvmDatum && s(salesExtra.pvmDatum)===s(day?.datum);
+      const sameMonth=s(salesExtra.periode)===s(day?.datum).slice(0,7);
+      let daily=pvmNumber(day?.pvm);
+      if(daily===null && sameDay)daily=pvmNumber(salesExtra.pvmGisteren);
+      if(daily===null && n(day?.documenten)>0)daily=n(day.omzet)/n(day.documenten);
+      return {day:daily,dayLy:pvmNumber(day?.pvmLy)??(sameDay?pvmNumber(salesExtra.pvmGisterenLy):null),
+        month:sameMonth?pvmNumber(salesExtra.pvmMaand):null,monthLy:sameMonth?pvmNumber(salesExtra.pvmMaandLy):null};
+    }
+    function renderYesterdaySlide(){
+      const grid=document.getElementById('yesterdaySellerGrid');
+      const lastDay=salesDays.filter(d=>n(d?.hasData) && s(d.datum)<todayStr()).sort((a,b)=>s(a.datum).localeCompare(s(b.datum))).at(-1)||{};
+      const reportDate=s(lastDay.datum)||s(gisterenService.datum);
+      let service=gisterenService;
+      // MTD is uitsluitend op de eerste kalenderdag gelijk aan de dagverkopen.
+      // Gebruik dit alleen als de winkeldata bevestigt dat dag 1 de laatste import is.
+      if(reportDate.endsWith('-01') && (!service.available || s(service.datum)!==reportDate)){
+        const firstDaySellers=data.filter(r=>norm(r.EntiteitType||r.entiteitType)==='verkoper' && s(r.Periode||r.periode).slice(0,7)===reportDate.slice(0,7));
+        if(firstDaySellers.length) service={available:true,datum:reportDate,sellers:firstDaySellers.map(r=>({
+          id:s(r.PersoneelsNr||r.personeelsNr),naam:s(r.Naam||r.naam),
+          omzet:n(r.Omzet),life:n(r.Life),insurance:n(r.InsuranceStuks),
+          abo:n(r.AboStuks),dsp:n(r.DSPStuks),spg:n(r.SPGStuks),srp:n(r.SRPStuks)
+        }))};
+      }
+      // Oudere VBA zette de datum op gisteren, ook op gesloten dagen.
+      // Corrigeer uitsluitend een export die na de laatste verkoopdag is gemaakt,
+      // met alleen gesloten dagen tussen de echte en de opgegeven verkoopdatum.
+      const declaredDate=s(service.datum);
+      const generatedDate=s(service.generatedAt).slice(0,10);
+      const closedGap=reportDate && declaredDate>reportDate && declaredDate<todayStr()
+        && !salesDays.some(d=>s(d.datum)>reportDate && s(d.datum)<=declaredDate);
+      if(service.available && closedGap && generatedDate>declaredDate)
+        service={...service,datum:reportDate};
+      const serviceAvailable=service.available && s(service.datum)===reportDate;
+      const revenue=window.DIESTROYERS_REVENUE_VIEW(window.DIESTROYERS_OMZET_DAG,window.DIESTROYERS_IMPORT_STATUS,reportDate,todayStr());
+      document.getElementById('yesterdayRevenueLabel').textContent='Omzet';
+      document.getElementById('yesterdayRevenuePeriod').textContent=revenue.available?revenue.label:'';
+      document.getElementById('yesterdayRevenueLabel').title=revenue.reason;
+
+      document.getElementById('yesterdayDate').textContent=reportDate||'Laatste afgesloten dag';
+      const values=serviceAvailable && Array.isArray(service.sellers)?service.sellers:[];
+      const bySeller=new Map(values.map(x=>[s(x.id)||norm(x.naam),x]));
+      const active=verkopers.filter(v=>activeFlag(v.Actief??v.actief??'JA'));
+      const people=active.length?active.map(v=>({id:s(v.PersoneelsNr||v.personeelsNr||v.id),naam:s(v.Naam||v.naam)})):values.map(x=>({id:s(x.id),naam:s(x.naam)}));
+      document.getElementById('yesterdayStatus').textContent=serviceAvailable?(service.vorigeImportTot?'Verkopers: verschil sinds de import t/m '+s(service.vorigeImportTot)+' · nieuwe gegevens t/m '+reportDate:'Verkopers: laatste geïmporteerde verkopen · '+reportDate):'Verkoperscijfers voor deze import ontbreken — voer Dagstart uit';
+      document.getElementById('yesterdayStatus').textContent+=' · '+revenue.reason;
+      if(!people.length){grid.innerHTML='<div class="yesterdayEmpty">Geen verkopers beschikbaar</div>';return;}
+      const kpis=[['Life','life'],['Insurance','insurance'],['DSP','dsp'],['Abo','abo'],['SPG','spg'],['SRP','srp']];
+      const serviceTotal=person=>{const row=bySeller.get(person.id)||bySeller.get(norm(person.naam))||{};return kpis.reduce((sum,[,key])=>sum+n(row[key]),0);};
+      people.sort((a,b)=>serviceTotal(b)-serviceTotal(a)||s(a.naam).localeCompare(s(b.naam),'nl-BE'));
+
+      grid.style.setProperty('--seller-count',people.length);
+      grid.innerHTML=people.map(person=>{
+        const x=bySeller.get(person.id)||bySeller.get(norm(person.naam))||{};
+        const revenueValue=revenue.value(person.id);
+        const av=avatar(person.naam||x.naam||'');
+        const pic='<img class="yesterdayAvatar" src="'+esc(av)+'" onerror="this.style.display=\'none\'">';
+        const chips=kpis.map(([label,key])=>{const value=n(x[key]);return '<div class="yesterdayKpi '+(value>0?'written':'')+'"><span>'+esc(label)+'</span><strong>'+(serviceAvailable?esc(moneyFmt.format(value)):'—')+'</strong></div>';}).join('');
+        return '<article class="yesterdaySeller"><div class="yesterdayIdentity">'+pic+'<div class="yesterdaySellerName">'+esc(person.naam||x.naam||'Verkoper')+'</div></div><div class="yesterdayOmzet"><span>Omzet</span><strong>'+(revenueValue!==null?'€ '+esc(moneyFmt.format(revenueValue)):'—')+'</strong></div>'+chips+'</article>';
+      }).join('');
+    }    function mtdComparisonText(current,previous,kind){
+      const format=value=>pvmNumber(value)===null?'—':kind==='money'?pvmText(value).replace('€ ','€'):kind==='percent'?pctDisplayValue(value):moneyFmt.format(Number(value));
+      return `${format(current)} MTD tov ${format(previous)} Y-1`;
+    }
+    function revenueMtdComparison(){
+      const current=pvmNumber(salesExtra.omzetMtdActueel),previous=pvmNumber(salesExtra.omzetMtdLy);
+      const delta=current!==null && previous!==null && previous>0?(current/previous-1)*100:null;
+      return {current,previous,delta,status:delta===null?'future':delta>=0?'ok':'bad',
+        percentage:delta===null?'—':(delta>=0?'+':'')+new Intl.NumberFormat('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(delta)+'%'};
+    }
+    function renderRevenueSlide(){
+      const monthDays = salesDays.filter(Boolean);
+      const omzetMtd=n(store.Omzet)||n(salesExtra.omzetMaand);
+      const omzetTarget=n(store.OmzetTarget);
+      const today=todayStr();
+
+      const daysWithData = monthDays.filter(d=>n(d.hasData) && s(d.datum)<=today);
+      const reportItem = daysWithData.at(-1) || monthDays.filter(d=>s(d.datum)<today).at(-1) || {};
+      const reportTarget = adaptiveRevenueTarget(monthDays,omzetTarget,reportItem.datum);
+      const reportOmzet = n(reportItem.omzet);
+      const reportPct = reportTarget ? reportOmzet / reportTarget * 100 : 0;
+      const reportDateLabel = reportItem.datum ? (dayNameShort(reportItem.datum)+' '+dayNum(reportItem.datum)) : 'Geen dagdata';
+      const todayItem = monthDays.find(d=>s(d.datum)===today) || monthDays.find(d=>s(d.datum)>today) || {};
+      const todayTarget = adaptiveRevenueTarget(monthDays,omzetTarget,todayItem.datum);
+      const todayDateLabel = todayItem.datum ? (s(todayItem.datum)===today?'Vandaag · ':'Volgende openingsdag · ')+(dayNameShort(todayItem.datum)+' '+dayNum(todayItem.datum)) : 'Geen resterende openingsdag';
+
+      const klantenMtd = n(salesExtra.klantenMaand);
+      const concMtd = pctDisplayValue(salesExtra.concretisatieMaand);
+      const klantenLy=n(reportItem.klantenLy||salesExtra.klantenGisterenLy);
+      const klantenVsLy=n(reportItem.klantenVsLy||salesExtra.klantenGisterenVsLy);
+      const concLy=n(reportItem.concretisatieLy||salesExtra.concretisatieGisterenLy);
+      let omzetYoy=n(salesExtra.omzetMtdVsLy);
+      if(Math.abs(omzetYoy)>0&&Math.abs(omzetYoy)<=1) omzetYoy*=100;
+      const revenueSentence=document.getElementById('revenueTitleSentence');
+      if(revenueSentence){
+        revenueSentence.textContent=`Gisteren deden we € ${moneyFmt.format(n(salesExtra.omzetGisteren)||reportOmzet)}, dankzij een concretisatie van ${pctDisplayValue(salesExtra.concretisatieGisteren||reportItem.concretisatie)} op ${moneyFmt.format(n(salesExtra.klantenGisteren)||n(reportItem.klanten))} klanten. Dat brengt ons deze maand op ${omzetYoy>=0?'+':''}${pctFmt.format(omzetYoy)}% ten opzichte van vorig jaar.`;
+      }
+
+      document.getElementById('revenueHeaderKpis').innerHTML = '';
+      const pvm=pvmValues(reportItem);
+      document.getElementById('revenueSummary').innerHTML = [
+        {l:'Omzet gisteren',v:'€ '+moneyFmt.format(reportOmzet),s:pctFmt.format(reportPct)+'% van dagtarget gisteren',st:revenueStatus(reportPct),extra:''},
+        {l:'Target vandaag',v:'€ '+moneyFmt.format(todayTarget),s:todayDateLabel,st:'close',extra:'targetToday'},
+        {l:'Klanten gisteren',v:moneyFmt.format(n(reportItem.klanten)),s:mtdComparisonText(salesExtra.klantenMaand,salesExtra.klantenMaandLy,'count'),st:lyStatus(reportItem.klanten,klantenLy),extra:'comparisonSummary'},
+        {l:'Concretisatie gisteren',v:pctDisplayValue(reportItem.concretisatie),s:mtdComparisonText(salesExtra.concretisatieMaand,salesExtra.concretisatieMaandLy,'percent'),st:lyStatus(reportItem.concretisatie,concLy),extra:'comparisonSummary'},
+        {l:'PVM gisteren',v:pvmText(pvm.day),s:mtdComparisonText(pvm.month,pvm.monthLy,'money'),st:pvm.day!==null&&pvm.dayLy!==null?lyStatus(pvm.day,pvm.dayLy):'',extra:'comparisonSummary'}
+      ].map(x=>`<div class="revenueSummaryCard ${x.st} ${x.extra||''}"><div class="revSLabel">${esc(x.l)}</div><div class="revSValue">${esc(x.v)}</div><div class="revSSub">${esc(x.s)}</div></div>`).join('');
+      const dayTiles = monthDays.map(d=>{
+        const target=adaptiveRevenueTarget(monthDays,omzetTarget,d.datum);
+        const omzet=n(d.omzet);
+        const pct=target?omzet/target*100:0;
+        const hasData=!!n(d.hasData);
+        const isFutureOrNoData=!hasData;
+        const st=isFutureOrNoData?'future':revenueStatus(pct);
+        const rev=isFutureOrNoData?'—':'€ '+moneyFmt.format(omzet);
+        const klanten=isFutureOrNoData?'—':moneyFmt.format(n(d.klanten));
+        const conc=isFutureOrNoData?'—':pctDisplayValue(d.concretisatie);
+        return `<div class="dayTile ${st}"><div class="dayTop"><span>${esc(dayNameShort(d.datum))}</span><span>${esc(dayNum(d.datum))}</span></div><div><div class="dayRevenue">${esc(rev)}</div><div class="dayTarget">Target € ${esc(moneyFmt.format(target))}</div></div><div class="dayMeta"><span>👥 ${esc(klanten)}</span><span>${esc(conc)}</span></div></div>`;
+      });
+      const mtdStatus = revenuePaceStatus(omzetMtd,omzetTarget);
+      dayTiles.push(`<div class="dayTile mtd ${mtdStatus}"><div class="dayTop"><span>MTD</span><span>${esc(period)}</span></div><div><div class="dayRevenue">€ ${esc(moneyFmt.format(omzetMtd))}</div><div class="dayTarget">Target € ${esc(moneyFmt.format(omzetTarget))}</div></div><div class="dayMeta"><span>👥 ${esc(moneyFmt.format(klantenMtd))}</span><span>${esc(concMtd)}</span></div></div>`);
+      const yoyMtd=revenueMtdComparison();
+      dayTiles.push(`<div class="dayTile mtd yoyMtd ${yoyMtd.status}"><div class="dayTop"><span>MTD t.o.v. Y-1</span><span>${esc(period)}</span></div><div><div class="dayRevenue">${esc(yoyMtd.percentage)}</div><div class="dayTarget">Dit jaar ${esc(pvmText(yoyMtd.current))}</div><div class="dayTarget">Y-1 ${esc(pvmText(yoyMtd.previous))}</div></div></div>`);
+      document.getElementById('revenueDayGrid').innerHTML = dayTiles.join('');
+    }
+
+    function renderStore(){
+      const grid=document.getElementById('storeGrid');
+      grid.innerHTML = storeOrder.map(key=>{const k=def(key); const m=metric(store,k); return `<div class="kpiCard ${m.status}"><div class="kpiName">${esc(k.label)}</div><div class="kpiValue">${esc(m.display)}</div><div class="todo">${esc(m.todo)}</div></div>`}).join('');
+    }
+    function renderTable(){
+      const rows=[...sellers].sort((a,b)=>sellerScore(b)-sellerScore(a));
+      const table=document.getElementById('sellerTable');
+      const heads = tableOrder.map(key=>`<th>${esc(def(key).short || def(key).label)}</th>`).join('');
+      const body = rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td class="name"><div class="nameWrap"><img class="miniAvatar" src="${avatar(r.Naam)}" onerror="this.style.display='none'"><span>${esc(r.Naam)}</span></div></td>${tableOrder.map(key=>{const m=metric(r,def(key)); return `<td class="${podiumClass(r.Naam,key)} status${m.status[0].toUpperCase()+m.status.slice(1)}"><span class="valuePill">${esc(m.display)}${badgeHtml(r,key)}</span></td>`}).join('')}</tr>`).join('');
+      table.innerHTML = `<thead><tr><th style="width:58px">#</th><th style="width:230px;text-align:left">Naam</th>${heads}</tr></thead><tbody>${body}</tbody>`;
+    }
+    function isActiveInc(x){const st=norm(x.status); const t=todayStr(); return st==='actief'||(s(x.startdatum)&&s(x.einddatum)&&s(x.startdatum)<=t&&s(x.einddatum)>=t)}
+    let incItems=incentives.filter(isActiveInc), agendaItems=agenda.filter(a=>s(a.datum)===todayStr());
+    let incIndex=0, agendaIndex=0;
+    function renderInc(){const b=document.getElementById('incentiveBanner'); if(!b) return; if(!incItems.length){b.querySelector('.bannerTitle').textContent='Geen actieve incentive'; b.querySelector('.bannerSub').textContent=''; return;} const x=incItems[incIndex%incItems.length]; b.querySelector('.bannerTitle').textContent=x.titel||'Incentive'; b.querySelector('.bannerSub').textContent=[x.beloning?('Beloning: '+x.beloning):'',x.einddatum?('Tot '+x.einddatum):''].filter(Boolean).join('  ·  '); incIndex++;}
+    function renderAgenda(){const b=document.getElementById('agendaBanner'); if(!b) return; if(!agendaItems.length){b.querySelector('.bannerTitle').textContent='Geen agenda-items vandaag'; b.querySelector('.bannerSub').textContent=''; return;} const x=agendaItems[agendaIndex%agendaItems.length]; b.querySelector('.bannerTitle').textContent=x.titel||'Agenda-item'; b.querySelector('.bannerSub').textContent=[x.type,x.info].filter(Boolean).join('  ·  '); agendaIndex++;}
+    function getRankedSellers(){return [...sellers].sort((a,b)=>sellerScore(b)-sellerScore(a));}
+    function missionTodoText(row,key){
+      const k=def(key), m=metric(row,k);
+      if(m.status==='ok') return 'On track';
+      if(k.type==='ratio'){
+        const need=stukAchterstand(row,k);
+        return need>0?`${need} to do`:'On track';
+      }
+      return m.todo;
+    }
+    function topStrengths(row){
+      const out=[];
+      for(const key of tableOrder){
+        const p=podium[key]?.[norm(row.Naam)];
+        if(p && p<=3){
+          const cls=p===1?'gold':p===2?'silver':'bronze';
+          const label=p===1?'#1':p===2?'#2':'#3';
+          out.push({place:p, cls, label, k:def(key), m:metric(row,def(key))});
+        }
+      }
+      return out.sort((a,b)=>a.place-b.place).slice(0,4);
+    }
+    function renderMission(row){
+      if(!row) return;
+      const name=s(row.Naam)||'Verkoper';
+      document.getElementById('missionName').textContent = name;
+      const av=document.getElementById('missionAvatar');
+      av.src=avatar(name); av.onerror=function(){this.style.display='none'}; av.style.display='block';
+      const cards=document.getElementById('missionCards');
+      cards.innerHTML = tableOrder.map(key=>{
+        const k=def(key), m=metric(row,k);
+        return `<div class="missionCard ${m.status}"><div class="missionKpi">${esc(k.short||k.label)}</div><div class="missionValue">${esc(m.display)}</div><div class="missionTodo">${esc(missionTodoText(row,key))}</div></div>`;
+      }).join('');
+      const todoItems = tableOrder.map(key=>({key,k:def(key),m:metric(row,def(key)),txt:missionTodoText(row,key)})).filter(x=>x.m.status!=='ok').slice(0,6);
+      const todos=document.getElementById('missionTodos');
+      if(todoItems.length){
+        todos.innerHTML = todoItems.map(x=>`<div class="missionTodoItem"><div class="tKpi">${esc(x.k.short||x.k.label)}</div><div class="tVal">${esc(x.txt)}</div></div>`).join('');
+        document.getElementById('missionLine').textContent = '';
+      } else {
+        todos.innerHTML = `<div class="missionTodoItem"><div class="tKpi">Status</div><div class="tVal" style="color:#baffc9">Alles on track</div></div>`;
+        document.getElementById('missionLine').textContent = '';
+      }
+      const strengths=topStrengths(row);
+      document.getElementById('missionStrengths').innerHTML = strengths.length ? strengths.map(x=>`<div class="strengthItem ${x.cls}"><strong>${esc(x.label)} ${esc(x.k.short||x.k.label)}</strong><span>${esc(x.m.display)}</span></div>`).join('') : `<div class="strengthItem"><strong>Nog geen podium</strong><span>Vandaag pakken</span></div>`;
+    }
+    let currentSlide=0;
+    let playing=false;
+    let slideTimer=null;
+    function totalSlides(){return carouselImages.length + 13;}
+    function imagePath(fileName){
+      const f=s(fileName);
+      if(!f) return '';
+      if(/^https?:\/\//i.test(f) || f.indexOf('assets/')===0) return f;
+      return 'assets/carousel/' + f;
+    }
+    function renderCarouselImage(fileName){
+      const img=document.getElementById('carouselImage');
+      img.src=imagePath(fileName);
+      img.onerror=function(){this.style.display='none'};
+      img.onload=function(){this.style.display='block'};
+      img.style.display='block';
+    }
+    function animateMissionSwitch(row,direction){
+      const slide=document.getElementById('missionSlide');
+      const outClass=direction>=0?'outLeft':'outRight';
+      const inClass=direction>=0?'outRight':'outLeft';
+      slide.classList.remove('outLeft','outRight','noTrans');
+      slide.classList.add(outClass);
+      setTimeout(()=>{
+        renderMission(row);
+        slide.classList.add('noTrans');
+        slide.classList.remove(outClass);
+        slide.classList.add(inClass);
+        void slide.offsetHeight;
+        slide.classList.remove('noTrans');
+        slide.classList.remove(inClass);
+      },650);
+    }
+    function showSlide(idx){
+      const total=totalSlides();
+      currentSlide=((idx%total)+total)%total;
+      const stage=document.getElementById('stage');
+      const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode');
+      if(currentSlide===0){renderYesterdaySlide();clearModes();stage.classList.add('yesterdayMode');return;}
+      if(currentSlide===1){renderRevenueSlide();clearModes();stage.classList.add('revenueMode');return;}
+      if(currentSlide===2){renderServiceSlide();clearModes();stage.classList.add('serviceMode');return;}
+      if(currentSlide===3){renderDistrictRankingSlide();clearModes();stage.classList.add('districtRankMode');return;}
+      if(currentSlide===4){renderNpsSlide();clearModes();stage.classList.add('npsMode');return;}
+      if(currentSlide===5){renderAvvSlide();clearModes();stage.classList.add('avvMode');return;}
+      if(currentSlide>=6&&currentSlide<=12){renderKpiServiceSlide(currentSlide-6);clearModes();stage.classList.add('kpiServiceMode');return;}
+      renderCarouselImage(carouselImages[currentSlide-13]);clearModes();stage.classList.add('mediaMode');
+    }
+    function nextSlide(){showSlide(currentSlide+1);}
+    function prevSlide(){showSlide(currentSlide-1);}
+    function setPlaying(on){
+      playing=!!on;
+      const btn=document.getElementById('playPause');
+      btn.textContent=playing?'PAUSE':'PLAY';
+      btn.classList.toggle('playing',playing);
+      if(slideTimer){clearInterval(slideTimer); slideTimer=null;}
+      if(playing) slideTimer=setInterval(nextSlide,15000);
+    }
+    function restartAutoplayTimer(){
+      if(!playing) return;
+      if(slideTimer){clearInterval(slideTimer); slideTimer=null;}
+      slideTimer=setInterval(nextSlide,15000);
+    }
+    document.getElementById('nextSlide').addEventListener('click',()=>{nextSlide();restartAutoplayTimer();});
+    document.getElementById('prevSlide').addEventListener('click',()=>{prevSlide();restartAutoplayTimer();});
+    document.getElementById('playPause').addEventListener('click',()=>{setPlaying(!playing);});
+    document.addEventListener('keydown',function(e){
+      const k=e.key;
+      if(k==='ArrowRight'||k==='PageDown'){e.preventDefault();nextSlide();restartAutoplayTimer();}
+      else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();prevSlide();restartAutoplayTimer();}
+      else if(k===' '||k==='Enter'){e.preventDefault();setPlaying(!playing);}
+      else if(k==='Home'||k==='Escape'){e.preventDefault();setPlaying(false);showSlide(0);}
+    });
+
+    function tvExportSleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+    async function exportSlidesTwoToThirteenPdf(){
+      const overlay=document.getElementById('tvExportOverlay'),status=document.getElementById('tvExportStatus'),retry=document.getElementById('tvExportRetry');
+      overlay?.classList.add('show');if(retry)retry.style.display='none';if(status)status.textContent='Export wordt opgebouwd…';
+      if(typeof window.html2canvas!=='function'||!window.jspdf?.jsPDF)throw new Error('De PDF-bibliotheken konden niet worden geladen. Controleer de internetverbinding.');
+      setPlaying(false);const stage=document.getElementById('stage'),controls=document.querySelector('.tvControls'),home=document.querySelector('.tv-home');
+      const oldTransform=stage.style.transform,oldControls=controls?.style.visibility||'',oldHome=home?.style.visibility||'';
+      try{
+        stage.style.transform='none';if(controls)controls.style.visibility='hidden';if(home)home.style.visibility='hidden';
+        const PDF=window.jspdf.jsPDF,pdf=new PDF({orientation:'landscape',unit:'px',format:[1920,1080],hotfixes:['px_scaling'],compress:true});
+        for(let i=1;i<=12;i++){
+          if(status)status.textContent=`Slide ${i+1} wordt verwerkt (${i}/12)…`;showSlide(i);await tvExportSleep(900);
+          const canvas=await window.html2canvas(stage,{
+            scale:1,
+            useCORS:false,
+            allowTaint:false,
+            backgroundColor:'#050505',
+            logging:false,
+            width:1920,
+            height:1080,
+            windowWidth:1920,
+            windowHeight:1080,
+            scrollX:0,
+            scrollY:0,
+            onclone:(doc)=>{
+              // Lokale file://-afbeeldingen krijgen in Chromium een aparte origin
+              // en kunnen het canvas onbruikbaar maken voor PDF-export.
+              // Slides 2–13 bevatten onder meer verkopersavatars als afbeeldingen.
+              // Die worden enkel in de exportkopie verborgen; de live TV blijft ongewijzigd.
+              doc.querySelectorAll('img').forEach(img=>{
+                img.removeAttribute('src');
+                img.removeAttribute('srcset');
+                img.style.display='none';
+              });
+            }
+          });
+          if(i>1)pdf.addPage([1920,1080],'landscape');pdf.addImage(canvas.toDataURL('image/jpeg',.94),'JPEG',0,0,1920,1080,undefined,'FAST');
+        }
+        const p=window.DIESTROYERS_NPS?.latestPeriod||new Date().toISOString().slice(0,7);pdf.save(`Diestroyers_TV_Slides_2-13_${p}.pdf`);if(status)status.textContent='De PDF-download is gestart. Dit venster mag gesloten worden.';
+      }finally{stage.style.transform=oldTransform;if(controls)controls.style.visibility=oldControls;if(home)home.style.visibility=oldHome;fit();if(retry)retry.style.display='inline-block';}
+    }
+    function startTvPdfExport(){const overlay=document.getElementById('tvExportOverlay'),status=document.getElementById('tvExportStatus');overlay?.classList.add('show');exportSlidesTwoToThirteenPdf().catch(err=>{console.error(err);if(status)status.textContent='Export mislukt: '+(err?.message||err||'onbekende fout');const retry=document.getElementById('tvExportRetry');if(retry)retry.style.display='inline-block';});}
+
+    function fit(){const st=document.getElementById('stage'); const scale=Math.min(window.innerWidth/1920,window.innerHeight/1080); st.style.transform=`scale(${scale})`;}
+    // Een optionele tegel of nieuwe databron mag de TV nooit volledig blokkeren.
+    // Iedere opstartstap is daarom geïsoleerd; de eerste slide blijft altijd zichtbaar.
+    function safeTvStart(label, action){
+      try{return action();}
+      catch(error){console.error('TV opstartfout in '+label, error);return null;}
+    }
+    window.addEventListener('resize',()=>{fit(); requestAnimationFrame(fitDistrictRankingRows);});
+    safeTvStart('schalen',fit);
+    safeTvStart('omzet-tegels',renderSales);
+    safeTvStart('gisteren-slide',renderYesterdaySlide);
+    safeTvStart('omzet-slide',renderRevenueSlide);
+    safeTvStart('winkeloverzicht',renderStore);
+    safeTvStart('resultatentabel',renderTable);
+    safeTvStart('incentives',renderInc);
+    safeTvStart('agenda',renderAgenda);
+    safeTvStart('eerste slide',()=>showSlide(0));
+    // Gisteren is altijd de eerste slide. Herstel die keuze ook wanneer een
+    // optionele opstartstap onverwacht faalt.
+    if(!document.getElementById('stage').classList.contains('yesterdayMode')){
+      safeTvStart('eerste slide-herstel',()=>showSlide(0));
+    }
+    setPlaying(false); setInterval(renderInc,7000); setInterval(renderAgenda,5000);
+    document.getElementById('tvExportRetry')?.addEventListener('click',startTvPdfExport);
+    const exportParams=new URLSearchParams(window.location.search);if(['slides2to13','first5'].includes(exportParams.get('export'))){document.getElementById('tvExportOverlay')?.classList.add('show');if(exportParams.get('autostart')==='1')setTimeout(startTvPdfExport,1400);}
+  })();
+  </script>
+<a class="tv-home" href="home.html" style="position:fixed;left:18px;bottom:12px;color:#aaa;text-decoration:none;font-weight:700">Home</a></body>
+</html>
+

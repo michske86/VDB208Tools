@@ -1,0 +1,23 @@
+SMART CALCULATIONS UPDATE - 1 september 2026
+
+Officiele regel voor alle service-KPI-percentages:
+- 0 stuks / 0 kansen = 0%
+- in alle andere gevallen: stuks / max(1, kansen) * 100
+
+Voorbeelden:
+- 1 / 0 = 100%
+- 2 / 0 = 200%
+- 5 / 4 = 125%
+
+Centralisatie:
+- assets/calculations.js bevat de centrale servicePercentage-functie.
+- TV, KPI-pagina's, performance dossiers, Focus Analyse, rankings,
+  simulaties, mobiele/resultatenweergave en export gebruiken deze centrale regel.
+- VBA_Modules_COMPLETE/04_DiestroyersCore.bas bevat dezelfde centrale VBA-regel.
+- Historiekopbouw gebruikt de centrale VBA-functie.
+
+Validatie:
+- 7 functionele rekenscenario's geslaagd.
+- Alle JavaScriptbestanden syntactisch gevalideerd.
+- Alle inline HTML-scripts syntactisch gevalideerd.
+- Geen obsolete deling-door-nul-fallbacks voor service-KPI's meer gevonden.
