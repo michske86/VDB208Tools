@@ -1,0 +1,1 @@
+﻿window.DIESTROYERS_IMPORT_STATUS = {"valid":true,"omzetTot":"2026-11-20","winkelTot":"2026-11-20","checkedAt":"2026-11-21 09:23:34"};

@@ -1,0 +1,1 @@
+﻿window.DIESTROYERS_INCENTIVE_SCORES = [];
