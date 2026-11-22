@@ -1,3 +1,0 @@
-﻿window.DIESTROYERS_HISTORIEK_DAG = [
-
-];

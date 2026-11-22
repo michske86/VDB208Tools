@@ -375,12 +375,12 @@
         const writable=await handle.createWritable();
         await writable.write(txt);
         await writable.close();
-        $("saveStatus").innerHTML='<div class="admin-ok">config-data.js is opgeslagen. Kies in Excel nu Website updaten.</div>';
+        $("saveStatus").innerHTML='<div class="admin-ok">Upload config-data.js naar VDB208Tools/Diestroyers/assets op GitHub. Kies daarna in Excel Website updaten.</div>';
         return;
       }catch(e){if(e.name==="AbortError")return;}
     }
     downloadConfig();
-    $("saveStatus").innerHTML='<div class="admin-warning">Het bestand is gedownload. Plaats het als assets/config-data.js en kies daarna Website updaten.</div>';
+    $("saveStatus").innerHTML='<div class="admin-warning">Upload config-data.js naar VDB208Tools/Diestroyers/assets op GitHub. Kies daarna in Excel Website updaten.</div>';
   }
 
   function downloadConfig(){

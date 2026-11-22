@@ -290,7 +290,7 @@
     .dayMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:16px;font-weight:900;color:#ddd;white-space:nowrap;overflow:hidden;}
     .dayMeta span{overflow:hidden;text-overflow:ellipsis;}
 
-  
+
     #agendaPanel,#incentivePanel{display:none!important;}
     .overviewMain{grid-template-columns:1fr!important;}
     .overviewLeft{margin:0 auto;max-width:100%;}
@@ -934,22 +934,22 @@
   <div class="tvExportOverlay" id="tvExportOverlay"><div class="tvExportCard"><h2>TV PDF Export</h2><p id="tvExportStatus">De eerste vijf slides worden voorbereid.</p><button id="tvExportRetry" type="button">Download opnieuw</button></div></div>
 
   <script src="assets/config-data.js"></script>
-  <script src="assets/district-data.js"></script>
-  <script src="assets/resultaten-data.js"></script>
-  <script src="assets/gisteren-service-data.js"></script>
-  <script src="assets/omzet-dag-data.js"></script>
+  <script src="assets/dashboard-data.js"></script>
+
+
+
   <script src="assets/revenue-daily.js"></script>
-  <script src="assets/sales-extra-data.js"></script>
-  <script src="assets/sales-days-data.js"></script>
-  <script src="assets/historiek-dag-data.js"></script>
-  <script src="assets/verkopers-data.js"></script>
-  
-  <script src="assets/agenda-data.js"></script>
-  <script src="assets/carousel-data.js"></script>
-  <script src="assets/nps-data.js"></script>
-  <script src="assets/avv-data.js"></script>
-  <script src="assets/portfolio-data.js"></script>
-  <script src="assets/import-status-data.js"></script>
+
+
+
+
+
+
+
+
+
+
+
   <script src="assets/calculations.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2106,6 +2106,30 @@
     }
     setPlaying(false); setInterval(renderInc,7000); setInterval(renderAgenda,5000);
     document.getElementById('tvExportRetry')?.addEventListener('click',startTvPdfExport);
+    // De tv houdt de huidige dia en afspeelstatus bij een data-update.
+    const refreshKey = 'diestroyers-tv-data-refresh';
+    try {
+      const prior = JSON.parse(sessionStorage.getItem(refreshKey) || 'null');
+      sessionStorage.removeItem(refreshKey);
+      if (prior) {
+        showSlide(prior.slide);
+        setPlaying(prior.playing);
+      }
+    } catch { /* De tv werkt ook wanneer sessieopslag uitstaat. */ }
+    if (location.protocol.startsWith('http') && !new URLSearchParams(location.search).has('export')) {
+      setInterval(async () => {
+        try {
+          const response = await fetch('dashboard-version.json', { cache: 'no-store' });
+          if (!response.ok) return;
+          const latest = await response.json();
+          if (latest.format !== 2 || latest.dataRevision === window.DIESTROYERS_DATA_REVISION) return;
+          if (!/^[a-f0-9]{64}$/.test(latest.dataRevision)) return;
+          if (document.getElementById('tvExportOverlay')?.classList.contains('show')) return;
+          try { sessionStorage.setItem(refreshKey, JSON.stringify({ slide: currentSlide, playing })); } catch {}
+          location.reload();
+        } catch { /* Tijdelijk offline. Laat de huidige dia beschikbaar. */ }
+      }, 120000);
+    }
     const exportParams=new URLSearchParams(window.location.search);if(['slides2to13','first5'].includes(exportParams.get('export'))){document.getElementById('tvExportOverlay')?.classList.add('show');if(exportParams.get('autostart')==='1')setTimeout(startTvPdfExport,1400);}
   })();
   </script>
