@@ -1,0 +1,59 @@
+.avvSlide {
+  --avv-panel: linear-gradient(180deg,#171515,#100e0f);
+  --avv-card: #242021;
+  --avv-edge: #443b3e;
+  --avv-track: #4a4044;
+  --avv-good: #82dba8;
+  --avv-watch: #f4ce61;
+  --avv-low: #ff7c8f;
+  bottom: 50px;
+}
+html[data-tv-theme="grid208"] .avvSlide {
+  --avv-panel: var(--surface);
+  --avv-card: var(--recess);
+  --avv-edge: var(--edge);
+  --avv-track: #d9c8bd;
+  --avv-good: #17633a;
+  --avv-watch: #875805;
+  --avv-low: #a91f36;
+}
+.avvHeader { flex: 0 0 105px; }
+.avvContent { display: grid; grid-template-rows: 288px minmax(0,1fr); gap: 14px; flex: 1; min-height: 0; }
+.avvLayoutPanel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 10px; background: var(--avv-panel); border: 1px solid var(--avv-edge); border-left: 4px solid var(--red); border-radius: 20px; padding: 15px 18px; }
+.avvLayoutPanel h2 { margin: 0; font-size: 27px; line-height: 1; text-transform: uppercase; }
+.avvOverview,.avvDetailGrid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.avvOverview { flex: 1; min-height: 0; }
+.avvDetailGrid { margin-inline: 22px 19px; min-height: 0; }
+.avvArt { grid-column: span 2; margin: 0; min-width: 0; min-height: 0; overflow: hidden; background: #10090b; border: 1px solid var(--avv-edge); border-radius: 18px; }
+.avvArt img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.avvRankingPanel { grid-column: span 3; }
+.avvDialCard { display: grid; grid-template-rows: auto minmax(0,1fr); min-width: 0; gap: 6px; padding: 11px 13px; border-radius: 11px; background: var(--avv-card); }
+.avvDialCard.primary { border-left: 3px solid var(--red); }
+.avvDialCard h3 { margin: 0; font-size: 24px; line-height: 1.06; }
+.avvDialPair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; align-items: center; }
+.avvDial { display: grid; justify-items: center; align-content: center; gap: 3px; min-width: 0; }
+.avvScope,.avvResponses { font-size: 19px; color: var(--muted); }
+.avvDial svg { width: min(100%,144px); display: block; overflow: visible; }
+.avvDial > strong { color: var(--text); font-size: 36px; line-height: 1; }
+.avvTrack,.avvStroke,.avvMark { fill: none; stroke-linecap: round; }
+.avvTrack { stroke: var(--avv-track); stroke-width: 5; }
+.avvStroke { stroke: var(--avv-state); stroke-width: 5; }
+.avvMark { stroke: var(--avv-state); stroke-width: 2.4; }
+.avvGood { --avv-state: var(--avv-good); }
+.avvWatch { --avv-state: var(--avv-watch); }
+.avvLow { --avv-state: var(--avv-low); }
+.avvNone { --avv-state: var(--muted); }
+.avvRankingHeader { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; }
+.avvLegend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 13px; color: var(--muted); font-size: 17px; }
+.avvLegend b,.avvRankValue { color: var(--avv-state,var(--text)); }
+#avvRanking { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.avvRankHead,.avvRankRow { display: grid; grid-template-columns: minmax(125px,20%) repeat(5,minmax(0,1fr)); align-items: center; gap: 8px; padding-inline: 12px; }
+.avvRankHead { flex: none; min-height: 31px; margin-bottom: 3px; color: var(--muted); font-size: 18px; font-weight: 800; }
+.avvRankHead span:not(:first-child),.avvRankCell { text-align: center; }
+.avvRankRows { flex: 1; min-height: 0; display: grid; grid-auto-rows: minmax(0,1fr); gap: var(--avv-gap,5px); }
+.avvRankRow { background: var(--avv-card); border-radius: 8px; }
+.avvRankSeller,.avvRankCell { display: grid; align-content: center; gap: var(--avv-row-gap,3px); min-width: 0; line-height: 1; }
+.avvRankSeller strong { font-size: var(--avv-name-size,24px); overflow-wrap: anywhere; }
+.avvSellerResponses { font-size: var(--avv-detail-size,16px); color: var(--muted); white-space: nowrap; }
+.avvRankValue.mtd { font-size: var(--avv-mtd-size,27px); font-weight: 800; }
+.avvRankValue.ytd { font-size: var(--avv-ytd-size,22px); font-weight: 700; }

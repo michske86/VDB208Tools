@@ -493,41 +493,9 @@
     .avvMode .avvSlide{transform:translateX(0)}
     .avvMode .revenueSlide,.avvMode .kpiServiceSlide,.avvMode .npsSlide,.avvMode .districtRankSlide,.avvMode .serviceSlide,.avvMode .carouselImageSlide{transform:translateX(-105%)}
     .avvHeader{height:105px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:15px 30px 15px 36px;position:relative;overflow:hidden}
-    .avvHeader:before,.avvColumn:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
+    .avvHeader:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
     .avvTitle{font-size:43px;font-weight:1000;letter-spacing:1px;text-transform:uppercase}
     .avvPeriod{font-size:20px;color:#bfbfbf;font-weight:900}
-    .avvTargetLegend{font-size:14px;color:#aaa;font-weight:800;text-align:right;margin-left:auto;margin-right:24px}
-    .avvColumns{display:grid;grid-template-columns:60% 40%;gap:14px;flex:1;min-height:0}
-    .avvColumn{position:relative;background:linear-gradient(145deg,#171717,#080808);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:18px 18px 18px 24px;min-height:0;display:flex;flex-direction:column;gap:12px;overflow:hidden}
-    .avvColumnTitle{font-weight:1000;font-size:28px;line-height:1;text-transform:uppercase}
-    .avvStoreMetrics{display:grid;grid-template-columns:repeat(2,1fr) repeat(3,.72fr);gap:9px}
-    .avvMetric{border-radius:13px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);padding:9px 11px;min-width:0}
-    .avvMetric.primary{border-left:4px solid var(--red);background:linear-gradient(135deg,rgba(225,25,25,.17),rgba(255,255,255,.04))}
-    .avvMetric label{display:block;color:#bbb;font-size:12px;font-weight:1000;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .avvMetric strong{display:block;font-size:27px;line-height:1.1;margin-top:4px;color:#fff}
-    .avvMetric small{display:block;color:#aaa;font-size:11px;margin-top:3px}
-    .avvSellerGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:9px;flex:1;min-height:0}
-    .avvSeller{background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px 11px;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:5px 9px;align-content:center}
-    .avvSellerName{grid-column:1/-1;font-weight:1000;font-size:17px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
-    .avvSellerMetric{min-width:0}.avvSellerMetric span{display:block;color:#aaa;font-size:10px;font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.avvSellerMetric b{font-size:17px;line-height:1.1}
-    .avvSellerMetric.primary b{color:#fff}.avvSellerMetric.minor b{font-size:15px;color:#ddd}
-    .avvMetric.ok,.avvMetric.close,.avvMetric.bad{border-left:4px solid var(--red)}.avvMetric.ok{border-left-color:var(--green)}.avvMetric.close{border-left-color:var(--yellow)}
-    .avvSellerTableWrap{flex:1;min-height:0;overflow:hidden}
-    .avvSellerTable{width:100%;border-collapse:separate;border-spacing:0 8px;table-layout:fixed}
-    .avvSellerTable th{color:#999;font-size:12px;font-weight:1000;text-transform:uppercase;text-align:center;padding:0 5px 3px;white-space:nowrap}
-    .avvSellerTable th:first-child{width:7%}.avvSellerTable th:nth-child(2){text-align:left;width:23%}
-    .avvSellerTable td{background:rgba(255,255,255,.055);border-top:1px solid rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.09);padding:10px 6px;text-align:center;font-size:21px;font-weight:1000;line-height:1}
-    .avvSellerTable tbody tr{height:var(--avv-row-h,52px)}
-    .avvSellerTable td:first-child{border-left:4px solid var(--red);border-radius:12px 0 0 12px;text-align:center;padding-left:4px;color:var(--red);font-size:17px}
-    .avvSellerTable td:nth-child(2){text-align:left;padding-left:10px;text-transform:uppercase;font-size:20px}
-    .avvSellerTable td:last-child{border-radius:0 12px 12px 0;border-right:1px solid rgba(255,255,255,.09)}
-    .avvSellerTable .ok{color:var(--green)}.avvSellerTable .close{color:var(--yellow)}.avvSellerTable .bad{color:#ff7373}.avvSellerTable .none{color:#888}
-    .avvSellerTable small{display:block;color:#999;font-size:11px;font-weight:800;margin-top:4px;text-transform:none}
-    /* MTD en YTD zijn bewust visueel gelijkwaardig. */
-    .avvColumn.ytd{padding:18px 18px 18px 24px}
-    .avvColumn.ytd .avvColumnTitle{font-size:28px}.avvColumn.ytd .avvStoreMetrics{gap:9px}.avvColumn.ytd .avvMetric{padding:9px 11px}.avvColumn.ytd .avvMetric strong{font-size:27px}
-    .avvColumn.ytd .avvSellerTable{border-spacing:0 8px}.avvColumn.ytd .avvSellerTable th{font-size:12px}.avvColumn.ytd .avvSellerTable td{padding:10px 6px;font-size:21px}.avvColumn.ytd .avvSellerTable td:first-child{font-size:17px;padding-left:4px}.avvColumn.ytd .avvSellerTable td:nth-child(2){font-size:20px;padding-left:10px}.avvColumn.ytd .avvSellerTable small{font-size:11px;margin-top:4px}
-
     /* Ook Akte van Vertrouwen gebruikt dezelfde fade als alle andere TV-slides. */
     .avvSlide{transform:none!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility 0s linear .55s!important}
     .avvMode .avvSlide{transform:none!important;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .55s ease!important;z-index:8!important}
@@ -562,8 +530,10 @@
 </style>
   <link rel="stylesheet" href="assets/tv-theme.css?v=3">
   <link rel="stylesheet" href="assets/nps-tv.css?v=2">
+  <link rel="stylesheet" href="assets/avv-tv.css">
   <script src="assets/tv-theme.js"></script>
   <script src="assets/nps-tv.js"></script>
+  <script src="assets/avv-tv.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -634,10 +604,21 @@
     </section>
 
     <section class="avvSlide" id="avvSlide">
-      <div class="avvHeader"><div class="avvTitle">Akte Van Vertrouwen</div><div class="avvTargetLegend">AVV &amp; LPG: 70% geel · 80% groen &nbsp;|&nbsp; Beleving: 90% geel · 95% groen</div><div class="avvPeriod" id="avvPeriod"></div></div>
-      <div class="avvColumns">
-        <div class="avvColumn"><div class="avvColumnTitle">MTD</div><div class="avvStoreMetrics" id="avvMonthStore"></div><div class="avvSellerTableWrap" id="avvMonthSellers"></div></div>
-        <div class="avvColumn ytd"><div class="avvColumnTitle">YTD</div><div class="avvStoreMetrics" id="avvYtdStore"></div><div class="avvSellerTableWrap" id="avvYtdSellers"></div></div>
+      <div class="avvHeader"><div class="avvTitle">Akte Van Vertrouwen</div><div class="avvPeriod" id="avvPeriod"></div></div>
+      <div class="avvContent">
+        <section class="avvLayoutPanel" aria-label="Winkelresultaten">
+          <h2>Winkel</h2><div class="avvOverview" id="avvOverview"></div>
+        </section>
+        <div class="avvDetailGrid">
+          <figure class="avvArt"><img src="assets/Akte.png" width="1280" height="1024" alt="Akte van Vertrouwen: prijs, persoonlijk advies, service en duurzaamheid"></figure>
+          <section class="avvLayoutPanel avvRankingPanel">
+            <div class="avvRankingHeader">
+              <h2>Ranking verkopers</h2>
+              <div class="avvLegend"><span>AVV &amp; LPG · <b class="avvWatch">70% geel</b> · <b class="avvGood">80% groen</b></span><span>Beleving · <b class="avvWatch">90% geel</b> · <b class="avvGood">95% groen</b></span></div>
+            </div>
+            <div id="avvRanking" role="table" aria-label="Verkopersresultaten MTD en YTD"></div>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -1233,53 +1214,9 @@
     }
 
     function renderAvvSlide(){
-      const live=window.DIESTROYERS_AVV||avvData||{};
-      const avvPeriod=s(live.latestPeriod)||s(npsData.latestPeriod)||period;
-      const labels={trust:'Akte van Vertrouwen',price:'Laagste Prijs Garantie',information:'Inlichtingen',wait:'Wachttijd',friendly:'Vriendelijkheid'};
-      const emptyMetric={value:null,responses:0};
-      const emptyStats={trust:emptyMetric,price:emptyMetric,information:emptyMetric,wait:emptyMetric,friendly:emptyMetric};
-      const valueText=m=>m&&m.value!==null&&m.value!==undefined&&isFinite(Number(m.value))?pctFmt.format(Number(m.value))+'%':'—';
-      const responseText=m=>`${n(m?.responses)} ${n(m?.responses)===1?'antwoord':'antwoorden'}`;
-      const metricStatus=(key,m)=>{
-        if(!m||m.value===null||m.value===undefined||!isFinite(Number(m.value))) return 'none';
-        const v=Number(m.value), main=(key==='trust'||key==='price');
-        return v>=(main?80:95)?'ok':v>=(main?70:90)?'close':'bad';
-      };
-      const metricCard=(key,m,primary=false)=>`<div class="avvMetric ${primary?'primary':''} ${metricStatus(key,m)}"><label>${esc(labels[key])}</label><strong>${esc(valueText(m))}</strong><small>${esc(responseText(m))}</small></div>`;
-      const sellerTable=(allSellers,scope)=>{
-        const rows=allSellers.map(seller=>{
-          const stats=live.sellers?.[seller.id]?.[scope]||emptyStats;
-          const avv=stats.trust||emptyMetric, lpg=stats.price||emptyMetric;
-          const hasScore=n(avv.responses)>0||n(lpg.responses)>0;
-          const score=hasScore?(n(avv.value)+n(lpg.value)):null;
-          return {seller,stats,score};
-        }).sort((a,b)=>{
-          if(a.score===null&&b.score===null) return a.seller.name.localeCompare(b.seller.name);
-          if(a.score===null) return 1;
-          if(b.score===null) return -1;
-          return b.score-a.score||a.seller.name.localeCompare(b.seller.name);
-        });
-        const heads=[['trust','AVV'],['price','LPG'],['information','Info'],['wait','Wacht'],['friendly','Vriend.']];
-        let previousScore=null, previousRank=0;
-        rows.forEach((row,index)=>{
-          if(row.score===null){row.rank=rows.length;return;}
-          if(previousScore===null||Math.abs(row.score-previousScore)>.001) previousRank=index+1;
-          row.rank=previousRank;previousScore=row.score;
-        });
-        const rowHeight=Math.max(45,Math.min(68,Math.floor(470/Math.max(rows.length,1))));
-        return `<table class="avvSellerTable" style="--avv-row-h:${rowHeight}px"><thead><tr><th>#</th><th>Verkoper</th>${heads.map(x=>`<th>${x[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>{
-          const sample=Math.max(...heads.map(x=>n(row.stats[x[0]]?.responses)));
-          return `<tr><td>#${row.rank}</td><td>${esc(row.seller.name)}<small>n = ${sample}</small></td>${heads.map(x=>{const m=row.stats[x[0]]||emptyMetric;return `<td class="${metricStatus(x[0],m)}">${esc(valueText(m))}</td>`}).join('')}</tr>`;
-        }).join('')}</tbody></table>`;
-      };
-      const configured=(adminConfig.verkopers||[]).map(v=>({id:s(v.PersoneelsNr),name:s(v.Naam)||s(v.PersoneelsNr),active:norm(v.Actief||'ja')!=='nee'})).filter(v=>v.active);
-      const sellers=configured.length?configured:Object.entries(live.sellers||{}).map(([id,x])=>({id,name:s(x.name)||id,active:true}));
-      const storeMonth=live.store?.month||emptyStats, storeYtd=live.store?.ytd||emptyStats;
-      document.getElementById('avvPeriod').textContent=avvPeriod?`PERIODE ${avvPeriod}`:'GEEN NPS-DATA';
-      document.getElementById('avvMonthStore').innerHTML=['trust','price','information','wait','friendly'].map((key,i)=>metricCard(key,storeMonth[key]||emptyMetric,i<2)).join('');
-      document.getElementById('avvYtdStore').innerHTML=['trust','price','information','wait','friendly'].map((key,i)=>metricCard(key,storeYtd[key]||emptyMetric,i<2)).join('');
-      document.getElementById('avvMonthSellers').innerHTML=sellerTable(sellers,'month');
-      document.getElementById('avvYtdSellers').innerHTML=sellerTable(sellers,'ytd');
+      const data = window.DIESTROYERS_AVV || avvData || {};
+      const sellers = Array.isArray(adminConfig.verkopers) ? adminConfig.verkopers : [];
+      window.DIESTROYERS_TV_AVV.render(data, sellers, s(data.latestPeriod) || s(npsData.latestPeriod) || period);
     }
 
     function renderDistrictRankingSlide(){
@@ -1750,12 +1687,15 @@
       fit();
       requestAnimationFrame(fitDistrictRankingRows);
       if (currentSlide === 4) requestAnimationFrame(window.DIESTROYERS_TV_NPS.fit);
+      if (currentSlide === 5) requestAnimationFrame(window.DIESTROYERS_TV_AVV.fit);
     });
     document.fonts?.addEventListener('loadingdone', () => {
       if (currentSlide === 4) window.DIESTROYERS_TV_NPS.fit();
+      if (currentSlide === 5) window.DIESTROYERS_TV_AVV.fit();
     });
     window.addEventListener('diestroyers-tv-theme-change', () => {
       if (currentSlide === 4) renderNpsSlide();
+      if (currentSlide === 5) requestAnimationFrame(window.DIESTROYERS_TV_AVV.fit);
       if (currentSlide === 3) requestAnimationFrame(fitDistrictRankingRows);
     });
     safeTvStart('schalen',fit);
