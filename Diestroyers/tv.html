@@ -795,6 +795,8 @@
     .tvExportOverlay.show{display:flex}.tvExportCard{width:min(680px,calc(100vw - 48px));padding:34px;border-radius:24px;background:linear-gradient(180deg,#191919,#080808);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}.tvExportCard h2{margin:0 0 10px;font-size:40px;text-transform:uppercase}.tvExportCard p{margin:0 0 20px;color:#bbb;font-size:20px;font-weight:700}.tvExportCard button{border:1px solid #ff4545;border-radius:999px;background:linear-gradient(180deg,#c91515,#650707);color:#fff;padding:13px 24px;font:900 19px 'Rajdhani',Arial,sans-serif;text-transform:uppercase;cursor:pointer}
 
 </style>
+  <link rel="stylesheet" href="assets/tv-theme.css">
+  <script src="assets/tv-theme.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -2096,6 +2098,10 @@
       catch(error){console.error('TV opstartfout in '+label, error);return null;}
     }
     window.addEventListener('resize',()=>{fit(); requestAnimationFrame(fitDistrictRankingRows);});
+    window.addEventListener('diestroyers-tv-theme-change', () => {
+      if (currentSlide === 4) renderNpsSlide();
+      if (currentSlide === 3) requestAnimationFrame(fitDistrictRankingRows);
+    });
     safeTvStart('schalen',fit);
     safeTvStart('omzet-tegels',renderSales);
     safeTvStart('gisteren-slide',renderYesterdaySlide);
@@ -2151,6 +2157,8 @@
     const exportParams=new URLSearchParams(window.location.search);if(['slides2to13','first5'].includes(exportParams.get('export'))){document.getElementById('tvExportOverlay')?.classList.add('show');if(exportParams.get('autostart')==='1')setTimeout(startTvPdfExport,1400);}
   })();
   </script>
-<a class="tv-home" href="home.html" style="position:fixed;left:18px;bottom:12px;color:#aaa;text-decoration:none;font-weight:700">Home</a></body>
+<a class="tv-home" href="home.html" style="position:fixed;left:18px;bottom:12px;color:#aaa;text-decoration:none;font-weight:700">Home</a>
+<button type="button" id="tvThemeToggle" hidden>Light mode</button>
+</body>
 </html>
 

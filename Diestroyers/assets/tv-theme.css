@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700;800&family=Inter:wght@600;700;800;900&display=swap');
+
+html[data-tv-theme="grid208"] {
+  --font: 'DM Sans', Arial, sans-serif;
+  --display: Inter, Arial, sans-serif;
+  --text: #24201f;
+  --muted: #514943;
+  --red: #bf1029;
+  --green: #1a6448;
+  --yellow: #765013;
+  --bad: #ab2335;
+  --good: #e1eee1;
+  --close: #f2e4c1;
+  --alert: #f4dce0;
+  --edge: #cfc2b5;
+  --recess: #eee7db;
+  --canvas: repeating-linear-gradient(123deg, transparent 0 55px, #5e343206 56px 57px),
+    radial-gradient(ellipse at 98% 4%, #d8aba6 0%, transparent 47%),
+    linear-gradient(115deg, #f5eee0, #e9ddd0);
+  --shell: #e9ddd0;
+  --surface: linear-gradient(150deg, #fffcf7, #f8f1e7);
+  --tile: linear-gradient(150deg, #fffefa, #f6eee2);
+  --mast: linear-gradient(112deg, #9c1028, #c9122e 67%, #9b0e24);
+  --sheen: repeating-linear-gradient(128deg, transparent 0 15px, #fff9f314 16px 17px, transparent 18px 39px);
+  --shadow: 0 9px 22px #582c2621, inset 0 1px #ffffffc7;
+  --tile-shadow: 0 3px 6px #582c2614, inset 0 1px #ffffff;
+  --radius: 12px;
+  --tile-radius: 8px;
+}
+
+html[data-tv-theme="grid208"], html[data-tv-theme="grid208"] body {
+  color: var(--text);
+  background: var(--shell);
+  font-family: var(--font);
+}
+html[data-tv-theme="grid208"] #stage { flex: none; background: var(--canvas); font-variant-numeric: tabular-nums; }
+html[data-tv-theme="grid208"] #stage::before { display: none; }
+html[data-tv-theme="grid208"] #stage *, html[data-tv-theme="grid208"] #stage *::before, html[data-tv-theme="grid208"] #stage *::after {
+  text-shadow: none !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.avvHeader,.kpiServiceHeader,.missionHeader) {
+  background: var(--sheen), var(--mast) !important;
+  color: var(--text);
+  border-color: var(--edge) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayTitle,.revenueName,.serviceName,.districtRankName,.npsTvTitle,.avvTitle,.kpiServiceName,.missionName) {
+  font-family: var(--display);
+  color: var(--text);
+  letter-spacing: -.045em;
+  font-weight: 800;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.kpiServiceHeader,.missionHeader)::after,
+html[data-tv-theme="grid208"] #stage .avvHeader::before {
+  width: 5px;
+  background: linear-gradient(0deg, #811326, var(--red) 54%, #dc6770);
+  box-shadow: none;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayPanel,.revenueSummary,.revenueCalendarPanel,.servicePanel,.districtRankPanel,
+  .npsTvPanel,.avvColumn,.kpiServiceColumn,.storeServicePanel,.missionTodoPanel,.carouselImageSlide,.panel,.missionAvatarBox) {
+  color: var(--text);
+  background: var(--surface) !important;
+  border-color: var(--edge) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayPanel,.revenueSummary,.revenueCalendarPanel,.servicePanel,.districtRankPanel,
+  .npsTvPanel,.kpiServiceColumn,.carouselImageSlide,.panel)::after,
+html[data-tv-theme="grid208"] #stage .avvColumn::before { width: 2px; box-shadow: none; opacity: .45; }
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.yesterdaySeller,.yesterdayStoreCard,.npsTvCard,.npsTvComment,
+  .kpiShopCard,.kpiSellerTile,.serviceCell,.districtCell,.avvMetric,.storeServiceTile,.missionCard,.salesCard,.kpiCard) {
+  background: var(--tile) !important;
+  color: var(--text);
+  border-color: var(--edge) !important;
+  border-radius: var(--tile-radius) !important;
+  box-shadow: var(--tile-shadow) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).ok {
+  background: linear-gradient(145deg,#ffffffaa,transparent), var(--good) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).close {
+  background: linear-gradient(145deg,#ffffffaa,transparent), var(--close) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).bad {
+  background: linear-gradient(145deg,#ffffffaa,transparent), var(--alert) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.serviceCell,.districtCell,.npsTvCard,.kpiShopCard,.kpiSellerTile,.yesterdayStoreCard)::before,
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.storeServiceTile,.salesCard,.kpiCard)::after { width: 3px !important; box-shadow: none !important; }
+html[data-tv-theme="grid208"] #stage .yesterdaySeller::before { width: 2px; opacity: .56; }
+html[data-tv-theme="grid208"] #stage :is(.dayTile.today,.revenueSummaryCard.targetToday,.kpiStoreSummary) { border-color: var(--red) !important; }
+html[data-tv-theme="grid208"] #stage .dayTile.future { background: var(--recess) !important; opacity: 1; }
+html[data-tv-theme="grid208"] #stage .yesterdaySeller :is(.yesterdayOmzet,.yesterdayKpi),
+html[data-tv-theme="grid208"] #stage .kpiSellerFacts span {
+  background: var(--recess);
+  border-radius: var(--tile-radius);
+}
+html[data-tv-theme="grid208"] #stage .yesterdaySeller .yesterdayKpi.written { background: var(--good) !important; border-color: var(--green) !important; color: var(--green); box-shadow: none; }
+html[data-tv-theme="grid208"] #stage :is(.districtCell.rankGold,.serviceCell.rankGold) { border-color: #a7813f !important; }
+html[data-tv-theme="grid208"] #stage :is(.districtCell.rankSilver,.serviceCell.rankSilver) { border-color: #8795a1 !important; }
+html[data-tv-theme="grid208"] #stage :is(.districtCell.rankBronze,.serviceCell.rankBronze) { border-color: #9e7159 !important; }
+html[data-tv-theme="grid208"] #stage :is(.npsRankTable td,.avvSellerTable td,.sellerTable td) { background: var(--recess); border-color: var(--edge); }
+html[data-tv-theme="grid208"] #stage :is(.sellerTable th,.npsRankSecondary .ytdLabel,.npsMonthScore) { background: var(--tile); color: var(--text); }
+html[data-tv-theme="grid208"] #stage :is(.npsRankTable th,.avvSellerTable th,.districtRankTable th,.serviceTable th,.yesterdayColumns,
+  .revSLabel,.revSSub,.dayTop,.dayTarget,.dayMeta,.yesterdaySource,.yesterdayEmpty,.empty,
+  .yesterdayStoreCard span,.yesterdayStoreCard small,.npsTvCard span,.npsTvCard small,
+  .npsRankSecondary,.npsRankMuted,.npsRankNone,.avvMetric label,.avvMetric small,.avvSellerTable small,
+  .kpiShopCard span,.kpiShopCard small,.kpiSellerExtra,.kpiServicePeriod,.kpiStoreDetail,.kpiPortfolioPlaceholder,
+  .kpiSellerFacts span,.kpiSellerCards.ytd .kpiYtdFacts,.yesterdayPanelHead span,.yesterdayDate,.revenueTitleSentence,
+  .serviceLabel,.districtRankLabel,.npsTvPeriod,.avvPeriod,.avvTargetLegend,.kpiServiceLabel,.missionLabel) { color: var(--muted) !important; }
+html[data-tv-theme="grid208"] #stage :is(.districtPlace,.serviceStoreLabel,.avvMetric strong,.avvSellerMetric b,.kpiSellerFacts strong,
+  .npsRankPrimary,.npsSellerName,.serviceVal,.serviceSub,.districtStoreName,.districtKpiVal,.districtScore,.servicePill,.dayBadge,.npsTvCommentHead) {
+  color: var(--text) !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.statusOk,.avvSellerTable .ok,.npsMonthScore.ok,.kpiSellerFacts .metric-ok strong,.serviceHeaderTarget) { color: var(--green) !important; }
+html[data-tv-theme="grid208"] #stage :is(.statusClose,.avvSellerTable .close,.npsMonthScore.close,.kpiSellerFacts .metric-close strong) { color: var(--yellow) !important; }
+html[data-tv-theme="grid208"] #stage :is(.statusBad,.avvSellerTable .bad,.npsMonthScore.bad,.kpiSellerFacts .metric-bad strong) { color: var(--bad) !important; }
+html[data-tv-theme="grid208"] #stage :is(.revenueSummaryCard.targetToday .revSValue,.kpiStoreBadge) { color: var(--red) !important; }
+html[data-tv-theme="grid208"] #stage .avvMetric label { white-space: normal; }
+html[data-tv-theme="grid208"] #stage .npsTvCard.ytd { padding-block: 4px 3px !important; }
+html[data-tv-theme="grid208"] #stage .npsTvCard.ytd strong { margin-block: 2px !important; }
+html[data-tv-theme="grid208"] #stage :is(.kpiSellerAvatar,.yesterdayAvatar,.miniAvatar) { box-shadow: 0 2px 4px #19151b28; }
+html[data-tv-theme="grid208"] #stage .carouselImageSlide img { filter: drop-shadow(0 12px 22px #241d2726); }
+html[data-tv-theme="grid208"] #stage .tvControls {
+  background: var(--surface);
+  border-color: var(--edge);
+  box-shadow: var(--tile-shadow);
+}
+html[data-tv-theme="grid208"] #stage .tvControls button {
+  background: var(--tile);
+  color: var(--text);
+  border-color: var(--edge);
+  font-family: var(--font);
+}
+html[data-tv-theme="grid208"] #stage .tvControls button:is(:hover,.playing) { border-color: var(--red); color: var(--red); }
+html[data-tv-theme="grid208"] #stage .foot, html[data-tv-theme="grid208"] .tv-home { color: var(--muted) !important; }
+
+
+html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.avvHeader,.kpiServiceHeader,.missionHeader) {
+  --muted: #fff3e9;
+  color: #fff8f0;
+  border-color: #9e0e23 !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayTitle,.revenueName,.serviceName,.districtRankName,.npsTvTitle,.avvTitle,.kpiServiceName,.missionName) {
+  color: #fff8f0;
+  font-style: italic;
+  letter-spacing: -.058em;
+}
+html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.avvHeader,.kpiServiceHeader,.missionHeader) :is(.yesterdayDate,.servicePeriod,.districtRankPeriod,.npsTvPeriod,.avvPeriod,.kpiServicePeriod,.missionPeriod) {
+  color: #fff8f0 !important;
+}
+html[data-tv-theme="grid208"] #stage :is(.npsTvPanel h2,.revenueSummary h2,.revenueCalendarPanel h2,.yesterdayPanel h2,.servicePanel h2) {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+html[data-tv-theme="grid208"] #stage :is(.revSValue,.npsTvCard strong,.avvMetric strong,.yesterdayStoreCard strong,.kpiShopCard strong) {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+}
+html[data-tv-theme="grid208"] #stage :is(.npsRankTable thead th,.districtRankTable thead th,.serviceTable thead th,.sellerTable thead th) {
+  --muted: #fff3e9;
+  color: #fff8f0 !important;
+  background: #362426;
+}
+html[data-tv-theme="grid208"] #stage :is(.sellerTable td.name,.npsTvCommentHead span:last-child) { color: var(--text); }
+html[data-tv-theme="grid208"] #stage .npsTvCard small { color: #493d37 !important; }
+html[data-tv-theme="grid208"] #stage .npsTvComment.promotor { border-left-color: var(--green) !important; }
+html[data-tv-theme="grid208"] #stage .npsTvComment.neutraal { border-left-color: var(--yellow) !important; }
+html[data-tv-theme="grid208"] #stage .npsTvComment.detractor { border-left-color: var(--bad) !important; }
+html[data-tv-theme="grid208"] #stage .tvControls button.playing { color: #fff8f0; background: var(--red); }
+
+#tvThemeToggle {
+  position: fixed;
+  right: 18px;
+  bottom: 12px;
+  z-index: 11;
+  min-width: 84px;
+  padding: 4px 10px;
+  border: 1px solid #4c4243;
+  border-radius: 999px;
+  background: #181415;
+  color: #f8f2ef;
+  font: 700 14px/1.15 var(--font, 'Rajdhani', Arial, sans-serif);
+  cursor: pointer;
+}
+#tvThemeToggle:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+#tvThemeToggle:hover { border-color: var(--red); }
+html[data-tv-theme="grid208"] #tvThemeToggle {
+  background: #fffcf7;
+  color: #332828;
+  border-color: #9d827e;
+}
+html:not([data-tv-export]) #periodLabel { right: 210px; }
+@media (max-aspect-ratio: 4/3) {
+  html:not([data-tv-export]) #periodLabel { right: 34px; }
+}
