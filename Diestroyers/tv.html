@@ -403,16 +403,35 @@
     .districtScore{font-size:var(--district-score-font,24px)!important;}
     .districtKpiVal{font-size:var(--district-kpi-font,17px)!important;}
 
-    /* Gisteren: dagelijks winkel- en serviceoverzicht */
-    .yesterdaySlide{position:absolute;inset:28px;z-index:3;display:flex;flex-direction:column;gap:16px;}
-    .yesterdayHeader{height:126px;display:flex;align-items:center;justify-content:space-between;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:18px 34px;}
-    .yesterdayHeader:after,.yesterdayPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
-    .yesterdayTitle{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36)}.yesterdayDate{font-size:23px;color:#bbb;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
-    .yesterdayStoreGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;height:154px;}.yesterdayStoreCard{position:relative;border-radius:22px;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.09);padding:17px 22px 14px 30px;overflow:hidden}.yesterdayStoreCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 18px rgba(225,25,25,.65)}.yesterdayStoreCard strong{display:block;font-size:47px;line-height:1.05;font-weight:900;margin-top:7px}.yesterdayStoreCard span{font-size:19px;color:#bbb;text-transform:uppercase;font-weight:900;letter-spacing:.06em}.yesterdayStoreCard small{font-size:17px;color:#aaa;font-weight:800}
-    .yesterdayPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:18px 22px 20px 32px;overflow:hidden;display:flex;flex-direction:column}.yesterdayPanelHead{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:12px}.yesterdayPanelHead h2{margin:0;font-size:29px;text-transform:uppercase}.yesterdayPanelHead span{font-size:17px;color:#aaa;font-weight:800;text-transform:uppercase}.yesterdaySellerGrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(145px,1fr);gap:12px;flex:1;min-height:0}.yesterdaySeller{position:relative;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);padding:12px 14px 13px 20px;overflow:hidden}.yesterdaySeller:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red)}.yesterdaySellerName{font-size:25px;font-weight:900;text-transform:uppercase;line-height:1;margin-bottom:12px}.yesterdayKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.yesterdayKpi{border-radius:10px;background:rgba(0,0,0,.32);padding:5px 8px;min-width:0}.yesterdayKpi span{display:block;color:#aaa;font-size:13px;line-height:1;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.yesterdayKpi strong{display:block;font-size:25px;line-height:1.05;font-weight:900}    .yesterdayStoreCard.ok:before{background:var(--green);box-shadow:0 0 18px rgba(46,204,113,.7)}.yesterdayStoreCard.bad:before{background:var(--bad);box-shadow:0 0 18px rgba(255,52,52,.7)}
-    .yesterdaySellerTop{margin-bottom:8px;padding-right:calc(33.333% + 8px);min-height:25px}.yesterdaySellerTop .yesterdaySellerName{margin:0}.yesterdaySellerSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;min-height:60px}.yesterdayAvatarSlot{position:absolute;right:14px;top:12px;width:calc((100% - 48px)/3);height:93px;display:flex;align-items:center;justify-content:center}.yesterdayAvatar{width:66px;height:66px;border-radius:50%;object-fit:cover;border:2px solid var(--red);box-shadow:0 0 14px rgba(225,25,25,.42);flex:0 0 auto}.yesterdayOmzet{grid-column:span 2;display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-radius:10px;background:rgba(0,0,0,.32);padding:5px 9px;margin:0}.yesterdayOmzet span{font-size:14px;color:#aaa;text-transform:uppercase;font-weight:900}.yesterdayOmzet strong{font-size:22px;line-height:1;font-weight:900}.yesterdayKpi.written{background:linear-gradient(180deg,rgba(18,92,54,.78),rgba(8,34,22,.94));border:1px solid rgba(46,204,113,.82);box-shadow:0 0 13px rgba(46,204,113,.22)}.yesterdayEmpty{grid-column:1/-1;align-self:center;text-align:center;color:#aaa;font-size:26px;font-weight:800;text-transform:uppercase}
+    .yesterdaySlide{position:absolute;inset:28px 28px 50px;z-index:3;display:flex;flex-direction:column;gap:14px}
+    .yesterdayHeader,.yesterdayPanel{min-width:0;background:linear-gradient(180deg,#191719,#100e10);border:1px solid #3b3035;border-left:5px solid var(--red);border-radius:18px}
+    .yesterdayHeader{flex:0 0 104px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+    .yesterdayTitle{font-size:64px;line-height:1;font-weight:900;text-transform:uppercase;letter-spacing:-.02em}
+    .yesterdayDate{font-size:23px;color:#bbb;font-weight:800}
+    .yesterdayBody{display:grid;grid-template-columns:minmax(0,1.17fr) minmax(0,1fr);gap:14px;flex:1;min-height:0}
+    .yesterdayPanel{display:flex;flex-direction:column;min-height:0;padding:20px}
+    .yesterdayPanel h2{margin:0 0 12px;font-size:29px;line-height:1;text-transform:uppercase}
+    .yesterdayPoster{margin:0;display:grid;place-items:center;min-width:0;min-height:0}
+    .yesterdayPosterFade{width:100%;max-height:100%;aspect-ratio:1;display:grid;place-items:center;min-width:0;min-height:0;
+      --poster-fade-x:linear-gradient(to right,transparent,#000 4.5%,#000 95.5%,transparent);
+      -webkit-mask-image:var(--poster-fade-x);mask-image:var(--poster-fade-x)}
+    .yesterdayPoster img{display:block;width:100%;height:100%;min-height:0;object-fit:contain;
+      --poster-fade-y:linear-gradient(to bottom,transparent,#000 5%,#000 95%,transparent);
+      -webkit-mask-image:var(--poster-fade-y);mask-image:var(--poster-fade-y)}
+    .yesterdayColumns,.yesterdaySeller{display:grid;grid-template-columns:minmax(164px,2fr) minmax(115px,1.4fr) repeat(6,minmax(0,1fr));align-items:center;gap:6px;padding:0 10px;text-align:center}
+    .yesterdayColumns{padding-bottom:7px;color:#c0b5ba;font-size:16px;font-weight:700;text-transform:uppercase}
+    .yesterdayColumns span:first-child{text-align:left}
+    .yesterdaySellerGrid{display:grid;grid-template-rows:repeat(var(--seller-count,1),minmax(0,1fr));gap:7px;flex:1;min-height:0}
+    .yesterdaySeller{min-height:0;background:#242022;border-radius:9px;font-variant-numeric:tabular-nums}
+    .yesterdayIdentity{display:flex;align-items:center;gap:11px;min-width:0;text-align:left}
+    .yesterdayAvatar{width:min(58px,100%);height:auto;max-height:58px;aspect-ratio:1;flex:none;object-fit:cover;border-radius:50%;border:1px solid var(--red)}
+    .yesterdaySellerName{font-size:25px;line-height:1;font-weight:800;text-transform:uppercase;overflow-wrap:anywhere}
+    .yesterdayOmzet{font-size:30px;line-height:1;white-space:nowrap}
+    .yesterdayOmzet.negative{color:#ff8a9c}
+    .yesterdayKpi{display:grid;place-items:center;min-height:38px;background:#161315;border-radius:6px;font-size:24px;line-height:1}
+    .yesterdayKpi.written{color:#83dbad}
+    .yesterdayEmpty{align-self:center;text-align:center;color:#aaa;font-size:26px;font-weight:800;text-transform:uppercase}
     .revenueSummaryCard.comparisonSummary{display:flex;flex-direction:column;justify-content:center}.revenueSummaryCard.comparisonSummary .revSLabel{font-size:16px;line-height:1.2}.revenueSummaryCard.comparisonSummary .revSValue{font-size:32px;line-height:1.05;margin-top:4px}.revenueSummaryCard.comparisonSummary .revSSub{font-size:16px;font-weight:800;line-height:1.2;margin-top:4px;white-space:nowrap;text-transform:none}
-    .yesterdayPanelHead h2{flex-shrink:0}.yesterdayPanelHead span{text-align:right;line-height:1.2;max-width:1200px}
     /* Alle TV-slides gebruiken dezelfde fade in plaats van horizontaal schuiven */
     .yesterdaySlide,
     .revenueSlide,
@@ -507,15 +526,6 @@
     .kpiServiceLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1}.kpiServiceName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px}
     .kpiServiceSplit{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:16px;flex:1;min-height:0}
     .kpiServiceColumn{min-height:0;display:flex;flex-direction:column}
-
-    /* Daily scoreboard: one aligned row per active seller. */
-    .yesterdayColumns,.yesterdaySeller{display:grid;grid-template-columns:minmax(250px,1.8fr) minmax(165px,1.1fr) repeat(6,minmax(0,1fr));gap:14px;align-items:center}
-    .yesterdayColumns{padding:0 18px 10px 20px;color:#aaa;font-size:19px;font-weight:900;text-transform:uppercase;text-align:center}.yesterdayColumns span:first-child{text-align:left}
-    .yesterdaySellerGrid{grid-template-columns:1fr;grid-template-rows:repeat(var(--seller-count,7),minmax(0,1fr));grid-auto-rows:auto;gap:10px}
-    .yesterdaySeller{padding:7px 18px 7px 20px;border-radius:14px;min-height:0}.yesterdayIdentity{display:flex;align-items:center;gap:16px;min-width:0}.yesterdayAvatar{width:64px;height:64px}.yesterdaySellerName{font-size:29px;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .yesterdaySeller .yesterdayOmzet{grid-column:auto;display:flex;align-items:center;justify-content:center;margin:0;height:100%;max-height:68px;padding:6px 8px;min-width:0}.yesterdaySeller .yesterdayOmzet strong{font-size:32px;white-space:nowrap}.yesterdaySeller .yesterdayOmzet span,.yesterdaySeller .yesterdayKpi span{display:none}
-    .yesterdaySeller .yesterdayKpi{height:100%;max-height:68px;display:flex;align-items:center;justify-content:center;padding:6px 8px;border:1px solid transparent}.yesterdaySeller .yesterdayKpi strong{font-size:36px}.yesterdaySeller .yesterdayKpi.written{border-color:rgba(46,204,113,.82)}
-    .yesterdaySource{flex-shrink:0;padding-top:10px;font-size:15px;color:#999;font-weight:700;line-height:1.2;text-transform:uppercase}.yesterdayPanel{padding-bottom:26px}
 
     .tvExportOverlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;font-family:'Rajdhani',Arial,sans-serif;color:#fff}
     .tvExportOverlay.show{display:flex}.tvExportCard{width:min(680px,calc(100vw - 48px));padding:34px;border-radius:24px;background:linear-gradient(180deg,#191919,#080808);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}.tvExportCard h2{margin:0 0 10px;font-size:40px;text-transform:uppercase}.tvExportCard p{margin:0 0 20px;color:#bbb;font-size:20px;font-weight:700}.tvExportCard button{border:1px solid #ff4545;border-radius:999px;background:linear-gradient(180deg,#c91515,#650707);color:#fff;padding:13px 24px;font:900 19px 'Rajdhani',Arial,sans-serif;text-transform:uppercase;cursor:pointer}
@@ -615,7 +625,14 @@
 
     <section class="yesterdaySlide" id="yesterdaySlide">
       <div class="yesterdayHeader"><div class="yesterdayTitle">Laatste verkopen</div><div class="yesterdayDate" id="yesterdayDate">Laatste afgesloten dag</div></div>
-      <div class="yesterdayPanel"><div class="yesterdayPanelHead"><h2>Services per verkoper</h2><span id="yesterdayRevenuePeriod" style="font-size:18px;color:#ccc;text-transform:none"></span></div><div class="yesterdayColumns" aria-hidden="true"><span>Verkoper</span><span id="yesterdayRevenueLabel">Omzet</span><span>Life</span><span>Insurance</span><span>DSP</span><span>Abo</span><span>SPG</span><span>SRP</span></div><div class="yesterdaySellerGrid" id="yesterdaySellerGrid"></div><div class="yesterdaySource" id="yesterdayStatus"></div></div>
+      <div class="yesterdayBody">
+        <section class="yesterdayPanel" aria-labelledby="yesterdayPanelTitle">
+          <h2 id="yesterdayPanelTitle">Services per verkoper</h2>
+          <div class="yesterdayColumns" aria-hidden="true"><span>Verkoper</span><span id="yesterdayRevenueLabel">Omzet</span><span>Life</span><span>Insurance</span><span>DSP</span><span>Abo</span><span>SPG</span><span>SRP</span></div>
+          <div class="yesterdaySellerGrid" id="yesterdaySellerGrid"></div>
+        </section>
+        <figure class="yesterdayPoster"><div class="yesterdayPosterFade"><img src="assets/VerwachtingenVerkopers.png" width="1280" height="1280" alt="Wat we verwachten van een verkoper"></div></figure>
+      </div>
     </section>
     <section class="revenueSlide" id="revenueSlide">
       <div class="revenueHeader">
@@ -1482,8 +1499,6 @@
         service={...service,datum:reportDate};
       const serviceAvailable=service.available && s(service.datum)===reportDate;
       const revenue=window.DIESTROYERS_REVENUE_VIEW(window.DIESTROYERS_OMZET_DAG,window.DIESTROYERS_IMPORT_STATUS,reportDate,todayStr());
-      document.getElementById('yesterdayRevenueLabel').textContent='Omzet';
-      document.getElementById('yesterdayRevenuePeriod').textContent=revenue.available?revenue.label:'';
       document.getElementById('yesterdayRevenueLabel').title=revenue.reason;
 
       document.getElementById('yesterdayDate').textContent=reportDate||'Laatste afgesloten dag';
@@ -1491,8 +1506,6 @@
       const bySeller=new Map(values.map(x=>[s(x.id)||norm(x.naam),x]));
       const active=verkopers.filter(v=>activeFlag(v.Actief??v.actief??'JA'));
       const people=active.length?active.map(v=>({id:s(v.PersoneelsNr||v.personeelsNr||v.id),naam:s(v.Naam||v.naam)})):values.map(x=>({id:s(x.id),naam:s(x.naam)}));
-      document.getElementById('yesterdayStatus').textContent=serviceAvailable?(service.vorigeImportTot?'Verkopers: verschil sinds de import t/m '+s(service.vorigeImportTot)+' · nieuwe gegevens t/m '+reportDate:'Verkopers: laatste geïmporteerde verkopen · '+reportDate):'Verkoperscijfers voor deze import ontbreken — voer Dagstart uit';
-      document.getElementById('yesterdayStatus').textContent+=' · '+revenue.reason;
       if(!people.length){grid.innerHTML='<div class="yesterdayEmpty">Geen verkopers beschikbaar</div>';return;}
       const kpis=[['Life','life'],['Insurance','insurance'],['DSP','dsp'],['Abo','abo'],['SPG','spg'],['SRP','srp']];
       const serviceTotal=person=>{const row=bySeller.get(person.id)||bySeller.get(norm(person.naam))||{};return kpis.reduce((sum,[,key])=>sum+n(row[key]),0);};
@@ -1503,9 +1516,9 @@
         const x=bySeller.get(person.id)||bySeller.get(norm(person.naam))||{};
         const revenueValue=revenue.value(person.id);
         const av=avatar(person.naam||x.naam||'');
-        const pic='<img class="yesterdayAvatar" src="'+esc(av)+'" onerror="this.style.display=\'none\'">';
-        const chips=kpis.map(([label,key])=>{const value=n(x[key]);return '<div class="yesterdayKpi '+(value>0?'written':'')+'"><span>'+esc(label)+'</span><strong>'+(serviceAvailable?esc(moneyFmt.format(value)):'—')+'</strong></div>';}).join('');
-        return '<article class="yesterdaySeller"><div class="yesterdayIdentity">'+pic+'<div class="yesterdaySellerName">'+esc(person.naam||x.naam||'Verkoper')+'</div></div><div class="yesterdayOmzet"><span>Omzet</span><strong>'+(revenueValue!==null?'€ '+esc(moneyFmt.format(revenueValue)):'—')+'</strong></div>'+chips+'</article>';
+        const pic='<img class="yesterdayAvatar" src="'+esc(av)+'" alt="" onerror="this.style.display=\'none\'">';
+        const chips=kpis.map(([label,key])=>{const value=n(x[key]),display=serviceAvailable?esc(moneyFmt.format(value)):'—';return '<div class="yesterdayKpi '+(value>0?'written':'')+'"><strong aria-label="'+esc(label)+': '+display+'">'+display+'</strong></div>';}).join('');
+        return '<article class="yesterdaySeller"><div class="yesterdayIdentity">'+pic+'<div class="yesterdaySellerName">'+esc(person.naam||x.naam||'Verkoper')+'</div></div><div class="yesterdayOmzet '+(revenueValue<0?'negative':'')+'"><strong>'+(revenueValue!==null?'€ '+esc(moneyFmt.format(revenueValue)):'—')+'</strong></div>'+chips+'</article>';
       }).join('');
     }    function mtdComparisonText(current,previous,kind){
       const format=value=>pvmNumber(value)===null?'—':kind==='money'?pvmText(value).replace('€ ','€'):kind==='percent'?pctDisplayValue(value):moneyFmt.format(Number(value));
