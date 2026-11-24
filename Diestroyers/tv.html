@@ -537,6 +537,46 @@
       body[data-tv-touch] { padding-bottom: 100px; }
       body[data-tv-touch] > .tvControls { bottom: 52px; }
     }
+
+    .kpiServiceSplit.targetChart{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}
+    .kpiTargetPeriods{display:flex;gap:24px;margin-left:auto;color:#c7bec1;font-size:22px;font-weight:700}
+    .kpiTargetPanel{--score-green:#83dbad;--score-yellow:#f5cc64;--score-red:#ff8396;--score-rail:#463b40;--score-tile:#242022;padding:20px 20px 20px 26px;gap:12px;font-variant-numeric:tabular-nums}
+    .kpiTargetPanel h2,.kpiTargetHistory h3{margin:0;font-size:30px;line-height:1;text-transform:uppercase}
+    .kpiTargetPanel .ok{--score:var(--score-green)}
+    .kpiTargetPanel .close{--score:var(--score-yellow)}
+    .kpiTargetPanel .bad{--score:var(--score-red)}
+    .kpiTargetPanel .neutral{--score:#b9b1b4}
+    .kpiTargetFocus{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .kpiFocusCard{min-width:0;display:grid;gap:6px;padding:11px 14px;background:linear-gradient(145deg,#302529,var(--score-tile));border:1px solid #41343a;border-left:3px solid var(--score);border-radius:10px}
+    .kpiFocusCard:first-child{border-top:2px solid var(--score)}
+    .kpiFocusTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:20px;font-weight:700}
+    .kpiFocusTop span:last-child{font-size:18px;color:#c7bec1;text-align:right}
+    .kpiFocusName{font-size:22px;font-weight:700;line-height:1}
+    .kpiFocusCard>strong{color:var(--score);font-size:55px;line-height:1}
+    .kpiTargetFacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;color:#c7bec1;font-size:17px;white-space:nowrap}
+    .kpiTargetFacts b{color:#f8f8f8}
+    .kpiTargetFacts .needs b{color:var(--score-red)}
+    .kpiTargetHistory{display:flex;flex-direction:column;gap:9px;flex:1;min-height:0}
+    .kpiTargetHistory h3{font-size:25px}
+    .kpiMonthGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:9px;flex:1;min-height:0}
+    .kpiMonth{display:grid;grid-template-rows:26px minmax(0,1fr) auto;gap:5px;padding:6px 5px;background:var(--score-tile);border-radius:7px;text-align:center}
+    .kpiMonth strong{font-size:24px;line-height:1;color:var(--score);white-space:nowrap}
+    .kpiMonth time{color:#c7bec1;font-size:18px;text-transform:capitalize}
+    .kpiMonthPlot{position:relative;overflow:hidden;background:#181416;border-radius:5px}
+    .kpiMonthPlot i{position:absolute;bottom:0;left:26%;width:48%;height:var(--bar);border-radius:4px 4px 0 0;background:var(--score)}
+    .kpiMonthPlot b{position:absolute;bottom:var(--target);left:0;right:0;border-top:1px dashed #c7bec1;opacity:.65}
+    .kpiTargetSellers{display:grid;grid-auto-rows:minmax(0,1fr);gap:7px;min-height:0;flex:1}
+    .kpiTargetSeller{display:grid;grid-template-columns:185px minmax(0,1fr);align-items:center;gap:7px;min-height:0;padding:0 12px;background:var(--score-tile);border-radius:8px}
+    .kpiTargetPerson{display:flex;align-items:center;gap:10px;min-width:0;font-size:25px;line-height:1;overflow-wrap:anywhere}
+    .kpiTargetPerson img{width:min(59px,var(--seller-row));height:min(59px,var(--seller-row));flex:none;object-fit:cover;border-radius:50%;border:1px solid var(--red)}
+    .kpiTargetPair{display:grid;gap:5px;min-width:0}
+    .kpiTargetReading{display:grid;grid-template-columns:48px 117px minmax(65px,1fr) minmax(210px,1.55fr);align-items:center;gap:8px}
+    .kpiTargetReading>span{color:#c7bec1;font-size:19px}
+    .kpiTargetReading>strong{color:var(--score);font-size:min(32px,calc(var(--seller-row) * .4));text-align:right;line-height:1;white-space:nowrap}
+    .kpiTargetReading.target-ytd>strong{font-size:min(25px,calc(var(--seller-row) * .32))}
+    .kpiTargetTrack{height:7px;background:var(--score-rail);border-radius:5px;overflow:hidden}
+    .kpiTargetReading.target-ytd .kpiTargetTrack{height:5px}
+    .kpiTargetTrack i{display:block;height:100%;width:var(--bar);background:var(--score);border-radius:inherit}
 </style>
   <link rel="stylesheet" href="assets/nps-tv.css?v=3">
   <link rel="stylesheet" href="assets/avv-tv.css?v=3">
@@ -597,6 +637,7 @@
           <div class="kpiServiceLabel">Service Overzicht</div>
           <div class="kpiServiceName" id="kpiServiceName">Life</div>
         </div>
+        <div class="kpiTargetPeriods" id="kpiTargetPeriods"></div>
       </div>
       <div class="kpiServiceSplit" id="kpiServiceSplit"></div>
     </section>
@@ -1012,7 +1053,7 @@
         const stuks=n(row[k.teller]), kansen=n(row[k.noemer]);
         const weightedTarget=n(row[k.target]);
         const actual=servicePercentage(stuks,kansen), needed=Math.max(0,Math.ceil(weightedTarget/100*Math.max(1,kansen)-stuks)), pct=weightedTarget?actual/weightedTarget*100:0;
-        return {main:`${pctFmt.format(actual)}%`,detail:`${moneyFmt.format(stuks)} stuks / ${moneyFmt.format(kansen)} kansen`,target:`Target ${pctFmt.format(weightedTarget)}% · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,stuks,kansen,needed};
+        return {main:`${pctFmt.format(actual)}%`,detail:`${moneyFmt.format(stuks)} stuks / ${moneyFmt.format(kansen)} kansen`,target:`Target ${pctFmt.format(weightedTarget)}% · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,stuks,kansen,needed,goal:weightedTarget};
       }
       if(key==='Omzet'){
         const actual=n(row.Omzet), target=n(row.OmzetTarget), needed=Math.max(0,target-actual), pct=target?actual/target*100:0;
@@ -1074,11 +1115,67 @@
       const values=rankServiceValues(rows.map(row=>{const data=isYtd?aggregateRows(sellerRowsForYear(row)):row;return {row,data,m:serviceKpiData(data,'Omzet',isYtd)};}).sort((a,b)=>b.m.rank-a.m.rank||s(a.row.Naam).localeCompare(s(b.row.Naam))));
       return `<div class="kpiSellerCards ${isYtd?'ytd':''}">${values.map((x,i)=>sellerTile(x,i,'Omzet',isYtd)).join('')}${storeSummaryTiles('Omzet',isYtd,rows.length)}</div>`;
     }
+
+    const targetMonthFormat=new Intl.DateTimeFormat('nl-BE',{month:'short',year:'2-digit',timeZone:'UTC'});
+    function targetMonths(key){
+      const k=def(key), [year,month]=period.split('-').map(Number);
+      const storeMonths=new Map();
+      for(const row of data){
+        const rowPeriod=s(row.Periode);
+        if((norm(row.EntiteitType)==='winkel'||norm(row.Naam)==='diest')&&!storeMonths.has(rowPeriod)) storeMonths.set(rowPeriod,row);
+      }
+      return Array.from({length:12},(_,i)=>{
+        const date=new Date(Date.UTC(year,month-13+i,1)), monthKey=date.toISOString().slice(0,7);
+        const row=storeMonths.get(monthKey);
+        const result=row&&(s(row[k.teller])!==''||s(row[k.noemer])!=='')?serviceKpiData(row,key):null;
+        const attainment=result?.goal>0?result.rank/result.goal*100:null;
+        return {date,monthKey,result,attainment};
+      });
+    }
+    function targetFacts(m){
+      return `<div class="kpiTargetFacts"><span>STUKS <b>${moneyFmt.format(m.stuks)}</b></span><span>KANSEN <b>${moneyFmt.format(m.kansen)}</b></span><span class="${m.needed>0?'needs':''}">NOG <b>${moneyFmt.format(m.needed)}</b></span></div>`;
+    }
+    function targetFocus(label,scope,m){
+      return `<article class="kpiFocusCard ${m.status}"><div class="kpiFocusTop"><span>${scope}</span><span>Target ${pctFmt.format(m.goal)}%</span></div><div class="kpiFocusName">${esc(label)}</div><strong>${esc(m.main)}</strong>${targetFacts(m)}</article>`;
+    }
+    function targetHistory(key){
+      const months=targetMonths(key);
+      const scale=Math.max(120,Math.ceil(Math.max(...months.map(m=>m.attainment??0))/20)*20);
+      const tiles=months.map(({date,monthKey,result,attainment})=>{
+        const status=attainment===null?'neutral':result.status;
+        const plot=attainment===null?'':`<i style="--bar:${Math.max(0,attainment)/scale*100}%"></i><b style="--target:${100/scale*100}%"></b>`;
+        return `<article class="kpiMonth ${status}"><strong>${result?esc(result.main):''}</strong><div class="kpiMonthPlot" aria-hidden="true">${plot}</div><time datetime="${monthKey}">${esc(targetMonthFormat.format(date))}</time></article>`;
+      }).join('');
+      return `<section class="kpiTargetHistory"><h3>Laatste 12 maanden</h3><div class="kpiMonthGrid">${tiles}</div></section>`;
+    }
+    function targetReading(scope,m,max){
+      return `<div class="kpiTargetReading target-${scope.toLowerCase()} ${m.status}"><span>${scope}</span><strong>${esc(m.main)}</strong><div class="kpiTargetTrack" aria-hidden="true"><i style="--bar:${Math.max(0,m.rank)/max*100}%"></i></div>${targetFacts(m)}</div>`;
+    }
+    function targetSellers(key){
+      const rows=sellers.map(row=>({row,mtd:serviceKpiData(row,key),ytd:serviceKpiData(aggregateRows(sellerRowsForYear(row)),key,true)}))
+        .sort((a,b)=>b.mtd.rank-a.mtd.rank||s(a.row.Naam).localeCompare(s(b.row.Naam)));
+      const mtdMax=Math.max(1,...rows.map(r=>r.mtd.rank)), ytdMax=Math.max(1,...rows.map(r=>r.ytd.rank));
+      const cards=rows.map(({row,mtd,ytd})=>`<article class="kpiTargetSeller"><div class="kpiTargetPerson"><img src="${esc(avatar(row.Naam))}" alt="" onerror="this.onerror=null;this.src='assets/GenericProfile.png'"><strong>${esc(row.Naam)}</strong></div><div class="kpiTargetPair">${targetReading('MTD',mtd,mtdMax)}${targetReading('YTD',ytd,ytdMax)}</div></article>`).join('');
+      return `<div class="kpiTargetSellers" style="--seller-row:${Math.min(100,750/Math.max(1,rows.length))}px">${cards}</div>`;
+    }
+    function renderTargetChart(slide,ytdStore){
+      const {key,label}=slide;
+      const focus=targetFocus(label,'MTD',serviceKpiData(store,key))+targetFocus(label+' YTD','YTD',serviceKpiData(ytdStore,key,true));
+      return `<section class="kpiServiceColumn kpiTargetPanel"><h2>Winkel</h2><div class="kpiTargetFocus">${focus}</div>${targetHistory(key)}</section><section class="kpiServiceColumn kpiTargetPanel"><h2>Verkopers</h2>${targetSellers(key)}</section>`;
+    }
     function renderKpiServiceSlide(index){
       const slide=serviceKpiSlides[index]||serviceKpiSlides[0], key=slide.key, root=document.getElementById('kpiServiceSplit');
       const ytdStore=aggregateRows(storeRowsForYear());
       document.getElementById('kpiServiceName').textContent=slide.label;
       root.classList.toggle('omzet',key==='Omzet');
+      const showChart=def(key)?.type==='ratio';
+      root.classList.toggle('targetChart',showChart);
+      const periods=document.getElementById('kpiTargetPeriods');
+      periods.innerHTML=showChart?`<span>MTD · ${esc(period)}</span><span>YTD · ${esc(period.slice(0,4))}</span>`:'';
+      if(showChart){
+        root.innerHTML=renderTargetChart(slide,ytdStore);
+        return;
+      }
       const mtdShop=key==='Omzet'?['Omzet','Accessoires','Link','Monster'].map(k=>serviceShopCard(def(k)?.label||k,serviceKpiData(store,k,false))).join(''):serviceShopCard(slide.label,serviceKpiData(store,key,false));
       const ytdShop=serviceShopCard(key==='Omzet'?'Omzet YTD':slide.label+' YTD',serviceKpiData(ytdStore,key,true));
       root.innerHTML=`<section class="kpiServiceColumn mtd"><div class="kpiServicePeriod">MTD · ${esc(period)}</div><div class="kpiServiceShop ${key==='Omzet'?'':'single'}">${mtdShop}</div>${key==='Omzet'?omzetTable(sellers,false):singleKpiTable(sellers,key,false)}</section><section class="kpiServiceColumn ytd"><div class="kpiServicePeriod">YTD · ${esc(period.slice(0,4))}</div><div class="kpiServiceShop single">${ytdShop}</div>${key==='Omzet'?omzetTable(sellers,true):singleKpiTable(sellers,key,true)}</section>`;
