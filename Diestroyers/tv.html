@@ -128,19 +128,8 @@
     .npsTvHeader{height:105px;display:flex;align-items:center;justify-content:space-between;position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:15px 30px 15px 36px;overflow:hidden}
     .npsTvHeader:after,.npsTvPanel:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
     .npsTvTitle{font-size:58px;line-height:1;font-weight:900;text-transform:uppercase}.npsTvPeriod{font-size:23px;color:#bbb;font-weight:900;text-transform:uppercase}
-    .npsTvStats{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,102px);gap:10px}
-    .npsTvCard{position:relative;border-radius:17px;background:linear-gradient(180deg,#171717,#0a0a0a);border:1px solid rgba(255,255,255,.09);padding:11px 16px 10px 20px;overflow:hidden}
-    .npsTvCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:#777}.npsTvCard.ok:before{background:var(--green)}.npsTvCard.close:before{background:var(--yellow)}.npsTvCard.bad:before{background:var(--bad)}
-    .npsTvCard span{font-size:17px;color:#bbb;text-transform:uppercase;font-weight:900}.npsTvCard strong{display:block;font-size:40px;line-height:1;margin:5px 0}.npsTvCard small{font-size:15px;color:#999;font-weight:800}
-    .npsTvBottom{display:grid;grid-template-columns:48% 52%;gap:14px;flex:1;min-height:0}
     .npsTvPanel{position:relative;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:16px 18px 16px 26px;overflow:hidden}
     .npsTvPanel h2{font-size:28px;text-transform:uppercase;margin:0 0 10px}
-    .npsRankTable{width:100%;border-collapse:separate;border-spacing:0 5px}.npsRankTable th{font-size:16px;color:#aaa;text-transform:uppercase;text-align:left;padding:0 8px 4px}.npsRankTable td{background:rgba(255,255,255,.04);padding:7px 8px;font-size:19px;font-weight:900}.npsRankTable td:first-child{border-radius:10px 0 0 10px;width:38px}.npsRankTable td:last-child{border-radius:0 10px 10px 0}
-    .npsRankNone{color:#888;font-size:16px}.npsTvComments{display:grid;gap:10px;height:calc(100% - 42px)}
-    .npsTvComment{border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-left:5px solid #777;padding:10px 14px;overflow:visible;min-height:0}
-    .npsTvComment.promotor{border-left-color:var(--green)}.npsTvComment.neutraal{border-left-color:var(--yellow)}.npsTvComment.detractor{border-left-color:var(--bad)}
-    .npsTvCommentHead{display:flex;justify-content:space-between;gap:12px;font-size:16px;font-weight:900}.npsTvCommentHead span:last-child{color:#aaa}
-    .npsTvComment p{margin:6px 0 0;font-size:18px;line-height:1.18;font-weight:700;white-space:pre-wrap}
 
     .districtRankSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
     .districtRankMode #overviewContent{transform:translateX(-105%);}
@@ -543,230 +532,6 @@
     .avvSlide{transform:none!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility 0s linear .55s!important}
     .avvMode .avvSlide{transform:none!important;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .55s ease!important;z-index:8!important}
 
-    /* NPS layout refinement */
-    .npsTvStats{
-      grid-template-rows:minmax(96px,auto) minmax(88px,auto)!important;
-      flex:none;
-      gap:8px!important;
-    }
-    .npsTvCard{
-      padding:10px 16px 9px 20px!important;
-      display:grid!important;
-      grid-template-rows:auto 1fr auto!important;
-      align-items:center!important;
-    }
-    .npsTvCard span{
-      font-size:16px!important;
-      line-height:1.05!important;
-      align-self:start!important;
-    }
-    .npsTvCard strong{
-      font-size:36px!important;
-      line-height:1!important;
-      margin:4px 0!important;
-      align-self:center!important;
-    }
-    .npsTvCard small{
-      font-size:14px!important;
-      line-height:1.05!important;
-      align-self:end!important;
-      display:block!important;
-      padding-bottom:1px!important;
-    }
-    .npsTvCard.ytd{
-      padding:8px 14px 7px 18px!important;
-    }
-    .npsTvCard.ytd span{font-size:14px!important;}
-    .npsTvCard.ytd strong{font-size:31px!important;}
-    .npsTvCard.ytd small{font-size:13px!important;}
-
-    .npsTvBottom{
-      grid-template-columns:48% 52%!important;
-      gap:14px!important;
-      flex:1!important;
-      min-height:0!important;
-    }
-    .npsTvPanel{
-      display:flex!important;
-      flex-direction:column!important;
-      min-height:0!important;
-    }
-    .npsTvPanel h2{
-      flex:0 0 auto!important;
-    }
-
-    #npsTvRanking{
-      flex:1!important;
-      min-height:0!important;
-      overflow:hidden!important;
-    }
-    .npsRankTable{
-      width:100%!important;
-      height:100%!important;
-      border-collapse:separate!important;
-      border-spacing:0 var(--nps-rank-gap,7px)!important;
-      table-layout:fixed!important;
-    }
-    .npsRankTable thead{
-      height:34px!important;
-    }
-    .npsRankTable tbody tr{
-      height:var(--nps-rank-row-h,50px)!important;
-    }
-    .npsRankTable th{
-      font-size:17px!important;
-      padding:0 9px 5px!important;
-    }
-    .npsRankTable td{
-      padding:0 10px!important;
-      font-size:var(--nps-rank-font,20px)!important;
-      height:var(--nps-rank-row-h,50px)!important;
-      vertical-align:middle!important;
-    }
-
-    .npsTvComments{
-      flex:1!important;
-      min-height:0!important;
-      height:auto!important;
-      overflow:hidden!important;
-      align-content:start!important;
-    }
-    .npsTvComment{
-      padding:11px 14px!important;
-    }
-    .npsTvCommentHead{
-      font-size:17px!important;
-    }
-    .npsTvComment p{
-      font-size:18px!important;
-      line-height:1.2!important;
-      margin:7px 0 0!important;
-    }
-
-
-    /* NPS ranking: cleane maand/YTD-hiërarchie */
-    .npsRankTable{
-      border-spacing:0 var(--nps-rank-gap,8px)!important;
-    }
-    .npsRankTable tbody tr{
-      height:var(--nps-rank-row-h,62px)!important;
-    }
-    .npsRankTable td{
-      height:var(--nps-rank-row-h,62px)!important;
-      padding:6px 10px!important;
-      vertical-align:middle!important;
-    }
-    .npsRankTable td:first-child{
-      width:46px!important;
-      text-align:center!important;
-    }
-    .npsRankTable th:nth-child(1){width:46px!important;}
-    .npsRankTable th:nth-child(2){width:190px!important;}
-    .npsRankTable th:nth-child(3){width:130px!important;}
-    .npsRankTable th:nth-child(4){width:150px!important;}
-    .npsRankTable th:nth-child(5){width:110px!important;}
-
-    .npsRankPrimary{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      min-height:23px;
-      font-size:var(--nps-rank-font,20px);
-      font-weight:900;
-      line-height:1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .npsRankSecondary{
-      display:flex;
-      align-items:center;
-      gap:7px;
-      margin-top:5px;
-      min-height:17px;
-      font-size:var(--nps-rank-sub-font,14px);
-      line-height:1;
-      color:#9f9f9f;
-      font-weight:800;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .npsRankSecondary .ytdLabel{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:33px;
-      height:17px;
-      padding:0 6px;
-      border-radius:999px;
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.09);
-      color:#d5d5d5;
-      font-size:11px;
-      font-weight:900;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      flex:0 0 auto;
-    }
-    .npsMonthScore{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:58px;
-      height:32px;
-      padding:0 11px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      font-size:21px;
-      font-weight:900;
-      line-height:1;
-    }
-    .npsMonthScore.statusOk{
-      color:#baffc9;
-      border-color:rgba(46,204,113,.72);
-      background:rgba(46,204,113,.12);
-      box-shadow:0 0 14px rgba(46,204,113,.18);
-    }
-    .npsMonthScore.statusClose{
-      color:#ffe484;
-      border-color:rgba(242,201,76,.72);
-      background:rgba(242,201,76,.11);
-      box-shadow:0 0 14px rgba(242,201,76,.16);
-    }
-    .npsMonthScore.statusBad{
-      color:#ffb0b0;
-      border-color:rgba(255,52,52,.72);
-      background:rgba(255,52,52,.11);
-      box-shadow:0 0 14px rgba(255,52,52,.17);
-    }
-    .npsMonthScore.empty{
-      color:#8d8d8d;
-      border-color:rgba(255,255,255,.08);
-      background:rgba(255,255,255,.025);
-      box-shadow:none;
-    }
-    .npsSellerName{
-      font-size:21px;
-      font-weight:900;
-      text-transform:none;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .npsRankMuted{
-      color:#8c8c8c;
-    }
-
-    /* Negen verkopers passen volledig in de NPS-ranking; MTD blijft visueel dominant. */
-    .npsRankTable thead{height:30px!important;}
-    .npsRankTable td{padding:3px 8px!important;}
-    .npsRankPrimary{min-height:19px;gap:6px;}
-    .npsRankSecondary{min-height:13px;margin-top:2px;gap:5px;}
-    .npsRankSecondary .ytdLabel{min-width:28px;height:14px;padding:0 4px;font-size:9px;}
-    .npsMonthScore{min-width:52px;height:27px;padding:0 8px;font-size:18px;}
-    .npsSellerName{font-size:19px;}
-
     .kpiServiceSlide{position:absolute;inset:28px;z-index:3;display:flex;flex-direction:column;gap:16px;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1)}
     .kpiServiceHeader,.kpiServiceColumn{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden}
     .kpiServiceHeader{height:126px;display:flex;align-items:center;padding:18px 34px}.kpiServiceHeader:after,.kpiServiceColumn:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
@@ -796,7 +561,9 @@
 
 </style>
   <link rel="stylesheet" href="assets/tv-theme.css?v=3">
+  <link rel="stylesheet" href="assets/nps-tv.css">
   <script src="assets/tv-theme.js"></script>
+  <script src="assets/nps-tv.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -862,7 +629,7 @@
       <div class="npsTvStats" id="npsTvStats"></div>
       <div class="npsTvBottom">
         <div class="npsTvPanel"><h2>Ranking verkopers</h2><div id="npsTvRanking"></div></div>
-        <div class="npsTvPanel"><h2>Recente commentaren</h2><div class="npsTvComments" id="npsTvComments"></div></div>
+        <div class="npsTvPanel"><h2>Recente reviews</h2><div class="npsTvComments" id="npsTvComments"></div></div>
       </div>
     </section>
 
@@ -1452,147 +1219,17 @@
       table.style.setProperty('--district-kpi-font',Math.max(15,Math.min(19,17*scale))+'px');
     }
 
-    function npsTargetFor(name, type){
+    function npsTargetFor(name, type, npsPeriod){
       const rows=Array.isArray(adminConfig.targets)?adminConfig.targets:[];
-      const r=rows.find(x=>s(x.Periode)===period && norm(x.EntiteitType)===norm(type) && norm(x.Naam)===norm(name));
+      const r=rows.find(x=>s(x.Periode)===npsPeriod && norm(x.EntiteitType)===norm(type) && norm(x.Naam)===norm(name));
       return n(r?.NPSTarget)||70;
     }
-    function npsStatus(value,target){
-      if(value===null||value===undefined||!isFinite(Number(value))) return 'none';
-      return Number(value)>=target?'ok':Number(value)>=target*.9?'close':'bad';
-    }
-    function npsStatCard(label,value,sub,status){
-      return `<div class="npsTvCard ${/ytd/i.test(label)?'ytd ':''}${esc(status||'none')}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(sub||'')}</small></div>`;
-    }
-
-    function fitNpsRankingRows(){
-      const wrap=document.getElementById('npsTvRanking');
-      const table=wrap?.querySelector('.npsRankTable');
-      if(!wrap||!table) return;
-
-      const rows=table.querySelectorAll('tbody tr').length;
-      const available=Math.max(180,wrap.clientHeight);
-      const header=30;
-      const gap=5;
-      const maxRow=64;
-      const minRow=44;
-      const rowH=Math.max(minRow,Math.min(maxRow,Math.floor((available-header-(rows+1)*gap)/Math.max(rows,1))));
-      const font=Math.max(15,Math.min(20,Math.floor(rowH*.32)));
-      const subFont=Math.max(11,Math.min(14,Math.floor(rowH*.22)));
-
-      table.style.setProperty('--nps-rank-row-h',rowH+'px');
-      table.style.setProperty('--nps-rank-font',font+'px');
-      table.style.setProperty('--nps-rank-sub-font',subFont+'px');
-      table.style.setProperty('--nps-rank-gap',Math.max(4,Math.min(8,Math.floor(rowH*.11)))+'px');
-    }
-
-    function chooseFittingNpsComments(comments){
-      const container=document.getElementById('npsTvComments');
-      if(!container) return [];
-
-      const maxCount=Math.min(5,comments.length);
-      const dateLabel=v=>{const d=new Date(String(v).replace(' ','T'));return isNaN(d)?s(v):d.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit'});};
-      const render=list=>list.map(c=>`<article class="npsTvComment ${norm(c.type)}"><div class="npsTvCommentHead"><span>${esc(c.score)} · ${esc(c.type)}</span><span>${esc(dateLabel(c.dateIso||c.date))} · ${esc(c.sellerName||'Winkel')}</span></div><p>${esc(c.comment)}</p></article>`).join('');
-
-      for(let count=maxCount;count>=1;count--){
-        const candidate=comments.slice(0,count);
-        container.innerHTML=render(candidate);
-        if(container.scrollHeight<=container.clientHeight+2) return candidate;
-      }
-      return comments.length?[comments[0]]:[];
-    }
-
     function renderNpsSlide(){
-      const liveNpsData = window.DIESTROYERS_NPS || npsData || {};
-      const p=liveNpsData.latestPeriod||period;
-      const month=liveNpsData.store?.month?.[p]||{};
-      const ytd=liveNpsData.store?.ytd?.[p]||{};
-      const target=npsTargetFor(adminConfig.shop?.naam||'Diest','Winkel');
-      const fmt=v=>v===null||v===undefined?'—':pctFmt.format(Number(v));
-      document.getElementById('npsTvPeriod').textContent=p;
-      const hasNpsData = !!(liveNpsData.store && liveNpsData.store.month && Object.keys(liveNpsData.store.month).length);
-      if(!hasNpsData){
-        document.getElementById('npsTvStats').innerHTML=npsStatCard('NPS','—','Geen NPS-data gevonden','bad');
-        document.getElementById('npsTvRanking').innerHTML='<div class="empty">assets/nps-data.js ontbreekt of bevat geen gegevens</div>';
-        document.getElementById('npsTvComments').innerHTML='<div class="empty">Voer eerst Dagstart / Website bijwerken uit</div>';
-        return;
-      }
-      const cards=[
-        ['NPS maand',fmt(month.nps),`Target ${pctFmt.format(target)}`,npsStatus(month.nps,target)],
-        ['Promotoren',month.promoters||0,'Score 9–10','ok'],
-        ['Neutralen',month.passives||0,'Score 7–8','close'],
-        ['Detractoren',month.detractors||0,'Score 0–6','bad'],
-        ['Kaartjes',month.cards||0,'Huidige maand','none'],
-        ['NPS YTD',fmt(ytd.nps),`Target ${pctFmt.format(target)}`,npsStatus(ytd.nps,target)],
-        ['Promotoren YTD',ytd.promoters||0,'Score 9–10','ok'],
-        ['Neutralen YTD',ytd.passives||0,'Score 7–8','close'],
-        ['Detractoren YTD',ytd.detractors||0,'Score 0–6','bad'],
-        ['Kaartjes YTD',ytd.cards||0,'Year to date','none']
-      ];
-      document.getElementById('npsTvStats').innerHTML=cards.map(x=>npsStatCard(...x)).join('');
-
-      const configured=(adminConfig.verkopers||[]);
-      const sellerRows=configured.map(v=>{
-        const id=s(v.PersoneelsNr), data=liveNpsData.sellers?.[id]||{};
-        const m=data.month?.[p]||{nps:null,cards:0,promoters:0,passives:0,detractors:0};
-        const y=data.ytd?.[p]||{nps:null,cards:0,promoters:0,passives:0,detractors:0};
-        return {
-          id,
-          name:s(v.Naam)||data.name||id,
-          active:norm(v.Actief||'ja')!=='nee',
-          month:m,
-          ytd:y
-        };
-      }).filter(x=>x.active || x.month.cards>0 || x.ytd.cards>0)
-        .sort((a,b)=>{
-          if(!a.month.cards&&!b.month.cards)return a.name.localeCompare(b.name);
-          if(!a.month.cards)return 1;
-          if(!b.month.cards)return -1;
-          return Number(b.month.nps)-Number(a.month.nps)||b.month.cards-a.month.cards||a.name.localeCompare(b.name);
-        });
-
-      const scoreClass=r=>{
-        if(!r.month.cards) return 'empty';
-        const st=npsStatus(r.month.nps,target);
-        return st==='ok'?'statusOk':st==='close'?'statusClose':'statusBad';
-      };
-      const ytdRow=value=>`<span class="npsRankSecondary"><span class="ytdLabel">YTD</span><span>${value}</span></span>`;
-
-      document.getElementById('npsTvRanking').innerHTML=`<table class="npsRankTable">
-        <thead>
-          <tr><th>#</th><th>Verkoper</th><th>NPS</th><th>P/N/D</th><th>Kaartjes</th></tr>
-        </thead>
-        <tbody>
-          ${sellerRows.map((r,i)=>`<tr>
-            <td><span class="npsRankPrimary">${i+1}</span></td>
-            <td>
-              <span class="npsRankPrimary npsSellerName">${esc(r.name)}</span>
-              <span class="npsRankSecondary npsRankMuted">${r.month.cards?'Huidige maand':'Geen maanddata'}</span>
-            </td>
-            <td>
-              <span class="npsRankPrimary"><span class="npsMonthScore ${scoreClass(r)}">${r.month.cards?esc(fmt(r.month.nps)):'—'}</span></span>
-              ${ytdRow(r.ytd.cards?esc(fmt(r.ytd.nps)):'—')}
-            </td>
-            <td>
-              <span class="npsRankPrimary">${r.month.cards?`${r.month.promoters}/${r.month.passives}/${r.month.detractors}`:'—'}</span>
-              ${ytdRow(r.ytd.cards?`${r.ytd.promoters}/${r.ytd.passives}/${r.ytd.detractors}`:'—')}
-            </td>
-            <td>
-              <span class="npsRankPrimary">${r.month.cards||0}</span>
-              ${ytdRow(r.ytd.cards||0)}
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-
-      const comments=(liveNpsData.comments||[]).slice().sort((a,b)=>String(b.dateIso||b.date).localeCompare(String(a.dateIso||a.date)));
-      const commentsContainer=document.getElementById('npsTvComments');
-      if(!comments.length){
-        commentsContainer.innerHTML='<div class="empty">Geen commentaren.</div>';
-      }else{
-        chooseFittingNpsComments(comments);
-      }
-      requestAnimationFrame(fitNpsRankingRows);
+      const data = window.DIESTROYERS_NPS || npsData || {};
+      const sellers = Array.isArray(adminConfig.verkopers) ? adminConfig.verkopers : [];
+      const npsPeriod = data.latestPeriod || period;
+      const target = npsTargetFor(adminConfig.shop?.naam || 'Diest', 'Winkel', npsPeriod);
+      window.DIESTROYERS_TV_NPS.render(data, sellers, npsPeriod, target);
     }
 
     function renderAvvSlide(){
@@ -2109,7 +1746,14 @@
       try{return action();}
       catch(error){console.error('TV opstartfout in '+label, error);return null;}
     }
-    window.addEventListener('resize',()=>{fit(); requestAnimationFrame(fitDistrictRankingRows);});
+    window.addEventListener('resize',()=>{
+      fit();
+      requestAnimationFrame(fitDistrictRankingRows);
+      if (currentSlide === 4) requestAnimationFrame(window.DIESTROYERS_TV_NPS.fit);
+    });
+    document.fonts?.addEventListener('loadingdone', () => {
+      if (currentSlide === 4) window.DIESTROYERS_TV_NPS.fit();
+    });
     window.addEventListener('diestroyers-tv-theme-change', () => {
       if (currentSlide === 4) renderNpsSlide();
       if (currentSlide === 3) requestAnimationFrame(fitDistrictRankingRows);
