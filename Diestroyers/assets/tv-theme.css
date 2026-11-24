@@ -123,18 +123,18 @@ html[data-tv-theme="grid208"] #stage .npsTvCard.ytd { padding-block: 4px 3px !im
 html[data-tv-theme="grid208"] #stage .npsTvCard.ytd strong { margin-block: 2px !important; }
 html[data-tv-theme="grid208"] #stage :is(.kpiSellerAvatar,.yesterdayAvatar,.miniAvatar) { box-shadow: 0 2px 4px #19151b28; }
 html[data-tv-theme="grid208"] #stage .carouselImageSlide img { filter: drop-shadow(0 12px 22px #241d2726); }
-html[data-tv-theme="grid208"] #stage .tvControls {
+html[data-tv-theme="grid208"] .tvControls {
   background: var(--surface);
   border-color: var(--edge);
   box-shadow: var(--tile-shadow);
 }
-html[data-tv-theme="grid208"] #stage .tvControls button {
+html[data-tv-theme="grid208"] .tvControls button {
   background: var(--tile);
   color: var(--text);
   border-color: var(--edge);
   font-family: var(--font);
 }
-html[data-tv-theme="grid208"] #stage .tvControls button:is(:hover,.playing) { border-color: var(--red); color: var(--red); }
+html[data-tv-theme="grid208"] .tvControls button:is(:hover,.playing) { border-color: var(--red); color: var(--red); }
 html[data-tv-theme="grid208"] #stage .foot, html[data-tv-theme="grid208"] .tv-home { color: var(--muted) !important; }
 
 
@@ -172,7 +172,7 @@ html[data-tv-theme="grid208"] #stage .npsTvCard small { color: #493d37 !importan
 html[data-tv-theme="grid208"] #stage .npsTvComment.promotor { border-left-color: var(--green) !important; }
 html[data-tv-theme="grid208"] #stage .npsTvComment.neutraal { border-left-color: var(--yellow) !important; }
 html[data-tv-theme="grid208"] #stage .npsTvComment.detractor { border-left-color: var(--bad) !important; }
-html[data-tv-theme="grid208"] #stage .tvControls button.playing { color: #fff8f0; background: var(--red); }
+html[data-tv-theme="grid208"] .tvControls button.playing { color: #fff8f0; background: var(--red); }
 
 #tvThemeToggle {
   position: fixed;
@@ -196,6 +196,22 @@ html[data-tv-theme="grid208"] #tvThemeToggle {
   border-color: #9d827e;
 }
 html:not([data-tv-export]) #periodLabel { right: 210px; }
+body[data-tv-touch] { padding-bottom: 52px; }
+body[data-tv-touch] #stage { flex: none; }
+body[data-tv-touch] > .tvControls {
+  position: fixed;
+  bottom: 4px;
+  padding: 0 4px;
+  gap: 4px;
+}
+body[data-tv-touch] > .tvControls button { min-width: 48px; min-height: 44px; padding: 0 7px; }
+body[data-tv-touch] #tvThemeToggle,
+body[data-tv-touch] .tv-home { display: grid; align-content: center; min-height: 44px; min-width: 44px; bottom: 4px !important; }
+body[data-tv-touch] #periodLabel { right: 34px; }
+@media (orientation: portrait) {
+  body[data-tv-touch] { padding-bottom: 100px; }
+  body[data-tv-touch] > .tvControls { bottom: 52px; }
+}
 @media (max-aspect-ratio: 4/3) {
   html:not([data-tv-export]) #periodLabel { right: 34px; }
 }

@@ -795,7 +795,7 @@
     .tvExportOverlay.show{display:flex}.tvExportCard{width:min(680px,calc(100vw - 48px));padding:34px;border-radius:24px;background:linear-gradient(180deg,#191919,#080808);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}.tvExportCard h2{margin:0 0 10px;font-size:40px;text-transform:uppercase}.tvExportCard p{margin:0 0 20px;color:#bbb;font-size:20px;font-weight:700}.tvExportCard button{border:1px solid #ff4545;border-radius:999px;background:linear-gradient(180deg,#c91515,#650707);color:#fff;padding:13px 24px;font:900 19px 'Rajdhani',Arial,sans-serif;text-transform:uppercase;cursor:pointer}
 
 </style>
-  <link rel="stylesheet" href="assets/tv-theme.css?v=2">
+  <link rel="stylesheet" href="assets/tv-theme.css?v=3">
   <script src="assets/tv-theme.js"></script>
 </head>
 <body>
@@ -2090,7 +2090,19 @@
     }
     function startTvPdfExport(){const overlay=document.getElementById('tvExportOverlay'),status=document.getElementById('tvExportStatus');overlay?.classList.add('show');exportSlidesTwoToThirteenPdf().catch(err=>{console.error(err);if(status)status.textContent='Export mislukt: '+(err?.message||err||'onbekende fout');const retry=document.getElementById('tvExportRetry');if(retry)retry.style.display='inline-block';});}
 
-    function fit(){const st=document.getElementById('stage'); const scale=Math.min(window.innerWidth/1920,window.innerHeight/1080); st.style.transform=`scale(${scale})`;}
+    const stage = document.getElementById('stage');
+    const playbackControls = stage.querySelector('.tvControls');
+    const periodLabel = document.getElementById('periodLabel');
+    const touchViewport = matchMedia('(pointer: coarse) and (max-width: 1366px)');
+    function fit(){
+      const touch = touchViewport.matches && !tvParams.has('export');
+      document.body.toggleAttribute('data-tv-touch', touch);
+      if (touch && playbackControls.parentElement === stage) document.body.append(playbackControls);
+      if (!touch && playbackControls.parentElement !== stage) periodLabel.before(playbackControls);
+      const controlsSpace = touch ? (innerWidth > innerHeight ? 52 : 100) : 0;
+      const scale = Math.min(innerWidth / 1920, Math.max(1, innerHeight - controlsSpace) / 1080);
+      stage.style.transform = `scale(${scale})`;
+    }
     // Een optionele tegel of nieuwe databron mag de TV nooit volledig blokkeren.
     // Iedere opstartstap is daarom geïsoleerd; de eerste slide blijft altijd zichtbaar.
     function safeTvStart(label, action){
