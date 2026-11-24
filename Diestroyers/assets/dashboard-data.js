@@ -1,4 +1,4 @@
-window.DIESTROYERS_DATA_REVISION = "2344ede9ef376ba13a4a8bbfe35a659c02822e3e45d5042a4df945ee649509ec";
+window.DIESTROYERS_DATA_REVISION = "0cd5df527b0d8e28c49d9cb2733514ea966280fff1c1da2c4a7f022818935e00";
 // Diestroyers: agenda-data.js
 window.DIESTROYERS_AGENDA = [
   {"datum":"2026-06-15","type":"Varia","titel":"Mid-year wedstrijd Mooiste winkel","info":""},
@@ -57,14 +57,9 @@ window.DIESTROYERS_AVV = {"generatedAt":"2026-11-24T15:11:59","latestPeriod":"20
 // Diestroyers: carousel-data.js
 window.DIESTROYERS_CAROUSEL = [
   "AEGIciParis011026.301126.png",
-  "AVV.png",
-  "BlackFriday.Incentive.301126.png",
-  "BlackFriday.png",
   "Electrolux011026.311226.png",
   "Life.301126.png",
-  "Monsterkabels.png",
-  "Proximus.301126.png",
-  "Verwachtingen.png"
+  "Proximus.301126.png"
 ];
 // Diestroyers: district-data.js
 window.DIESTROYERS_DISTRICT = [
