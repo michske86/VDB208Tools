@@ -539,7 +539,6 @@
     .kpiTargetPanel .neutral{--score:#b9b1b4}
     .kpiTargetFocus{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     .kpiFocusCard{min-width:0;display:grid;gap:6px;padding:11px 14px;background:linear-gradient(145deg,#302529,var(--score-tile));border:1px solid #41343a;border-left:3px solid var(--score);border-radius:10px}
-    .kpiFocusCard:first-child{border-top:2px solid var(--score)}
     .kpiFocusTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:20px;font-weight:700}
     .kpiFocusTop span:last-child{font-size:18px;color:#c7bec1;text-align:right}
     .kpiFocusName{font-size:22px;font-weight:700;line-height:1}
@@ -549,7 +548,7 @@
     .kpiTargetFacts b{color:#f8f8f8}
 
     .kpiTargetExtras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-    .kpiTargetExtras .kpiFocusCard{border-top-width:1px;padding:8px 10px;gap:4px}
+    .kpiTargetExtras .kpiFocusCard{padding:8px 10px;gap:4px}
     .kpiTargetExtras .kpiFocusName{font-size:18px}
     .kpiTargetExtras strong{font-size:29px}
     .kpiTargetExtras small{font-size:17px;color:#c7bec1}
@@ -1080,7 +1079,7 @@
         if((norm(row.EntiteitType)==='winkel'||norm(row.Naam)==='diest')&&!storeMonths.has(rowPeriod)) storeMonths.set(rowPeriod,row);
       }
       return Array.from({length:12},(_,i)=>{
-        const date=new Date(Date.UTC(year,month-13+i,1)), monthKey=date.toISOString().slice(0,7);
+        const date=new Date(Date.UTC(year,month-12+i,1)), monthKey=date.toISOString().slice(0,7);
         const row=storeMonths.get(monthKey);
         const result=row&&fields.some(field=>s(row[field])!=='')?serviceKpiData(row,key):null;
         const attainment=result?.goal>0?result.rank/result.goal*100:null;
