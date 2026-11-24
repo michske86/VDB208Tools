@@ -6,6 +6,10 @@
   --avv-good: #82dba8;
   --avv-watch: #f4ce61;
   --avv-low: #ff7c8f;
+  --avv-panel-padding: 18px;
+  --avv-inset-start: calc(var(--avv-panel-padding) + 4px);
+  --avv-inset-end: calc(var(--avv-panel-padding) + 1px);
+  --avv-art-feather: 6%;
   bottom: 50px;
 }
 html[data-tv-theme="grid208"] .avvSlide {
@@ -16,17 +20,40 @@ html[data-tv-theme="grid208"] .avvSlide {
   --avv-good: #17633a;
   --avv-watch: #875805;
   --avv-low: #a91f36;
+  --avv-art-feather: 9%;
 }
 .avvHeader { flex: 0 0 105px; }
 .avvContent { display: grid; grid-template-rows: 288px minmax(0,1fr); gap: 14px; flex: 1; min-height: 0; }
-.avvLayoutPanel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 10px; background: var(--avv-panel); border: 1px solid var(--avv-edge); border-left: 4px solid var(--red); border-radius: 20px; padding: 15px 18px; }
+.avvLayoutPanel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 10px; background: var(--avv-panel); border: 1px solid var(--avv-edge); border-left: 4px solid var(--red); border-radius: 20px; padding: 15px var(--avv-panel-padding); }
 .avvLayoutPanel h2 { margin: 0; font-size: 27px; line-height: 1; text-transform: uppercase; }
 .avvOverview,.avvDetailGrid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
 .avvOverview { flex: 1; min-height: 0; }
-.avvDetailGrid { margin-inline: 22px 19px; min-height: 0; }
-.avvArt { grid-column: span 2; margin: 0; min-width: 0; min-height: 0; overflow: hidden; background: #10090b; border: 1px solid var(--avv-edge); border-radius: 18px; }
-.avvArt img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.avvRankingPanel { grid-column: span 3; }
+.avvDetailGrid { margin-inline: var(--avv-inset-start) var(--avv-inset-end); min-height: 0; }
+.avvArt {
+  grid-column: span 2;
+  margin: 0;
+  margin-inline-start: calc(0px - var(--avv-inset-start));
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  --avv-vertical-fade: linear-gradient(to bottom, transparent, #000 var(--avv-art-feather), #000 calc(100% - var(--avv-art-feather)), transparent);
+  -webkit-mask-image: var(--avv-vertical-fade);
+  mask-image: var(--avv-vertical-fade);
+}
+.avvArt img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  min-height: 0;
+  object-fit: contain;
+  --avv-horizontal-fade: linear-gradient(to right, transparent, #000 var(--avv-art-feather), #000 calc(100% - var(--avv-art-feather)), transparent);
+  -webkit-mask-image: var(--avv-horizontal-fade);
+  mask-image: var(--avv-horizontal-fade);
+}
+.avvRankingPanel { grid-column: span 3; margin-inline-end: calc(0px - var(--avv-inset-end)); }
 .avvDialCard { display: grid; grid-template-rows: auto minmax(0,1fr); min-width: 0; gap: 6px; padding: 11px 13px; border-radius: 11px; background: var(--avv-card); }
 .avvDialCard.primary { border-left: 3px solid var(--red); }
 .avvDialCard h3 { margin: 0; font-size: 24px; line-height: 1.06; }
