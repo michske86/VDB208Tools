@@ -146,26 +146,46 @@
     .districtRankLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1;}
     .districtRankName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
     .districtRankPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:20px 24px 22px 32px;}
-    .districtRankTable{width:100%;height:100%;border-collapse:separate;border-spacing:0 8px;table-layout:fixed;}
-    .districtRankTable th{font-size:19px;text-transform:uppercase;letter-spacing:.07em;color:#ddd;font-weight:900;text-align:center;padding:0 8px 6px;white-space:nowrap;}
-    .districtRankTable th:nth-child(1){width:62px;}
-    .districtRankTable th:nth-child(2){width:230px;text-align:left;}
-    .districtRankTable th:nth-child(3){width:142px;}
-    .districtRankTable th:nth-child(4){width:92px;}
-    .districtRankTable td{padding:0 5px;vertical-align:middle;}
-    .districtRow{height:56px;}
-    .districtCell{height:56px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.018);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:20px;font-weight:900;line-height:1.05;}
-    .districtCell:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.55)}
-    .districtCell.ok:before{background:var(--green);box-shadow:0 0 12px rgba(46,204,113,.55)}
-    .districtCell.close:before{background:var(--yellow);box-shadow:0 0 12px rgba(242,201,76,.55)}
-    .districtCell.bad:before{background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.55)}
-    .districtPlace{font-size:26px;font-weight:900;color:#fff;}
-    .districtStore{text-align:left;justify-content:flex-start;padding-left:16px;font-size:24px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .districtOwn .districtCell{border-color:rgba(225,25,25,.58);background:linear-gradient(180deg,rgba(105,16,16,.38),rgba(35,8,8,.58));box-shadow:0 0 0 1px rgba(225,25,25,.12),0 0 13px rgba(225,25,25,.16),inset 0 0 16px rgba(225,25,25,.08);}
-    .districtOwn .districtStore{border-color:rgba(225,25,25,.86);box-shadow:0 0 0 2px rgba(225,25,25,.18),0 0 18px rgba(225,25,25,.28);}
-    .districtOmzet{font-size:21px;}
-    .districtScore{font-size:27px;}
-    .districtKpiVal{font-size:19px;}
+    .districtPodium .shop-data{min-width:0;min-height:0}
+    .districtPodium .place{font:700 35px/.9 Rajdhani,Arial,sans-serif;color:var(--rank,#f7c9d0);white-space:nowrap}
+    .districtPodium .shop{font:700 33px/.9 Rajdhani,Arial,sans-serif;text-transform:uppercase;overflow-wrap:anywhere;min-width:0}
+    .districtPodium .score,.districtPodium .revenue{white-space:nowrap}
+    .districtPodium .shop-top,.districtPodium .shop-totals{display:flex;align-items:baseline;gap:10px;min-width:0}
+    .districtPodium .shop-totals{justify-content:space-between;font-size:20px;color:var(--muted)}
+    .districtPodium .shop-totals b{color:var(--text)}
+    .districtPodium .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+    .districtPodium .metric{display:grid;gap:1px;align-content:center;min-width:0;white-space:nowrap;color:var(--tone);font-weight:700}
+    .districtPodium .metric small{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase}
+    .districtPodium .metric strong{font:700 27px/.95 Rajdhani,Arial,sans-serif}
+    .districtPodium .tile{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px;border:1px solid var(--line)}
+    .districtPodium .tile .metric{background:#0003;border-left:2px solid var(--tone);padding:4px 5px}
+    .districtPodium .own{--rank:#ff8da2}
+    .districtPodium .own .shop{color:#ff98ab}
+    .districtPodium{display:grid;grid-template-rows:minmax(0,1.28fr);grid-auto-rows:minmax(0,1fr);gap:12px;min-height:0}
+    .districtPodium .band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+    .districtPodium .band:first-child{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .districtPodium .band:first-child .tile{padding:15px 20px;background:radial-gradient(ellipse at 10% 0%,#88506455,transparent 64%),linear-gradient(155deg,#302029,#19141b);border-top:3px solid #f0a6b6}
+    .districtPodium .band:first-child .place{font-size:70px;color:#ffb6c4}
+    .districtPodium .band:first-child .shop{font-size:54px}
+    .districtPodium .band:first-child .shop-totals{font-size:24px}
+    .districtPodium .band:first-child .metric strong{font-size:33px}
+    .districtPodium .band .tile{background:linear-gradient(145deg,#251c25,#171418);border-radius:5px 15px 5px 5px;border-top:2px solid #6e5360}
+    .districtPodium .band:last-child .tile{border-top-color:#453f4b}
+    .districtPodium .band .tile.own{border-color:#ff5268;background:#361822}
+
+    .districtRankSlide{inset:28px 28px 50px}
+    .districtRankSlide .ok{--tone:#8fe5b5}
+    .districtRankSlide .close{--tone:#f5d077}
+    .districtRankSlide .bad{--tone:#ff8c9f}
+    .districtRankSlide .neutral{--tone:#b7b0b5}
+    .districtPodium{--text:#f3f0ed;--muted:#b7b0b5;--line:#ffffff21;color:var(--text);font:600 20px/1.1 Rajdhani,Arial,sans-serif;font-variant-numeric:tabular-nums}
+    .districtPodium.compact .tile{padding-block:6px;gap:5px}
+    .districtPodium.compact .metric{padding-block:2px}
+    .districtPodium.compact .band:first-child .place{font-size:48px}
+    .districtPodium.compact .band:first-child .shop{font-size:40px}
+    .districtPodiumLegend{position:absolute;bottom:-37px;left:82px;display:flex;gap:16px;font-size:15px;color:#b5a9ae}
+    .districtPodiumLegend span{display:flex;align-items:center;gap:5px}
+    .districtPodiumLegend span:before{content:"";width:8px;height:8px;background:var(--tone);border-radius:50%}
 
     .storeServiceSlide{position:absolute;inset:28px;z-index:3;transform:translateX(105%);transition:transform .65s cubic-bezier(.22,.9,.24,1);display:flex;flex-direction:column;gap:16px;}
     .storeServiceMode #overviewContent{transform:translateX(-105%);}
@@ -313,7 +333,7 @@
        ========================================================= */
     .salesCard.ok,.kpiCard.ok,.missionCard.ok,.dayTile.ok,.mtd.ok,
     .revenueSummaryCard.ok:not(.targetToday),.serviceCell.ok,
-    .storeServiceTile.ok,.districtCell.ok{
+    .storeServiceTile.ok{
       background:linear-gradient(180deg,rgba(18,92,54,.78),rgba(8,34,22,.94))!important;
       border-color:rgba(46,204,113,.82)!important;
       box-shadow:0 0 0 1px rgba(46,204,113,.22),0 0 27px rgba(46,204,113,.28),inset 0 0 24px rgba(46,204,113,.10)!important;
@@ -321,7 +341,7 @@
 
     .salesCard.close,.kpiCard.close,.missionCard.close,.dayTile.close,.mtd.close,
     .revenueSummaryCard.close:not(.targetToday),.serviceCell.close,
-    .storeServiceTile.close,.districtCell.close{
+    .storeServiceTile.close{
       background:linear-gradient(180deg,rgba(108,82,12,.78),rgba(38,29,6,.94))!important;
       border-color:rgba(242,201,76,.86)!important;
       box-shadow:0 0 0 1px rgba(242,201,76,.20),0 0 27px rgba(242,201,76,.25),inset 0 0 24px rgba(242,201,76,.09)!important;
@@ -329,7 +349,7 @@
 
     .salesCard.bad,.kpiCard.bad,.missionCard.bad,.dayTile.bad,.mtd.bad,
     .revenueSummaryCard.bad:not(.targetToday),.serviceCell.bad,
-    .storeServiceTile.bad,.districtCell.bad{
+    .storeServiceTile.bad{
       background:linear-gradient(180deg,rgba(105,18,22,.80),rgba(38,7,10,.95))!important;
       border-color:rgba(255,52,52,.84)!important;
       box-shadow:0 0 0 1px rgba(255,52,52,.20),0 0 27px rgba(255,52,52,.27),inset 0 0 24px rgba(255,52,52,.10)!important;
@@ -342,8 +362,7 @@
     }
 
     .serviceCell.ok:before,.serviceCell.close:before,.serviceCell.bad:before,
-    .storeServiceTile.ok:before,.storeServiceTile.close:before,.storeServiceTile.bad:before,
-    .districtCell.ok:before,.districtCell.close:before,.districtCell.bad:before{
+    .storeServiceTile.ok:before,.storeServiceTile.close:before,.storeServiceTile.bad:before{
       width:6px!important;
     }
 
@@ -352,15 +371,6 @@
     .serviceCell.bad .serviceSub,.storeServiceTile.bad .storeTileSub{
       color:rgba(255,255,255,.78)!important;
     }
-
-    .districtOwn .districtCell.ok,
-    .districtOwn .districtCell.close,
-    .districtOwn .districtCell.bad{
-      outline:2px solid rgba(225,25,25,.62);
-      outline-offset:2px;
-    }
-
-
 
     /* =========================================================
        V16 - Compacte District Ranking + consistente fade
@@ -376,33 +386,6 @@
     .districtRankPanel{
       padding:14px 20px 16px 28px!important;
     }
-    .districtRankTable{
-      height:auto!important;
-      border-spacing:0 var(--district-row-gap,5px)!important;
-    }
-    .districtRankTable th{
-      font-size:16px!important;
-      padding:0 6px 4px!important;
-    }
-    .districtRankTable td{
-      padding:0 4px!important;
-    }
-    .districtRow{height:var(--district-row-h,48px)!important;}
-    .districtCell{
-      height:var(--district-row-h,48px)!important;
-      min-height:var(--district-row-h,48px)!important;
-      border-radius:calc(var(--district-row-h,48px) * .24)!important;
-      font-size:var(--district-base-font,18px)!important;
-    }
-    .districtPlace{font-size:var(--district-place-font,23px)!important;}
-    .districtStore{
-      font-size:var(--district-store-font,21px)!important;
-      padding-left:13px!important;
-    }
-    .districtOmzet{font-size:var(--district-money-font,19px)!important;}
-    .districtScore{font-size:var(--district-score-font,24px)!important;}
-    .districtKpiVal{font-size:var(--district-kpi-font,17px)!important;}
-
     .yesterdaySlide{position:absolute;inset:28px 28px 50px;z-index:3;display:flex;flex-direction:column;gap:14px}
     .yesterdayHeader,.yesterdayPanel{min-width:0;background:linear-gradient(180deg,#191719,#100e10);border:1px solid #3b3035;border-left:5px solid var(--red);border-radius:18px}
     .yesterdayHeader{flex:0 0 104px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
@@ -698,9 +681,8 @@
           <div class="districtRankName">Ranking BIG 7</div>
         </div>
       </div>
-      <div class="districtRankPanel">
-        <table class="districtRankTable" id="districtRankTable"></table>
-      </div>
+      <div class="districtRankPanel districtPodium" id="districtPodium"></div>
+      <div class="districtPodiumLegend"><span class="ok">Op target</span><span class="close">Dichtbij</span><span class="bad">Onder target</span></div>
     </section>
 
     <section class="serviceSlide" id="serviceSlide">
@@ -1270,38 +1252,6 @@
       const status=pct>=100?'ok':(pct>=90?'close':'bad');
       return {display:key==='Link'?pctFmt.format(actual)+'%':pctFmt.format(actual)+'%', status, points:status==='ok'?3:status==='close'?1:0};
     }
-    function districtScore(row){return districtBig7.reduce((sum,key)=>sum+districtKpiMetric(row,key).points,0);}
-
-    function fitDistrictRankingRows(){
-      const panel=document.querySelector('.districtRankPanel');
-      const table=document.getElementById('districtRankTable');
-      if(!panel || !table) return;
-
-      const rows=table.querySelectorAll('tbody tr.districtRow');
-      if(!rows.length) return;
-
-      const head=table.querySelector('thead');
-      const rowCount=rows.length;
-      const headHeight=head?head.getBoundingClientRect().height:28;
-      const available=Math.max(0,panel.clientHeight-headHeight-8);
-
-      let gap=rowCount>=18?2:(rowCount>=14?3:5);
-      let rowHeight=Math.floor((available-gap*(rowCount+1))/rowCount);
-
-      // Alle actieve winkels moeten altijd passen. Bij grotere districten
-      // schaalt de tabel verder terug, zonder verticale clipping.
-      rowHeight=Math.max(29,Math.min(53,rowHeight));
-
-      const scale=rowHeight/48;
-      table.style.setProperty('--district-row-h',rowHeight+'px');
-      table.style.setProperty('--district-row-gap',gap+'px');
-      table.style.setProperty('--district-base-font',Math.max(16,Math.min(20,18*scale))+'px');
-      table.style.setProperty('--district-place-font',Math.max(20,Math.min(25,23*scale))+'px');
-      table.style.setProperty('--district-store-font',Math.max(18,Math.min(23,21*scale))+'px');
-      table.style.setProperty('--district-money-font',Math.max(17,Math.min(21,19*scale))+'px');
-      table.style.setProperty('--district-score-font',Math.max(21,Math.min(26,24*scale))+'px');
-      table.style.setProperty('--district-kpi-font',Math.max(15,Math.min(19,17*scale))+'px');
-    }
 
     function npsTargetFor(name, type, npsPeriod){
       const rows=Array.isArray(adminConfig.targets)?adminConfig.targets:[];
@@ -1322,24 +1272,26 @@
       window.DIESTROYERS_TV_AVV.render(data, sellers, s(data.latestPeriod) || s(npsData.latestPeriod) || period);
     }
 
-    function renderDistrictRankingSlide(){
-      const table=document.getElementById('districtRankTable');
-      if(!table) return;
-      const rows=(districtRows.length?districtRows:[]).filter(r=>activeFlag(r.Actief ?? 'JA'))
-        .sort((a,b)=>districtScore(b)-districtScore(a) || n(b.Omzet)-n(a.Omzet));
-      const heads=districtBig7.map(key=>`<th>${esc(def(key).short||def(key).label)}</th>`).join('');
-      const body=rows.map((row,i)=>{
-        const own = shopKey(districtShopNr(row))===shopKey(adminConfig.shop?.shopNr || '208') || norm(districtName(row))===norm(adminConfig.shop?.naam || 'Diest') || norm(row.EigenWinkel)==='ja';
-        const cells=districtBig7.map(key=>{
-          const m=districtKpiMetric(row,key);
-          return `<td><div class="districtCell ${esc(m.status)}"><span class="districtKpiVal">${esc(m.display)}</span></div></td>`;
-        }).join('');
-        return `<tr class="districtRow ${own?'districtOwn':''}"><td><div class="districtCell"><span class="districtPlace">${i+1}</span></div></td><td><div class="districtCell districtStore">${esc(districtName(row))}</div></td><td><div class="districtCell districtOmzet">€ ${esc(moneyFmt.format(n(row.Omzet)))}</div></td><td><div class="districtCell districtScore">${districtScore(row)}</div></td>${cells}</tr>`;
-      }).join('');
-      table.innerHTML=`<thead><tr><th>#</th><th>Winkel</th><th>Omzet</th><th>Score</th>${heads}</tr></thead><tbody>${body || '<tr><td colspan="11"><div class="empty">Geen districtdata gevonden</div></td></tr>'}</tbody>`;
-      requestAnimationFrame(fitDistrictRankingRows);
-    }
 
+    function renderDistrictRankingSlide(){
+      const panel=document.getElementById('districtPodium');
+      const ownShop=shopKey(adminConfig.shop?.shopNr || '208');
+      const ownName=norm(adminConfig.shop?.naam || 'Diest');
+      const rows=districtRows.filter(row=>activeFlag(row.Actief ?? 'JA')).map(row=>{
+        const metrics=districtBig7.map(key=>({label:def(key).short||def(key).label,...districtKpiMetric(row,key)}));
+        return {row,metrics,score:metrics.reduce((sum,m)=>sum+m.points,0)};
+      }).sort((a,b)=>b.score-a.score || n(b.row.Omzet)-n(a.row.Omzet));
+      const cards=rows.map(({row,metrics,score},index)=>{
+        const name=districtName(row);
+        const own=shopKey(districtShopNr(row))===ownShop || norm(name)===ownName || norm(row.EigenWinkel)==='ja';
+        const cells=metrics.map(m=>`<span class="metric ${esc(m.status)}"><small>${esc(m.label)}</small><strong>${esc(m.display)}</strong></span>`).join('');
+        return `<article class="shop-data tile${own?' own':''}"><div class="shop-top"><span class="place">#${index+1}</span><span class="shop">${esc(name)}</span></div><div class="shop-totals"><span>Omzet <b class="revenue">€ ${moneyFmt.format(n(row.Omzet))}</b></span><span>Score <b class="score">${score}</b></span></div><div class="metrics">${cells}</div></article>`;
+      });
+      const tiers=[cards.slice(0,3)];
+      for(let start=3;start<cards.length;start+=5) tiers.push(cards.slice(start,start+5));
+      panel.classList.toggle('compact',tiers.length>3);
+      panel.innerHTML=cards.length?tiers.map(tier=>`<div class="band">${tier.join('')}</div>`).join(''):'<div class="empty">Geen districtdata gevonden</div>';
+    }
 
     function serviceStoreTarget(key){
       const k=def(key),raw=k?.target?store[k.target]:null;
@@ -1784,7 +1736,6 @@
     }
     window.addEventListener('resize',()=>{
       fit();
-      requestAnimationFrame(fitDistrictRankingRows);
       if (currentSlide === 4) requestAnimationFrame(window.DIESTROYERS_TV_NPS.fit);
       if (currentSlide === 5) requestAnimationFrame(window.DIESTROYERS_TV_AVV.fit);
     });
