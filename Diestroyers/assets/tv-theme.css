@@ -6,12 +6,14 @@ html[data-tv-theme="grid208"] {
   --text: #24201f;
   --muted: #514943;
   --red: #bf1029;
-  --green: #1a6448;
+  --green: #13623f;
   --yellow: #765013;
-  --bad: #ab2335;
-  --good: #e1eee1;
-  --close: #f2e4c1;
-  --alert: #f4dce0;
+  --bad: #a6192d;
+  --good: #94dfab;
+  --close: #ffdb66;
+  --alert: #f69ca5;
+  --status-highlight: linear-gradient(145deg, #ffffff30, transparent 75%);
+  --table-head: #f1e8db;
   --edge: #cfc2b5;
   --recess: #eee7db;
   --canvas: repeating-linear-gradient(123deg, transparent 0 55px, #5e343206 56px 57px),
@@ -20,7 +22,7 @@ html[data-tv-theme="grid208"] {
   --shell: #e9ddd0;
   --surface: linear-gradient(150deg, #fffcf7, #f8f1e7);
   --tile: linear-gradient(150deg, #fffefa, #f6eee2);
-  --mast: linear-gradient(112deg, #9c1028, #c9122e 67%, #9b0e24);
+  --mast: linear-gradient(112deg, #c9122d, #d71535 66%, #bd1029);
   --sheen: repeating-linear-gradient(128deg, transparent 0 15px, #fff9f314 16px 17px, transparent 18px 39px);
   --shadow: 0 9px 22px #582c2621, inset 0 1px #ffffffc7;
   --tile-shadow: 0 3px 6px #582c2614, inset 0 1px #ffffff;
@@ -54,7 +56,7 @@ html[data-tv-theme="grid208"] #stage :is(.yesterdayTitle,.revenueName,.serviceNa
 html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.kpiServiceHeader,.missionHeader)::after,
 html[data-tv-theme="grid208"] #stage .avvHeader::before {
   width: 5px;
-  background: linear-gradient(0deg, #811326, var(--red) 54%, #dc6770);
+  background: #ed5565;
   box-shadow: none;
 }
 html[data-tv-theme="grid208"] #stage :is(.yesterdayPanel,.revenueSummary,.revenueCalendarPanel,.servicePanel,.districtRankPanel,
@@ -77,16 +79,16 @@ html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.yesterday
   box-shadow: var(--tile-shadow) !important;
 }
 html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).ok {
-  background: linear-gradient(145deg,#ffffffaa,transparent), var(--good) !important;
+  background: var(--status-highlight), var(--good) !important;
 }
 html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).close {
-  background: linear-gradient(145deg,#ffffffaa,transparent), var(--close) !important;
+  background: var(--status-highlight), var(--close) !important;
 }
 html[data-tv-theme="grid208"] #stage :is(.dayTile,.revenueSummaryCard,.serviceCell,.districtCell,.storeServiceTile,.npsTvCard,.kpiShopCard,.kpiSellerTile,.avvMetric,.salesCard,.kpiCard).bad {
-  background: linear-gradient(145deg,#ffffffaa,transparent), var(--alert) !important;
+  background: var(--status-highlight), var(--alert) !important;
 }
 html[data-tv-theme="grid208"] #stage :is(.dayTile,.serviceCell,.districtCell,.npsTvCard,.kpiShopCard,.kpiSellerTile,.yesterdayStoreCard)::before,
-html[data-tv-theme="grid208"] #stage :is(.dayTile,.storeServiceTile,.salesCard,.kpiCard)::after { width: 3px !important; box-shadow: none !important; }
+html[data-tv-theme="grid208"] #stage :is(.dayTile,.storeServiceTile,.salesCard,.kpiCard)::after { width: 4px !important; box-shadow: none !important; }
 html[data-tv-theme="grid208"] #stage .yesterdaySeller::before { width: 2px; opacity: .56; }
 html[data-tv-theme="grid208"] #stage :is(.dayTile.today,.revenueSummaryCard.targetToday,.kpiStoreSummary) { border-color: var(--red) !important; }
 html[data-tv-theme="grid208"] #stage .dayTile.future { background: var(--recess) !important; opacity: 1; }
@@ -139,7 +141,7 @@ html[data-tv-theme="grid208"] #stage .foot, html[data-tv-theme="grid208"] .tv-ho
 html[data-tv-theme="grid208"] #stage :is(.yesterdayHeader,.revenueHeader,.serviceHeader,.districtRankHeader,.npsTvHeader,.avvHeader,.kpiServiceHeader,.missionHeader) {
   --muted: #fff3e9;
   color: #fff8f0;
-  border-color: #9e0e23 !important;
+  border-color: #b70f29 !important;
 }
 html[data-tv-theme="grid208"] #stage :is(.yesterdayTitle,.revenueName,.serviceName,.districtRankName,.npsTvTitle,.avvTitle,.kpiServiceName,.missionName) {
   color: #fff8f0;
@@ -159,10 +161,12 @@ html[data-tv-theme="grid208"] #stage :is(.revSValue,.npsTvCard strong,.avvMetric
   letter-spacing: -.035em;
 }
 html[data-tv-theme="grid208"] #stage :is(.npsRankTable thead th,.districtRankTable thead th,.serviceTable thead th,.sellerTable thead th) {
-  --muted: #fff3e9;
-  color: #fff8f0 !important;
-  background: #362426;
+  --muted: #342724;
+  color: var(--muted) !important;
+  background: var(--table-head);
+  border-bottom: 1px solid #cfbba7;
 }
+html[data-tv-theme="grid208"] #stage .serviceTable th .serviceHeaderTarget { color: #514943 !important; }
 html[data-tv-theme="grid208"] #stage :is(.sellerTable td.name,.npsTvCommentHead span:last-child) { color: var(--text); }
 html[data-tv-theme="grid208"] #stage .npsTvCard small { color: #493d37 !important; }
 html[data-tv-theme="grid208"] #stage .npsTvComment.promotor { border-left-color: var(--green) !important; }
