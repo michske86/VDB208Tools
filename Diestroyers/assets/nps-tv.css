@@ -20,7 +20,7 @@ html[data-tv-theme="grid208"] .npsSlide {
   --nps-d: #b8253f;
 }
 .npsTvHeader { flex: 0 0 105px; }
-.npsTvStats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.npsTvStats,.npsTvBottom { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .npsStoreCard {
   display: grid;
   grid-template-columns: 130px minmax(0,1fr);
@@ -59,7 +59,7 @@ html[data-tv-theme="grid208"] .npsSlide {
 .npsMix .npsN { background: var(--nps-n); }
 .npsMix .npsD { background: var(--nps-d); }
 .npsMix span { min-width: 0; }
-.npsTvBottom { display: grid; grid-template-columns: 1.05fr 1fr; gap: 14px; flex: 1; min-height: 0; }
+.npsTvBottom { flex: 1; min-height: 0; }
 .npsTvPanel { display: flex; flex-direction: column; min-width: 0; }
 .npsTvPanel h2 { flex: none; }
 #npsTvRanking { display: flex; flex-direction: column; flex: 1; min-height: 0; }
