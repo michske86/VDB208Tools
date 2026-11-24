@@ -6,6 +6,7 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
   const period=()=>new URLSearchParams(location.search).get("periode") || N().latestPeriod || new Date().toISOString().slice(0,7);
   const fmtNps=v=>v===null||v===undefined?"—":new Intl.NumberFormat("nl-BE",{maximumFractionDigits:1}).format(v);
+  const dateFmt=s=>{const d=new Date(String(s).replace(" ","T"));return isNaN(d)?s:new Intl.DateTimeFormat("nl-BE",{day:"2-digit",month:"2-digit",year:"numeric"}).format(d)};
   const target=(type,name,p)=>{
     const rows=cfg().targets||[];
     const r=rows.find(x=>String(x.Periode)===p&&String(x.EntiteitType||"").toLowerCase()===type&&String(x.Naam||"").toLowerCase()===String(name||"").toLowerCase());
@@ -20,6 +21,10 @@
     ${card("Kaartjes",s?.cards||0,"Enquêtes","none")}
   </div></section>`;
   const card=(label,value,sub,st)=>`<article class="nps-stat ${st}"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(sub)}</small></article>`;
+  const comment=(x,showSeller=true)=>`<article class="nps-comment ${String(x.type||"").toLowerCase()}">
+    <div class="nps-comment-head"><strong>${esc(x.score)} · ${esc(x.type)}</strong><span>${esc(dateFmt(x.dateIso||x.date))}${showSeller?` · ${esc(x.sellerName||"Winkel")}`:""}</span></div>
+    <p>${esc(x.comment)}</p>
+  </article>`;
   function sellerId(){return new URLSearchParams(location.search).get("id")||""}
   function sellerNameById(id){
     const v=(cfg().verkopers||[]).find(x=>String(x.PersoneelsNr)===String(id));
@@ -31,16 +36,20 @@
   }
   function shopHtml(){
     const p=period(), m=N().store?.month?.[p]||{}, y=N().store?.ytd?.[p]||{}, t=target("winkel",cfg().shop?.naam||"Diest",p);
+    const comments=(N().comments||[]).slice().sort((a,b)=>String(b.dateIso).localeCompare(String(a.dateIso)));
     return `<section class="intel-hero"><div class="intel-kicker">Klantbeleving</div><h1 class="intel-title">NPS Winkel</h1><div class="intel-sub">${esc(p)}</div></section>
       ${stats("Huidige maand",m,t)}${stats("Year to date",y,t)}
       <section class="nps-two"><div class="analysis-panel"><h2>Maandhistoriek</h2>${monthHistory(N().store?.month)}</div>
-      <div class="analysis-panel"><h2>Controle</h2><div class="nps-control">${Object.entries(N().control||{}).filter(([k,v])=>typeof v!=="object").map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div></section>`;
+      <div class="analysis-panel"><h2>Controle</h2><div class="nps-control">${Object.entries(N().control||{}).filter(([k,v])=>typeof v!=="object").map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join("")}</div></div></section>
+      <section class="analysis-panel"><h2>Alle commentaren</h2><div class="nps-comments">${comments.length?comments.map(x=>comment(x,true)).join(""):"<p>Geen commentaren.</p>"}</div></section>`;
   }
   function sellerHtml(id){
     const p=period(), seller=N().sellers?.[id]||{name:sellerNameById(id),month:{},ytd:{},comments:[]}, t=target("verkoper",seller.name,p);
     const m=seller.month?.[p]||{}, y=seller.ytd?.[p]||{};
+    const comments=(seller.comments||[]).slice().sort((a,b)=>String(b.dateIso).localeCompare(String(a.dateIso)));
     return `<section class="analysis-panel nps-seller-section"><h2>NPS</h2>${stats("Huidige maand",m,t)}${stats("Year to date",y,t)}
-      <h3>Maandhistoriek</h3>${monthHistory(seller.month)}</section>`;
+      <h3>Maandhistoriek</h3>${monthHistory(seller.month)}
+      <h3>Commentaren</h3><div class="nps-comments">${comments.length?comments.map(x=>comment(x,false)).join(""):"<p>Geen gekoppelde commentaren.</p>"}</div></section>`;
   }
   function boot(){
     const kpi=document.querySelector('#kpi-dossier-root[data-kpi="nps"]');
