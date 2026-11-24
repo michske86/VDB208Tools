@@ -12,16 +12,6 @@
   --avv-art-feather: 6%;
   bottom: 50px;
 }
-html[data-tv-theme="grid208"] .avvSlide {
-  --avv-panel: var(--surface);
-  --avv-card: var(--recess);
-  --avv-edge: var(--edge);
-  --avv-track: #d9c8bd;
-  --avv-good: #17633a;
-  --avv-watch: #875805;
-  --avv-low: #a91f36;
-  --avv-art-feather: 9%;
-}
 .avvHeader { flex: 0 0 105px; }
 .avvContent { display: grid; grid-template-rows: 288px minmax(0,1fr); gap: 14px; flex: 1; min-height: 0; }
 .avvLayoutPanel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 10px; background: var(--avv-panel); border: 1px solid var(--avv-edge); border-left: 4px solid var(--red); border-radius: 20px; padding: 15px var(--avv-panel-padding); }

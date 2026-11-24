@@ -9,16 +9,6 @@
   --nps-d: #ff7587;
   bottom: 50px;
 }
-html[data-tv-theme="grid208"] .npsSlide {
-  --nps-card: var(--tile);
-  --nps-row: var(--recess);
-  --nps-track: #ddd0c4;
-  --nps-edge: var(--edge);
-  --nps-accent: #80570a;
-  --nps-p: #257a4a;
-  --nps-n: #8b620b;
-  --nps-d: #b8253f;
-}
 .npsTvHeader { flex: 0 0 105px; }
 .npsTvStats,.npsTvBottom { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .npsStoreCard {

@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root{
+      color-scheme:dark;
       --red:#e11919; --red2:#8a1111; --bg:#050505; --panel:#111; --line:#2b2b2b;
       --text:#f8f8f8; --muted:#aaa; --green:#2ecc71; --yellow:#f2c94c; --bad:#ff3434;
       --gold:#ffd166; --silver:#d9e2ef; --bronze:#d08a4b;
@@ -527,11 +528,18 @@
     .tvExportOverlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;font-family:'Rajdhani',Arial,sans-serif;color:#fff}
     .tvExportOverlay.show{display:flex}.tvExportCard{width:min(680px,calc(100vw - 48px));padding:34px;border-radius:24px;background:linear-gradient(180deg,#191919,#080808);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}.tvExportCard h2{margin:0 0 10px;font-size:40px;text-transform:uppercase}.tvExportCard p{margin:0 0 20px;color:#bbb;font-size:20px;font-weight:700}.tvExportCard button{border:1px solid #ff4545;border-radius:999px;background:linear-gradient(180deg,#c91515,#650707);color:#fff;padding:13px 24px;font:900 19px 'Rajdhani',Arial,sans-serif;text-transform:uppercase;cursor:pointer}
 
+    body[data-tv-touch] { padding-bottom: 52px; }
+    body[data-tv-touch] #stage { flex: none; }
+    body[data-tv-touch] > .tvControls { position: fixed; bottom: 4px; padding: 0 4px; gap: 4px; }
+    body[data-tv-touch] > .tvControls button { min-width: 48px; min-height: 44px; padding: 0 7px; }
+    body[data-tv-touch] .tv-home { display: grid; align-content: center; min-height: 44px; min-width: 44px; bottom: 4px !important; }
+    @media (orientation: portrait) {
+      body[data-tv-touch] { padding-bottom: 100px; }
+      body[data-tv-touch] > .tvControls { bottom: 52px; }
+    }
 </style>
-  <link rel="stylesheet" href="assets/tv-theme.css?v=3">
-  <link rel="stylesheet" href="assets/nps-tv.css?v=2">
-  <link rel="stylesheet" href="assets/avv-tv.css?v=2">
-  <script src="assets/tv-theme.js"></script>
+  <link rel="stylesheet" href="assets/nps-tv.css?v=3">
+  <link rel="stylesheet" href="assets/avv-tv.css?v=3">
   <script src="assets/nps-tv.js"></script>
   <script src="assets/avv-tv.js"></script>
 </head>
@@ -1693,11 +1701,6 @@
       if (currentSlide === 4) window.DIESTROYERS_TV_NPS.fit();
       if (currentSlide === 5) window.DIESTROYERS_TV_AVV.fit();
     });
-    window.addEventListener('diestroyers-tv-theme-change', () => {
-      if (currentSlide === 4) renderNpsSlide();
-      if (currentSlide === 5) requestAnimationFrame(window.DIESTROYERS_TV_AVV.fit);
-      if (currentSlide === 3) requestAnimationFrame(fitDistrictRankingRows);
-    });
     safeTvStart('schalen',fit);
     safeTvStart('omzet-tegels',renderSales);
     safeTvStart('gisteren-slide',renderYesterdaySlide);
@@ -1754,7 +1757,6 @@
   })();
   </script>
 <a class="tv-home" href="home.html" style="position:fixed;left:18px;bottom:12px;color:#aaa;text-decoration:none;font-weight:700">Home</a>
-<button type="button" id="tvThemeToggle" hidden>Light mode</button>
 </body>
 </html>
 
