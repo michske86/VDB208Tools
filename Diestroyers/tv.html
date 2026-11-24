@@ -505,16 +505,8 @@
     .kpiServiceHeader,.kpiServiceColumn{position:relative;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden}
     .kpiServiceHeader{height:126px;display:flex;align-items:center;padding:18px 34px}.kpiServiceHeader:after,.kpiServiceColumn:after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);box-shadow:0 0 20px rgba(225,25,25,.8)}
     .kpiServiceLabel{font-size:24px;text-transform:uppercase;letter-spacing:.12em;color:#ddd;font-weight:900;line-height:1}.kpiServiceName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px}
-    .kpiServiceSplit{display:grid;grid-template-columns:7fr 3fr;gap:16px;flex:1;min-height:0}.kpiServiceSplit.omzet{grid-template-columns:7fr 3fr}.kpiServiceColumn{min-height:0;padding:18px 18px 20px 26px;display:flex;flex-direction:column;gap:14px}.kpiServiceColumn.ytd{padding-left:22px}
-    .kpiServicePeriod,.kpiServiceColumn.ytd .kpiServicePeriod{font-size:34px;line-height:1;font-weight:900;text-transform:uppercase;color:#ddd}.kpiServiceShop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpiServiceShop.single{grid-template-columns:1fr}
-    .kpiShopCard{min-width:0;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);padding:9px 11px 8px 15px;position:relative;overflow:hidden}.kpiShopCard:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bad)}.kpiShopCard.ok:before{background:var(--green)}.kpiShopCard.close:before{background:var(--yellow)}
-    .kpiShopCard span{display:block;color:#bbb;font-size:17px;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiShopCard strong{display:block;font-size:38px;line-height:1;margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiShopCard small{display:block;font-size:16px;color:#ddd;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .kpiSellerTable{width:100%;border-collapse:separate;border-spacing:0 4px;table-layout:fixed}.kpiSellerTable th{font-size:14px;color:#aaa;text-transform:uppercase;text-align:right;padding:0 5px 3px;white-space:nowrap}.kpiSellerTable th:nth-child(-n+2){text-align:left}.kpiSellerTable td{background:rgba(255,255,255,.04);padding:7px 5px;font-size:17px;line-height:1;font-weight:900;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiSellerTable td:first-child{border-radius:10px 0 0 10px;width:32px;color:var(--red);text-align:left}.kpiSellerTable td:nth-child(2){text-align:left;text-transform:uppercase}.kpiSellerTable td:last-child{border-radius:0 10px 10px 0}.kpiSellerTable .ok{color:#baffc9}.kpiSellerTable .close{color:#ffe484}.kpiSellerTable .bad{color:#ffb0b0}.kpiPortfolioPlaceholder{color:#aaa!important;font-size:15px!important}
-    .kpiSellerCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:10px;flex:1;min-height:0}.kpiSellerCards.ytd{grid-template-columns:1fr;grid-template-rows:none;gap:9px}.kpiSellerTile{position:relative;min-width:0;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));padding:11px 13px 10px 18px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}.kpiSellerTile:before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bad)}.kpiSellerTile.ok:before{background:var(--green)}.kpiSellerTile.close:before{background:var(--yellow)}.kpiSellerTile.bad:before{background:var(--bad)}
-    .kpiSellerTop{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.kpiSellerRank{font-size:18px;color:var(--red);font-weight:900}.kpiSellerName{font-size:23px;line-height:1;text-transform:uppercase;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}.kpiSellerMain{font-size:36px;line-height:1;font-weight:900;margin:6px 0}.kpiSellerFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kpiSellerFacts span{border-radius:8px;background:rgba(0,0,0,.28);padding:4px 6px;color:#ddd;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpiSellerFacts strong{display:block;color:#fff;font-size:18px;line-height:1;margin-top:2px}.kpiSellerFacts .needsAttention{border:1px solid rgba(255,52,52,.58);box-shadow:0 0 18px rgba(255,52,52,.42),inset 0 0 12px rgba(255,52,52,.12);color:#ffd1d1}.kpiSellerFacts .metric-ok{border-left:4px solid var(--green)}.kpiSellerFacts .metric-close{border-left:4px solid var(--yellow)}.kpiSellerFacts .metric-bad{border-left:4px solid var(--bad)}
-    .kpiSellerAvatar{object-fit:cover;border-radius:50%;border:2px solid var(--red);box-shadow:0 0 16px rgba(225,25,25,.38);background:#111}.kpiSellerAvatar.mtd{position:absolute;right:13px;top:10px;width:76px;height:76px}.kpiSellerAvatar.podiumGold{border-color:var(--gold);box-shadow:0 0 20px rgba(255,209,102,.78)}.kpiSellerAvatar.podiumSilver{border-color:#d9dde3;box-shadow:0 0 20px rgba(217,221,227,.72)}.kpiSellerAvatar.podiumBronze{border-color:#cd7f32;box-shadow:0 0 20px rgba(205,127,50,.72)}.kpiSellerTop:has(.kpiSellerAvatar.mtd) .kpiSellerName{padding-right:80px}.kpiSellerCards.ytd .kpiSellerTile{min-height:0;padding:10px 13px 35px 19px;display:grid;grid-template-columns:32px minmax(0,1fr) 154px;grid-template-rows:auto;align-items:center;gap:8px}.kpiSellerCards.ytd .kpiSellerTile.noFacts{padding-bottom:10px;grid-template-columns:32px minmax(0,1fr) 154px}.kpiSellerCards.ytd .kpiSellerTop{display:contents}.kpiSellerCards.ytd .kpiSellerRank{grid-column:1;grid-row:1;font-size:18px}.kpiSellerCards.ytd .kpiSellerName{grid-column:2;grid-row:1;font-size:22px}.kpiSellerCards.ytd .kpiSellerMain{grid-column:3;grid-row:1;font-size:27px;margin:0;text-align:right}.kpiSellerCards.ytd .kpiSellerFacts{position:absolute!important;left:19px;right:13px;bottom:10px;width:auto!important;display:block!important;text-align:right;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}.kpiSellerCards.ytd .kpiYtdFacts{display:block;background:transparent!important;padding:0!important;border:0!important;color:#ddd;font-size:16px;font-weight:800;line-height:1.2}.kpiSellerExtra{font-size:15px;color:#bbb;font-weight:800;margin-top:7px}.kpiSellerCards.ytd .kpiSellerExtra{display:none}
-
-    .kpiStoreSummary{border-color:rgba(255,255,255,.27);background:linear-gradient(145deg,rgba(100,120,105,.24),rgba(255,255,255,.045))}.kpiStoreSummary.storeMtd{grid-column:2;grid-row:3}.kpiStoreSummary.storeYtd{grid-column:3;grid-row:3}.kpiStoreSummary .kpiSellerName{font-size:23px}.kpiStoreBadge{font-size:15px;letter-spacing:.08em;color:#baffc9;font-weight:900}.kpiStoreDetail{color:#ddd;font-size:17px;font-weight:800;line-height:1.25}.kpiStoreSummary .kpiSellerMain{font-size:36px}
+    .kpiServiceSplit{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:16px;flex:1;min-height:0}
+    .kpiServiceColumn{min-height:0;display:flex;flex-direction:column}
 
     /* Daily scoreboard: one aligned row per active seller. */
     .yesterdayColumns,.yesterdaySeller{display:grid;grid-template-columns:minmax(250px,1.8fr) minmax(165px,1.1fr) repeat(6,minmax(0,1fr));gap:14px;align-items:center}
@@ -538,7 +530,6 @@
       body[data-tv-touch] > .tvControls { bottom: 52px; }
     }
 
-    .kpiServiceSplit.targetChart{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}
     .kpiTargetPeriods{display:flex;gap:24px;margin-left:auto;color:#c7bec1;font-size:22px;font-weight:700}
     .kpiTargetPanel{--score-green:#83dbad;--score-yellow:#f5cc64;--score-red:#ff8396;--score-rail:#463b40;--score-tile:#242022;padding:20px 20px 20px 26px;gap:12px;font-variant-numeric:tabular-nums}
     .kpiTargetPanel h2,.kpiTargetHistory h3{margin:0;font-size:30px;line-height:1;text-transform:uppercase}
@@ -556,6 +547,18 @@
     .kpiTargetFacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;color:#c7bec1;font-size:17px;white-space:nowrap}
     .kpiTargetFacts.life{grid-template-columns:82px minmax(0,1fr)}
     .kpiTargetFacts b{color:#f8f8f8}
+
+    .kpiTargetExtras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .kpiTargetExtras .kpiFocusCard{border-top-width:1px;padding:8px 10px;gap:4px}
+    .kpiTargetExtras .kpiFocusName{font-size:18px}
+    .kpiTargetExtras strong{font-size:29px}
+    .kpiTargetExtras small{font-size:17px;color:#c7bec1}
+    .kpiTargetFacts.revenue{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+    .kpiTargetFacts.revenue b{color:var(--score)}
+    .kpiTargetFacts.revenue .revenueAmount{color:#f8f8f8;margin-left:6px}
+    .kpiServiceSplit.omzet .kpiTargetFocus .kpiTargetFacts{grid-template-columns:1fr}
+    .kpiServiceSplit.omzet .kpiMonth strong{font-size:20px}
+    .kpiServiceSplit.omzet .kpiTargetReading{grid-template-columns:48px 133px minmax(65px,1fr) minmax(280px,1.55fr)}
     .kpiTargetFacts .needs b{color:var(--score-red)}
     .kpiTargetHistory{display:flex;flex-direction:column;gap:9px;flex:1;min-height:0}
     .kpiTargetHistory h3{font-size:25px}
@@ -1043,7 +1046,7 @@
       Object.keys(out).filter(key=>/TargetPct$/i.test(key)).forEach(key=>{out[key]=rows.length?out[key]/rows.length:0;});
       return out;
     }
-    function serviceKpiData(row,key,isYtd=false){
+    function serviceKpiData(row,key){
       const k=def(key);
       if(key==='Life'){
         const stuks=n(row.Life), target=n(row.LifeTarget), needed=Math.max(0,Math.ceil(target-stuks));
@@ -1058,11 +1061,7 @@
       }
       if(key==='Omzet'){
         const actual=n(row.Omzet), target=n(row.OmzetTarget), needed=Math.max(0,target-actual), pct=target?actual/target*100:0;
-        return {main:`€ ${moneyFmt.format(actual)}`,detail:`Target € ${moneyFmt.format(target)}`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
-      }
-      if(key==='Accessoires'){
-        const actual=n(row.Accessoires), target=n(row.Omzet)*n(row.AccessoiresTargetPct)/100, pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
-        return {main:`€ ${moneyFmt.format(actual)}`,detail:`${pctFmt.format(n(row.Omzet)?actual/n(row.Omzet)*100:0)}% van omzet`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
+        return {main:`€ ${moneyFmt.format(actual)}`,detail:`Target € ${moneyFmt.format(target)}`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed,goal:target};
       }
       if(key==='Link'){
         const actual=n(row.LinkPct), target=n(row.LinkTargetPct), pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
@@ -1071,52 +1070,6 @@
       const actual=n(row.Monster), target=n(row.MonsterTarget), pct=target?actual/target*100:0, needed=Math.max(0,target-actual);
       return {main:`€ ${moneyFmt.format(actual)}`,detail:`Target € ${moneyFmt.format(target)}`,target:`Nog € ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:actual,needed};
     }
-    function serviceShopCard(label,m){return `<div class="kpiShopCard ${esc(m.status)}"><span>${esc(label)}</span><strong>${esc(m.main)}</strong><small>${esc(m.detail)} · ${esc(m.target)}</small></div>`;}
-    function sellerTile(x,index,key,isYtd){
-      const m=x.m, life=key==='Life';
-      const profile=avatar(x.row.Naam);
-      const name=esc(x.row.Naam);
-      const place=x.place||index+1;
-      const podiumClass=!isYtd&&m.rank>0&&(place===1?'podiumGold':place===2?'podiumSilver':place===3?'podiumBronze':'');
-      const facts=isYtd&&key==='Omzet' ? '' : isYtd
-        ? `<span class="kpiYtdFacts">${life?'Nog ':`${esc(moneyFmt.format(m.stuks||0))} stuks / ${m.kansen===null?'—':esc(moneyFmt.format(m.kansen||0))} kansen - Nog `}${esc(moneyFmt.format(m.needed||0))}</span>`
-        : key==='Omzet'
-        ? ['Accessoires','Link','Monster'].map(metricKey=>{const metric=serviceKpiData(x.data,metricKey,false);const label=metricKey==='Accessoires'?'ACC':metricKey.toUpperCase();return `<span class="metric-${esc(metric.status)}">${label}<strong>${esc(metric.main)}</strong></span>`;}).join('')
-        : life
-        ? `<span>STUKS<strong>${esc(moneyFmt.format(m.stuks||0))}</strong></span><span>PORTFOLIO<strong>${esc(m.portfolio||'—')}</strong></span><span class="${m.needed>0?'needsAttention':''}">NOG<strong>${esc(moneyFmt.format(m.needed||0))}</strong></span>`
-        : `<span>STUKS<strong>${esc(moneyFmt.format(m.stuks||0))}</strong></span><span>KANSEN<strong>${m.kansen===null?'—':esc(moneyFmt.format(m.kansen||0))}</strong></span><span class="${!isYtd&&m.needed>0?'needsAttention':''}">NOG<strong>${esc(moneyFmt.format(m.needed||0))}</strong></span>`;
-      return `<article class="kpiSellerTile ${esc(m.status)} ${!facts?'noFacts':''}"><div class="kpiSellerTop"><span class="kpiSellerRank">#${place}</span><span class="kpiSellerName">${name}</span>${!isYtd?`<img class="kpiSellerAvatar mtd ${podiumClass}" src="${esc(profile)}" onerror="this.style.display='none'">`:''}</div><div class="kpiSellerMain ${esc(m.status)}">${esc(m.main)}</div>${facts?`<div class="kpiSellerFacts">${facts}</div>`:''}</article>`;
-    }
-    function rankServiceValues(values){
-      let previousPositiveRank=null, previousPlace=0;
-      values.forEach((x,index)=>{
-        const rank=n(x.m.rank);
-        if(rank<=0) x.place=values.length;
-        else if(previousPositiveRank===null||rank!==previousPositiveRank){x.place=index+1;previousPlace=x.place;previousPositiveRank=rank;}
-        else x.place=previousPlace;
-      });
-      return values;
-    }
-    function storeSummaryTiles(key,isYtd,sellerCount){
-      if(isYtd) return '';
-      return [false,true].map(year=>{
-        const row=year?aggregateRows(storeRowsForYear()):store;
-        const m=serviceKpiData(row,key,year);
-        // With seven sellers these occupy the two empty cells. For larger teams,
-        // append them after all sellers instead of covering seller cards.
-        const position=sellerCount<=7?(year?'storeYtd':'storeMtd'):'';
-        return `<article class="kpiSellerTile kpiStoreSummary ${position} ${esc(m.status)}" data-store-period="${year?'YTD':'MTD'}"><div class="kpiSellerTop"><span class="kpiSellerName">Diestroyers ${year?'YTD':'MTD'}</span><span class="kpiStoreBadge">WINKEL</span></div><div class="kpiSellerMain">${esc(m.main)}</div><div class="kpiStoreDetail">${esc(m.detail)}<br>${esc(m.target)}</div></article>`;
-      }).join('');
-    }
-    function singleKpiTable(rows,key,isYtd){
-      const values=rankServiceValues(rows.map(row=>({row,data:isYtd?aggregateRows(sellerRowsForYear(row)):row,m:serviceKpiData(isYtd?aggregateRows(sellerRowsForYear(row)):row,key,isYtd)})).sort((a,b)=>b.m.rank-a.m.rank||s(a.row.Naam).localeCompare(s(b.row.Naam))));
-      return `<div class="kpiSellerCards ${isYtd?'ytd':''}">${values.map((x,i)=>sellerTile(x,i,key,isYtd)).join('')}${storeSummaryTiles(key,isYtd,rows.length)}</div>`;
-    }
-    function omzetTable(rows,isYtd){
-      const values=rankServiceValues(rows.map(row=>{const data=isYtd?aggregateRows(sellerRowsForYear(row)):row;return {row,data,m:serviceKpiData(data,'Omzet',isYtd)};}).sort((a,b)=>b.m.rank-a.m.rank||s(a.row.Naam).localeCompare(s(b.row.Naam))));
-      return `<div class="kpiSellerCards ${isYtd?'ytd':''}">${values.map((x,i)=>sellerTile(x,i,'Omzet',isYtd)).join('')}${storeSummaryTiles('Omzet',isYtd,rows.length)}</div>`;
-    }
-
     const targetMonthFormat=new Intl.DateTimeFormat('nl-BE',{month:'short',year:'2-digit',timeZone:'UTC'});
     function targetMonths(key){
       const k=def(key), [year,month]=period.split('-').map(Number);
@@ -1135,16 +1088,43 @@
       });
     }
     function targetFacts(m,showPortfolio=false){
-      const need=`<span class="${m.needed>0?'needs':''}">NOG <b>${moneyFmt.format(m.needed)}</b></span>`;
+      const currency=m.kansen===undefined?'€ ':'';
+      const need=`<span class="${m.needed>0?'needs':''}">NOG <b>${currency}${moneyFmt.format(m.needed)}</b></span>`;
       if(m.kansen===null){
         const portfolio=showPortfolio?`<span>PORTFOLIO <b>${esc(m.portfolio)}</b></span>`:'';
         return `<div class="kpiTargetFacts life">${need}${portfolio}</div>`;
       }
+      if(m.kansen===undefined)return `<div class="kpiTargetFacts">${need}</div>`;
       return `<div class="kpiTargetFacts"><span>STUKS <b>${moneyFmt.format(m.stuks)}</b></span><span>KANSEN <b>${moneyFmt.format(m.kansen)}</b></span>${need}</div>`;
     }
     function targetFocus(label,scope,m){
-      const goal=m.kansen===null?moneyFmt.format(m.goal):pctFmt.format(m.goal)+'%';
-      return `<article class="kpiFocusCard ${m.status}"><div class="kpiFocusTop"><span>${scope}</span><span>Target ${goal}</span></div><div class="kpiFocusName">${esc(label)}</div><strong>${esc(m.main)}</strong>${targetFacts(m)}</article>`;
+      const goal=m.kansen===undefined?'€ '+moneyFmt.format(m.goal):m.kansen===null?moneyFmt.format(m.goal):pctFmt.format(m.goal)+'%';
+      const heading=label?`<div class="kpiFocusName">${esc(label)}</div>`:'';
+      return `<article class="kpiFocusCard ${m.status}"><div class="kpiFocusTop"><span>${scope}</span><span>Target ${goal}</span></div>${heading}<strong>${esc(m.main)}</strong>${targetFacts(m)}</article>`;
+    }
+    function accessoryResult(rows){
+      const totals=rows.reduce((sum,row)=>{
+        const revenue=n(row.Omzet);
+        sum.revenue+=revenue;
+        sum.amount+=n(row.Accessoires);
+        sum.goal+=revenue*n(row.AccessoiresTargetPct)/100;
+        return sum;
+      },{revenue:0,amount:0,goal:0});
+      const attainment=totals.goal?totals.amount/totals.goal:0;
+      const status=totals.goal?(attainment>=1?'ok':attainment>=.9?'close':'bad'):'neutral';
+      return {status,main:totals.revenue?`${pctFmt.format(totals.amount/totals.revenue*100)}%`:'—',amount:`€ ${moneyFmt.format(totals.amount)}`};
+    }
+    function revenueExtras(){
+      const accessories=accessoryResult([store]);
+      const metrics=[
+        {label:'Accessoires',...accessories,detail:`Target ${pctFmt.format(n(store.AccessoiresTargetPct))}% · ${accessories.amount}`},
+        ...['Link','Monster'].map(label=>({label,...serviceKpiData(store,label)}))
+      ];
+      return `<div class="kpiTargetExtras">${metrics.map(m=>`<article class="kpiFocusCard ${m.status}"><div class="kpiFocusName">${m.label}</div><strong>${esc(m.main)}</strong><small>${esc(m.detail)}</small></article>`).join('')}</div>`;
+    }
+    function revenueSellerFacts(accessories,link){
+      const linkFact=link?`<span class="${link.status}">LINK <b>${esc(link.main)}</b></span>`:'';
+      return `<div class="kpiTargetFacts revenue"><span class="${accessories.status}">ACC <b>${esc(accessories.main)}</b><span class="revenueAmount">${esc(accessories.amount)}</span></span>${linkFact}</div>`;
     }
     function targetHistory(key){
       const months=targetMonths(key);
@@ -1156,37 +1136,31 @@
       }).join('');
       return `<section class="kpiTargetHistory"><h3>Laatste 12 maanden</h3><div class="kpiMonthGrid">${tiles}</div></section>`;
     }
-    function targetReading(scope,m,max){
-      return `<div class="kpiTargetReading target-${scope.toLowerCase()} ${m.status}"><span>${scope}</span><strong>${esc(m.main)}</strong><div class="kpiTargetTrack" aria-hidden="true"><i style="--bar:${Math.max(0,m.rank)/max*100}%"></i></div>${targetFacts(m,scope==='MTD')}</div>`;
+    function targetReading(scope,m,max,facts=targetFacts(m,scope==='MTD')){
+      return `<div class="kpiTargetReading target-${scope.toLowerCase()} ${m.status}"><span>${scope}</span><strong>${esc(m.main)}</strong><div class="kpiTargetTrack" aria-hidden="true"><i style="--bar:${Math.max(0,m.rank)/max*100}%"></i></div>${facts}</div>`;
     }
     function targetSellers(key){
-      const rows=sellers.map(row=>({row,mtd:serviceKpiData(row,key),ytd:serviceKpiData(aggregateRows(sellerRowsForYear(row)),key,true)}))
-        .sort((a,b)=>b.mtd.rank-a.mtd.rank||s(a.row.Naam).localeCompare(s(b.row.Naam)));
+      const rows=sellers.map(row=>{
+        const yearRows=sellerRowsForYear(row);
+        const mtd=serviceKpiData(row,key), ytd=serviceKpiData(aggregateRows(yearRows),key);
+        if(key!=='Omzet') return {row,mtd,ytd};
+        return {row,mtd,ytd,mtdFacts:revenueSellerFacts(accessoryResult([row]),serviceKpiData(row,'Link')),ytdFacts:revenueSellerFacts(accessoryResult(yearRows))};
+      }).sort((a,b)=>b.mtd.rank-a.mtd.rank||s(a.row.Naam).localeCompare(s(b.row.Naam)));
       const mtdMax=Math.max(1,...rows.map(r=>r.mtd.rank)), ytdMax=Math.max(1,...rows.map(r=>r.ytd.rank));
-      const cards=rows.map(({row,mtd,ytd})=>`<article class="kpiTargetSeller"><div class="kpiTargetPerson"><img src="${esc(avatar(row.Naam))}" alt="" onerror="this.onerror=null;this.src='assets/GenericProfile.png'"><strong>${esc(row.Naam)}</strong></div><div class="kpiTargetPair">${targetReading('MTD',mtd,mtdMax)}${targetReading('YTD',ytd,ytdMax)}</div></article>`).join('');
+      const cards=rows.map(({row,mtd,ytd,mtdFacts,ytdFacts})=>`<article class="kpiTargetSeller"><div class="kpiTargetPerson"><img src="${esc(avatar(row.Naam))}" alt="" onerror="this.onerror=null;this.src='assets/GenericProfile.png'"><strong>${esc(row.Naam)}</strong></div><div class="kpiTargetPair">${targetReading('MTD',mtd,mtdMax,mtdFacts)}${targetReading('YTD',ytd,ytdMax,ytdFacts)}</div></article>`).join('');
       return `<div class="kpiTargetSellers" style="--seller-row:${Math.min(100,750/Math.max(1,rows.length))}px">${cards}</div>`;
     }
     function renderTargetChart(slide,ytdStore){
-      const {key,label}=slide;
-      const focus=targetFocus(label,'MTD',serviceKpiData(store,key))+targetFocus(label+' YTD','YTD',serviceKpiData(ytdStore,key,true));
-      return `<section class="kpiServiceColumn kpiTargetPanel"><h2>Winkel</h2><div class="kpiTargetFocus">${focus}</div>${targetHistory(key)}</section><section class="kpiServiceColumn kpiTargetPanel"><h2>Verkopers</h2>${targetSellers(key)}</section>`;
+      const {key,label}=slide, revenue=key==='Omzet';
+      const focus=targetFocus(revenue?'':label,'MTD',serviceKpiData(store,key))+targetFocus(revenue?'':label+' YTD','YTD',serviceKpiData(ytdStore,key));
+      return `<section class="kpiServiceColumn kpiTargetPanel"><h2>Winkel</h2><div class="kpiTargetFocus">${focus}</div>${revenue?revenueExtras():''}${targetHistory(key)}</section><section class="kpiServiceColumn kpiTargetPanel"><h2>Verkopers</h2>${targetSellers(key)}</section>`;
     }
     function renderKpiServiceSlide(index){
-      const slide=serviceKpiSlides[index]||serviceKpiSlides[0], key=slide.key, root=document.getElementById('kpiServiceSplit');
-      const ytdStore=aggregateRows(storeRowsForYear());
+      const slide=serviceKpiSlides[index]||serviceKpiSlides[0], root=document.getElementById('kpiServiceSplit');
       document.getElementById('kpiServiceName').textContent=slide.label;
-      root.classList.toggle('omzet',key==='Omzet');
-      const showChart=key==='Life'||def(key)?.type==='ratio';
-      root.classList.toggle('targetChart',showChart);
-      const periods=document.getElementById('kpiTargetPeriods');
-      periods.innerHTML=showChart?`<span>MTD · ${esc(period)}</span><span>YTD · ${esc(period.slice(0,4))}</span>`:'';
-      if(showChart){
-        root.innerHTML=renderTargetChart(slide,ytdStore);
-        return;
-      }
-      const mtdShop=key==='Omzet'?['Omzet','Accessoires','Link','Monster'].map(k=>serviceShopCard(def(k)?.label||k,serviceKpiData(store,k,false))).join(''):serviceShopCard(slide.label,serviceKpiData(store,key,false));
-      const ytdShop=serviceShopCard(key==='Omzet'?'Omzet YTD':slide.label+' YTD',serviceKpiData(ytdStore,key,true));
-      root.innerHTML=`<section class="kpiServiceColumn mtd"><div class="kpiServicePeriod">MTD · ${esc(period)}</div><div class="kpiServiceShop ${key==='Omzet'?'':'single'}">${mtdShop}</div>${key==='Omzet'?omzetTable(sellers,false):singleKpiTable(sellers,key,false)}</section><section class="kpiServiceColumn ytd"><div class="kpiServicePeriod">YTD · ${esc(period.slice(0,4))}</div><div class="kpiServiceShop single">${ytdShop}</div>${key==='Omzet'?omzetTable(sellers,true):singleKpiTable(sellers,key,true)}</section>`;
+      root.classList.toggle('omzet',slide.key==='Omzet');
+      document.getElementById('kpiTargetPeriods').innerHTML=`<span>MTD · ${esc(period)}</span><span>YTD · ${esc(period.slice(0,4))}</span>`;
+      root.innerHTML=renderTargetChart(slide,aggregateRows(storeRowsForYear()));
     }
 
     function serviceMetric(row,key){
