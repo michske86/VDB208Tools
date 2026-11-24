@@ -545,7 +545,8 @@
 
     /* NPS layout refinement */
     .npsTvStats{
-      grid-template-rows:96px 72px!important;
+      grid-template-rows:minmax(96px,auto) minmax(88px,auto)!important;
+      flex:none;
       gap:8px!important;
     }
     .npsTvCard{
