@@ -934,7 +934,12 @@
   <div class="tvExportOverlay" id="tvExportOverlay"><div class="tvExportCard"><h2>TV PDF Export</h2><p id="tvExportStatus">De eerste vijf slides worden voorbereid.</p><button id="tvExportRetry" type="button">Download opnieuw</button></div></div>
 
   <script src="assets/config-data.js"></script>
-  <script src="assets/dashboard-data.js"></script>
+  <script>
+    const tvParams = new URLSearchParams(location.search);
+    const requestedRevision = tvParams.get('rev') || '';
+    const dataUrl = revision => 'assets/dashboard-data.js' + (revision ? '?rev=' + revision : '');
+    document.write('<script src="' + dataUrl(/^[a-f0-9]{64}$/.test(requestedRevision) ? requestedRevision : '') + '"><\/script>');
+  </script>
 
 
 
@@ -2104,7 +2109,7 @@
     if(!document.getElementById('stage').classList.contains('yesterdayMode')){
       safeTvStart('eerste slide-herstel',()=>showSlide(0));
     }
-    setPlaying(false); setInterval(renderInc,7000); setInterval(renderAgenda,5000);
+    setPlaying(!tvParams.has('export')); setInterval(renderInc,7000); setInterval(renderAgenda,5000);
     document.getElementById('tvExportRetry')?.addEventListener('click',startTvPdfExport);
     // De tv houdt de huidige dia en afspeelstatus bij een data-update.
     const refreshKey = 'diestroyers-tv-data-refresh';
@@ -2116,19 +2121,31 @@
         setPlaying(prior.playing);
       }
     } catch { /* De tv werkt ook wanneer sessieopslag uitstaat. */ }
-    if (location.protocol.startsWith('http') && !new URLSearchParams(location.search).has('export')) {
-      setInterval(async () => {
+    if (location.protocol.startsWith('http') && !tvParams.has('export')) {
+      let checkingForUpdate = false;
+      const refreshBlocked = () => document.getElementById('tvExportOverlay')?.classList.contains('show');
+      async function checkForUpdate() {
+        if (checkingForUpdate || refreshBlocked()) return;
+        checkingForUpdate = true;
         try {
           const response = await fetch('dashboard-version.json', { cache: 'no-store' });
           if (!response.ok) return;
           const latest = await response.json();
           if (latest.format !== 2 || latest.dataRevision === window.DIESTROYERS_DATA_REVISION) return;
           if (!/^[a-f0-9]{64}$/.test(latest.dataRevision)) return;
-          if (document.getElementById('tvExportOverlay')?.classList.contains('show')) return;
+          const bundle = await fetch(dataUrl(latest.dataRevision), { cache: 'reload' });
+          if (!bundle.ok) return;
+          const text = await bundle.text();
+          if (!text.startsWith('window.DIESTROYERS_DATA_REVISION = "' + latest.dataRevision + '";') || refreshBlocked()) return;
           try { sessionStorage.setItem(refreshKey, JSON.stringify({ slide: currentSlide, playing })); } catch {}
-          location.reload();
+          const nextUrl = new URL(location.href);
+          nextUrl.searchParams.set('rev', latest.dataRevision);
+          location.replace(nextUrl.href);
         } catch { /* Tijdelijk offline. Laat de huidige dia beschikbaar. */ }
-      }, 120000);
+        finally { checkingForUpdate = false; }
+      }
+      checkForUpdate();
+      setInterval(checkForUpdate, 60000);
     }
     const exportParams=new URLSearchParams(window.location.search);if(['slides2to13','first5'].includes(exportParams.get('export'))){document.getElementById('tvExportOverlay')?.classList.add('show');if(exportParams.get('autostart')==='1')setTimeout(startTvPdfExport,1400);}
   })();
