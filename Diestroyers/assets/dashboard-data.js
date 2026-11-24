@@ -1,4 +1,4 @@
-window.DIESTROYERS_DATA_REVISION = "bdd7ce66c3bb890f7f684ff611f446517737af24209f27a321a03f7e317ad2c2";
+window.DIESTROYERS_DATA_REVISION = "2344ede9ef376ba13a4a8bbfe35a659c02822e3e45d5042a4df945ee649509ec";
 // Diestroyers: agenda-data.js
 window.DIESTROYERS_AGENDA = [
   {"datum":"2026-06-15","type":"Varia","titel":"Mid-year wedstrijd Mooiste winkel","info":""},
@@ -1252,29 +1252,30 @@ window.DIESTROYERS_OMZET_DAG = {"version":1,"available":true,"omzetVorigeTot":"2
 // Diestroyers: portfolio-data.js
 window.DIESTROYERS_PORTFOLIO = {
   "13158": 0,
-  "13313": 0.44,
+  "13313": 1.44,
   "15430": 0,
   "15794": 0,
+  "15939": 0,
   "16228": 0,
-  "17812": 21.37,
-  "17975": 41.71,
-  "18005": 77.97,
+  "17812": 23.42,
+  "17975": 42.13,
+  "18005": 78.41,
   "18074": 0,
   "18330": 33.33,
   "18384": 50.00,
   "18443": 50.00,
   "18462": 46.15,
   "18526": 26.50,
-  "18527": 27.17,
+  "18527": 28.86,
   "18553": 0,
   "18554": 50.00,
-  "18556": 14.89,
-  "37842": 40.00,
+  "18556": 20.59,
+  "37842": 27.91,
   "50964": 33.33,
   "70996": 0,
   "00000": 0
 };
-window.DIESTROYERS_PORTFOLIO_STATUS = {"available":false,"message":"Portfolio-bron kon niet gelezen worden","generatedAt":"2026-11-24 15:11:59"};
+window.DIESTROYERS_PORTFOLIO_STATUS = {"available":true,"message":"","generatedAt":"2026-11-24 13:05:03"};
 // Diestroyers: resultaten-data.js
 window.DIESTROYERS_RESULTATEN = [
   {"Periode":"2025-12","periode":"2025-12","EntiteitType":"Verkoper","entiteitType":"Verkoper","Naam":"Bert","naam":"Bert","PersoneelsNr":"17975","personeelsNr":"17975","Omzet":0.,"omzet":0.,"OmzetTarget":0.,"omzetTarget":0.,"Life":0.,"life":0.,"LifeTarget":0.,"lifeTarget":0.,"InsuranceStuks":0.,"insuranceStuks":0.,"InsuranceKansen":0.,"insuranceKansen":0.,"InsuranceTargetPct":0.,"insuranceTargetPct":0.,"AboStuks":0.,"aboStuks":0.,"AboKansen":0.,"aboKansen":0.,"AboTargetPct":0.,"aboTargetPct":0.,"DSPStuks":0.,"dspStuks":0.,"DSPKansen":0.,"dspKansen":0.,"DSPTargetPct":0.,"dspTargetPct":0.,"SPGStuks":0.,"spgStuks":0.,"SPGKansen":0.,"spgKansen":0.,"SPGTargetPct":0.,"spgTargetPct":0.,"SRPStuks":0.,"srpStuks":0.,"SRPKansen":0.,"srpKansen":0.,"SRPTargetPct":0.,"srpTargetPct":0.,"Accessoires":0.,"accessoires":0.,"AccessoiresTargetPct":0.,"accessoiresTargetPct":0.,"NPS":100.,"nps":100.,"NPSTarget":0.,"npsTarget":0.,"LinkPct":0.,"linkPct":0.,"LinkTargetPct":0.,"linkTargetPct":0.,"Monster":0.,"monster":0.,"MonsterTarget":0.,"monsterTarget":0.,"SStuks":0.,"sStuks":0.,"SEuro":0.,"sEuro":0.,"SRatio":0.,"sRatio":0.,"SStuksLY":0.,"sStuksLY":0.,"SEuroLY":0.,"sEuroLY":0.,"SRatioLY":0.,"sRatioLY":0.},
