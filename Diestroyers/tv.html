@@ -554,6 +554,7 @@
     .kpiFocusName{font-size:22px;font-weight:700;line-height:1}
     .kpiFocusCard>strong{color:var(--score);font-size:55px;line-height:1}
     .kpiTargetFacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;color:#c7bec1;font-size:17px;white-space:nowrap}
+    .kpiTargetFacts.life{grid-template-columns:82px minmax(0,1fr)}
     .kpiTargetFacts b{color:#f8f8f8}
     .kpiTargetFacts .needs b{color:var(--score-red)}
     .kpiTargetHistory{display:flex;flex-direction:column;gap:9px;flex:1;min-height:0}
@@ -1045,9 +1046,9 @@
     function serviceKpiData(row,key,isYtd=false){
       const k=def(key);
       if(key==='Life'){
-        const stuks=n(row.Life), target=isYtd?n(row.LifeTarget):n(row.LifeTarget), needed=Math.max(0,Math.ceil(target-stuks));
+        const stuks=n(row.Life), target=n(row.LifeTarget), needed=Math.max(0,Math.ceil(target-stuks));
         const pct=target?stuks/target*100:0;
-        return {main:`${moneyFmt.format(stuks)} stuks`,detail:`${moneyFmt.format(stuks)} stuks`,target:`Target ${moneyFmt.format(target)} · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:stuks,stuks,kansen:null,needed,portfolio:portfolioPercentage(row)===null?'—':`${pctFmt.format(portfolioPercentage(row))}%`};
+        return {main:`${moneyFmt.format(stuks)} stuks`,detail:`${moneyFmt.format(stuks)} stuks`,target:`Target ${moneyFmt.format(target)} · nog ${moneyFmt.format(needed)}`,status:pct>=100?'ok':(pct>=90?'close':'bad'),rank:stuks,stuks,kansen:null,needed,goal:target,portfolio:portfolioPercentage(row)===null?'—':`${pctFmt.format(portfolioPercentage(row))}%`};
       }
       if(k?.type==='ratio'){
         const stuks=n(row[k.teller]), kansen=n(row[k.noemer]);
@@ -1119,6 +1120,7 @@
     const targetMonthFormat=new Intl.DateTimeFormat('nl-BE',{month:'short',year:'2-digit',timeZone:'UTC'});
     function targetMonths(key){
       const k=def(key), [year,month]=period.split('-').map(Number);
+      const fields=k.type==='ratio'?[k.teller,k.noemer]:[k.val];
       const storeMonths=new Map();
       for(const row of data){
         const rowPeriod=s(row.Periode);
@@ -1127,16 +1129,22 @@
       return Array.from({length:12},(_,i)=>{
         const date=new Date(Date.UTC(year,month-13+i,1)), monthKey=date.toISOString().slice(0,7);
         const row=storeMonths.get(monthKey);
-        const result=row&&(s(row[k.teller])!==''||s(row[k.noemer])!=='')?serviceKpiData(row,key):null;
+        const result=row&&fields.some(field=>s(row[field])!=='')?serviceKpiData(row,key):null;
         const attainment=result?.goal>0?result.rank/result.goal*100:null;
         return {date,monthKey,result,attainment};
       });
     }
-    function targetFacts(m){
-      return `<div class="kpiTargetFacts"><span>STUKS <b>${moneyFmt.format(m.stuks)}</b></span><span>KANSEN <b>${moneyFmt.format(m.kansen)}</b></span><span class="${m.needed>0?'needs':''}">NOG <b>${moneyFmt.format(m.needed)}</b></span></div>`;
+    function targetFacts(m,showPortfolio=false){
+      const need=`<span class="${m.needed>0?'needs':''}">NOG <b>${moneyFmt.format(m.needed)}</b></span>`;
+      if(m.kansen===null){
+        const portfolio=showPortfolio?`<span>PORTFOLIO <b>${esc(m.portfolio)}</b></span>`:'';
+        return `<div class="kpiTargetFacts life">${need}${portfolio}</div>`;
+      }
+      return `<div class="kpiTargetFacts"><span>STUKS <b>${moneyFmt.format(m.stuks)}</b></span><span>KANSEN <b>${moneyFmt.format(m.kansen)}</b></span>${need}</div>`;
     }
     function targetFocus(label,scope,m){
-      return `<article class="kpiFocusCard ${m.status}"><div class="kpiFocusTop"><span>${scope}</span><span>Target ${pctFmt.format(m.goal)}%</span></div><div class="kpiFocusName">${esc(label)}</div><strong>${esc(m.main)}</strong>${targetFacts(m)}</article>`;
+      const goal=m.kansen===null?moneyFmt.format(m.goal):pctFmt.format(m.goal)+'%';
+      return `<article class="kpiFocusCard ${m.status}"><div class="kpiFocusTop"><span>${scope}</span><span>Target ${goal}</span></div><div class="kpiFocusName">${esc(label)}</div><strong>${esc(m.main)}</strong>${targetFacts(m)}</article>`;
     }
     function targetHistory(key){
       const months=targetMonths(key);
@@ -1149,7 +1157,7 @@
       return `<section class="kpiTargetHistory"><h3>Laatste 12 maanden</h3><div class="kpiMonthGrid">${tiles}</div></section>`;
     }
     function targetReading(scope,m,max){
-      return `<div class="kpiTargetReading target-${scope.toLowerCase()} ${m.status}"><span>${scope}</span><strong>${esc(m.main)}</strong><div class="kpiTargetTrack" aria-hidden="true"><i style="--bar:${Math.max(0,m.rank)/max*100}%"></i></div>${targetFacts(m)}</div>`;
+      return `<div class="kpiTargetReading target-${scope.toLowerCase()} ${m.status}"><span>${scope}</span><strong>${esc(m.main)}</strong><div class="kpiTargetTrack" aria-hidden="true"><i style="--bar:${Math.max(0,m.rank)/max*100}%"></i></div>${targetFacts(m,scope==='MTD')}</div>`;
     }
     function targetSellers(key){
       const rows=sellers.map(row=>({row,mtd:serviceKpiData(row,key),ytd:serviceKpiData(aggregateRows(sellerRowsForYear(row)),key,true)}))
@@ -1168,7 +1176,7 @@
       const ytdStore=aggregateRows(storeRowsForYear());
       document.getElementById('kpiServiceName').textContent=slide.label;
       root.classList.toggle('omzet',key==='Omzet');
-      const showChart=def(key)?.type==='ratio';
+      const showChart=key==='Life'||def(key)?.type==='ratio';
       root.classList.toggle('targetChart',showChart);
       const periods=document.getElementById('kpiTargetPeriods');
       periods.innerHTML=showChart?`<span>MTD · ${esc(period)}</span><span>YTD · ${esc(period.slice(0,4))}</span>`:'';
