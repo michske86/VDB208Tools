@@ -153,10 +153,12 @@
     .districtPodium .shop-top,.districtPodium .shop-totals{display:flex;align-items:baseline;gap:10px;min-width:0}
     .districtPodium .shop-totals{justify-content:space-between;font-size:20px;color:var(--muted)}
     .districtPodium .shop-totals b{color:var(--text)}
-    .districtPodium .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
-    .districtPodium .metric{display:grid;gap:1px;align-content:center;min-width:0;white-space:nowrap;color:var(--tone);font-weight:700}
+    .districtPodium .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px 5px}
+    .districtPodium .metric{position:relative;display:grid;gap:1px;align-content:center;min-width:0;white-space:nowrap;color:var(--tone);font-weight:700}
     .districtPodium .metric small{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase}
     .districtPodium .metric strong{font:700 27px/.95 Rajdhani,Arial,sans-serif}
+    .districtPodium .metric .serviceBubble{right:-3px;top:-10px;min-width:23px;height:23px;padding-inline:5px;font-size:14px}
+    .districtPodium .band:first-child .metric .serviceBubble{right:-5px;min-width:26px;height:26px;font-size:16px}
     .districtPodium .tile{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px;border:1px solid var(--line)}
     .districtPodium .tile .metric{background:#0003;border-left:2px solid var(--tone);padding:4px 5px}
     .districtPodium .own{--rank:#ff8da2}
@@ -1269,18 +1271,42 @@
     }
 
 
+    function districtKpiBacklog(row,key,status){
+      if(status==='ok') return '';
+      const target=districtTarget(row,key);
+      if(target<=0) return '';
+      const hasNumber=value=>s(value)!==''&&Number.isFinite(Number(s(value).replace(',','.')));
+      let need;
+      if(key==='Life'){
+        if(!hasNumber(row.Life)) return '';
+        need=Math.ceil(target*monthProgressRatio()-n(row.Life));
+      }else if(key==='Link'){
+        if(!hasNumber(row.LinkPct)) return '';
+        const gap=target-n(row.LinkPct);
+        return gap>0?`${pctFmt.format(gap)}%`:'';
+      }else{
+        const k=def(key), opportunities=n(row[k.noemer]);
+        if(!hasNumber(row[k.teller])||!hasNumber(row[k.noemer])||opportunities<=0) return '';
+        need=Math.ceil(target*opportunities/100-n(row[k.teller]));
+      }
+      return need>0?moneyFmt.format(need):'';
+    }
+
     function renderDistrictRankingSlide(){
       const panel=document.getElementById('districtPodium');
       const ownShop=shopKey(adminConfig.shop?.shopNr || '208');
       const ownName=norm(adminConfig.shop?.naam || 'Diest');
       const rows=districtRows.filter(row=>activeFlag(row.Actief ?? 'JA')).map(row=>{
-        const metrics=districtBig7.map(key=>({label:def(key).short||def(key).label,...districtKpiMetric(row,key)}));
+        const metrics=districtBig7.map(key=>{
+          const result=districtKpiMetric(row,key);
+          return {label:def(key).short||def(key).label,...result,backlog:districtKpiBacklog(row,key,result.status)};
+        });
         return {row,metrics,score:metrics.reduce((sum,m)=>sum+m.points,0)};
       }).sort((a,b)=>b.score-a.score || n(b.row.Omzet)-n(a.row.Omzet));
       const cards=rows.map(({row,metrics,score},index)=>{
         const name=districtName(row);
         const own=shopKey(districtShopNr(row))===ownShop || norm(name)===ownName || norm(row.EigenWinkel)==='ja';
-        const cells=metrics.map(m=>`<span class="metric ${esc(m.status)}"><small>${esc(m.label)}</small><strong>${esc(m.display)}</strong></span>`).join('');
+        const cells=metrics.map(m=>`<span class="metric ${esc(m.status)}"><small>${esc(m.label)}</small><strong>${esc(m.display)}</strong>${m.backlog?`<span class="serviceBubble" aria-label="Nog ${esc(m.backlog)}">${esc(m.backlog)}</span>`:''}</span>`).join('');
         return `<article class="shop-data tile${own?' own':''}"><div class="shop-top"><span class="place">#${index+1}</span><span class="shop">${esc(name)}</span></div><div class="shop-totals"><span>Omzet <b class="revenue">€ ${moneyFmt.format(n(row.Omzet))}</b></span><span>Score <b class="score">${score}</b></span></div><div class="metrics">${cells}</div></article>`;
       });
       const tiers=[cards.slice(0,3)];
