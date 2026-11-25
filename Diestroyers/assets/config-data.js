@@ -1,10 +1,19 @@
 window.DIESTROYERS_CONFIG_DATA = {
-  "version": "2026-11-20T08:50:48.025Z",
+  "version": "2026-11-25T01:33:06.961Z",
   "source": "admin",
   "shop": {
     "shopNr": "208",
     "naam": "Diest"
   },
+  "tvIncentives": [
+    {
+      "name": "Incentive November",
+      "active": true,
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-30",
+      "goal": 110
+    }
+  ],
   "big7": [
     "life",
     "dsp",

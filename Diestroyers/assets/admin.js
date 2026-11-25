@@ -65,12 +65,14 @@
 
     renderDistrict();
     renderSellers();
+    renderIncentives();
     ensureYear(getYear());
     renderTargetPlanner();
     validate();
 
     $("addDistrict").onclick=()=>{state.district.push({ShopNr:"",Winkel:"",Regio:"Regio",Actief:"JA"});renderDistrict();};
     $("addSeller").onclick=()=>{state.verkopers.push({Naam:"",PersoneelsNr:"",Avatar:"",Actief:"Ja",ShopNr:state.shop.shopNr||"208",ImportAlias:""});renderSellers();};
+    $("addTvIncentive").onclick=addIncentive;
     $("saveConfig").onclick=saveConfig;
     $("downloadConfig").onclick=downloadConfig;
     $("validateConfig").onclick=validate;
@@ -91,6 +93,7 @@
     state.district=Array.isArray(state.district)?state.district:[];
     state.verkopers=Array.isArray(state.verkopers)?state.verkopers:[];
     state.targets=Array.isArray(state.targets)?state.targets:[];
+    state.tvIncentives=Array.isArray(state.tvIncentives)?state.tvIncentives:[];
   }
 
   function bindTabs(){
@@ -100,6 +103,7 @@
       btn.classList.add("active");
       $(btn.dataset.tab).classList.add("active");
       if(btn.dataset.tab==="targets"){ensureYear(getYear());renderTargetPlanner();}
+      if(btn.dataset.tab==="tv-incentives"){updateSetup();renderIncentives();}
       if(btn.dataset.tab==="validatie") validate();
     });
   }
@@ -304,6 +308,60 @@
     renderTargetPlanner();
   }
 
+
+  function incentiveIssues(){
+    const tools=window.DIESTROYERS_TV_INCENTIVES;
+    return state.tvIncentives.flatMap((entry,index)=>{
+      const label=entry.name?.trim()||`Incentive ${index+1}`;
+      const dateIssue=tools.dateError(entry);
+      return [
+        !entry.name?.trim()&&`${label}: naam ontbreekt.`,
+        !tools.validGoal(entry.goal)&&`${label}: vul een geheel doel tussen 1 en 500 in.`,
+        dateIssue&&`${label}: ${dateIssue}`
+      ].filter(Boolean);
+    });
+  }
+
+  function renderIncentives(){
+    const tools=window.DIESTROYERS_TV_INCENTIVES;
+    const months=tools.monthlyCounts(window.DIESTROYERS_RESULTATEN||[],window.DIESTROYERS_HISTORIEK_MAAND||[],state.shop);
+    const report=[...months.keys()].sort().at(-1),table=$("tvIncentiveTable");
+    table.innerHTML='<thead><tr><th scope="col">Actief op TV</th><th scope="col">Naam</th><th scope="col">Startdatum</th><th scope="col">Einddatum</th><th scope="col">Doel</th><th scope="col">Winkelstand</th><th scope="col"></th></tr></thead><tbody>'+
+      state.tvIncentives.map((entry,index)=>`<tr>
+        <td><input data-field="active" type="checkbox" aria-label="Actief op TV, incentive ${index+1}" ${entry.active?'checked':''}></td>
+        <td><input data-field="name" type="text" maxlength="55" aria-label="Naam, incentive ${index+1}" value="${esc(entry.name)}"></td>
+        <td><input data-field="startDate" type="date" aria-label="Startdatum, incentive ${index+1}" value="${esc(entry.startDate)}"></td>
+        <td><input data-field="endDate" type="date" aria-label="Einddatum, incentive ${index+1}" value="${esc(entry.endDate)}"></td>
+        <td><input data-field="goal" type="number" min="1" max="500" step="1" aria-label="Doel in stuks, incentive ${index+1}" value="${esc(entry.goal||'')}"></td>
+        <td data-progress></td><td><button class="admin-btn secondary" type="button" data-remove>Verwijder</button></td>
+      </tr>`).join('')+'</tbody>';
+    Array.from(table.tBodies[0].rows).forEach((row,index)=>{
+      const entry=state.tvIncentives[index];
+      const update=()=>{
+        const output=row.querySelector('[data-progress]');
+        if(!tools.valid(entry)){output.textContent='Controleer de instellingen';return;}
+        const totals=tools.progress(entry,months,report);
+        output.textContent=totals.available
+          ? `${totals.life+totals.insurance} / ${entry.goal}${totals.missing?' · onvolledig':''}`
+          : 'Nog geen resultaten';
+      };
+      row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('input',()=>{
+        entry[input.dataset.field]=input.type==='checkbox'?input.checked:input.type==='number'?input.valueAsNumber:input.value;
+        update();
+      }));
+      row.querySelector('[data-remove]').onclick=()=>{state.tvIncentives.splice(index,1);renderIncentives();};
+      update();
+    });
+  }
+
+  function addIncentive(){
+    const today=new Date(),year=today.getFullYear(),month=today.getMonth()+1;
+    const prefix=`${year}-${String(month).padStart(2,'0')}`;
+    const last=new Date(year,month,0).getDate();
+    state.tvIncentives.push({name:'Incentive '+months[month-1],active:false,startDate:prefix+'-01',endDate:prefix+'-'+last,goal:110});
+    renderIncentives();
+  }
+
   function updateSetup(){state.shop={shopNr:$("shopNr").value.trim(),naam:$("shopName").value.trim()};}
 
   function clean(){
@@ -323,7 +381,7 @@
 
   function validate(){
     updateSetup();
-    const issues=[];
+    const issues=incentiveIssues();
     if(!state.shop.shopNr) issues.push("Winkelnummer ontbreekt.");
     if(!state.shop.naam) issues.push("Winkelnaam ontbreekt.");
 
@@ -368,6 +426,7 @@
 
   async function saveConfig(){
     validate();
+    if(incentiveIssues().length){showIncentiveError();return;}
     const txt=content();
     if(window.showSaveFilePicker){
       try{
@@ -383,7 +442,12 @@
     $("saveStatus").innerHTML='<div class="admin-warning">Upload config-data.js naar VDB208Tools/Diestroyers/assets op GitHub. Kies daarna in Excel Website updaten.</div>';
   }
 
+  function showIncentiveError(){
+    $("saveStatus").innerHTML=`<div class="admin-warning">${incentiveIssues().map(esc).join("<br>")}</div>`;
+  }
+
   function downloadConfig(){
+    if(incentiveIssues().length){showIncentiveError();return;}
     const a=document.createElement("a");
     a.href=URL.createObjectURL(new Blob([content()],{type:"text/javascript;charset=utf-8"}));
     a.download="config-data.js";

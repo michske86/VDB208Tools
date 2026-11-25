@@ -620,6 +620,9 @@
   <link rel="stylesheet" href="assets/avv-tv.css?v=3">
   <script src="assets/nps-tv.js"></script>
   <script src="assets/avv-tv.js"></script>
+  <link rel="stylesheet" href="assets/incentive-tv.css">
+  <script src="assets/tv-incentives-data.js"></script>
+  <script src="assets/incentive-tv.js"></script>
 </head>
 <body>
   <div id="stage">
@@ -771,15 +774,18 @@
       <button id="playPause" title="Play/Pause">PLAY</button>
       <button id="nextSlide" title="Volgende">NEXT</button>
     </div>
+    <section id="incentiveSlide" aria-label="TV-incentive"></section>
     <div class="foot" id="periodLabel"></div>
   </div>
 
   <div class="tvExportOverlay" id="tvExportOverlay"><div class="tvExportCard"><h2>TV PDF Export</h2><p id="tvExportStatus">De eerste vijf slides worden voorbereid.</p><button id="tvExportRetry" type="button">Download opnieuw</button></div></div>
 
-  <script src="assets/config-data.js"></script>
   <script>
     const tvParams = new URLSearchParams(location.search);
     if(tvParams.has('export')) document.body.dataset.tvExport='';
+    const configUrl=version=>'assets/config-data.js'+(version?'?cfg='+encodeURIComponent(version):'');
+    const requestedConfig=tvParams.get('cfg')||'';
+    document.write('<script src="'+configUrl(/^[a-z0-9:_.-]{1,64}$/i.test(requestedConfig)?requestedConfig:'')+'"><\/script>');
     const requestedRevision = tvParams.get('rev') || '';
     const dataUrl = revision => 'assets/dashboard-data.js' + (revision ? '?rev=' + revision : '');
     document.write('<script src="' + dataUrl(/^[a-f0-9]{64}$/.test(requestedRevision) ? requestedRevision : '') + '"><\/script>');
@@ -816,6 +822,12 @@
     const agenda = Array.isArray(window.DIESTROYERS_AGENDA) ? window.DIESTROYERS_AGENDA : [];
     const carouselImages = Array.isArray(window.DIESTROYERS_CAROUSEL) ? window.DIESTROYERS_CAROUSEL.filter(Boolean) : [];
     const adminConfig = window.DIESTROYERS_CONFIG_DATA || {};
+    const incentiveData=window.DIESTROYERS_TV_INCENTIVES;
+    const incentiveRenderer=window.DIESTROYERS_TV_INCENTIVE_SLIDE;
+    const tvIncentives=incentiveData&&incentiveRenderer&&Array.isArray(adminConfig.tvIncentives)
+      ? adminConfig.tvIncentives.filter(item=>item?.active===true&&incentiveData.valid(item)) : [];
+    const incentiveMonths=tvIncentives.length
+      ? incentiveData.monthlyCounts(data,window.DIESTROYERS_HISTORIEK_MAAND||[],adminConfig.shop) : new Map();
     const rawDistrictRows = Array.isArray(window.DIESTROYERS_DISTRICT) ? window.DIESTROYERS_DISTRICT : [];
     const npsData = window.DIESTROYERS_NPS || {};
     const avvData = window.DIESTROYERS_AVV || {};
@@ -1668,7 +1680,7 @@
     let currentSlide=0;
     let playing=false;
     let slideTimer=null;
-    function totalSlides(){return carouselImages.length + 13;}
+    function totalSlides(){return 13 + carouselImages.length + tvIncentives.length;}
     function imagePath(fileName){
       const f=s(fileName);
       if(!f) return '';
@@ -1702,7 +1714,8 @@
       const total=totalSlides();
       currentSlide=((idx%total)+total)%total;
       const stage=document.getElementById('stage');
-      const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode');
+      incentiveRenderer?.stop();
+      const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode','incentiveMode');
       if(currentSlide===0){renderYesterdaySlide();clearModes();stage.classList.add('yesterdayMode');return;}
       if(currentSlide===1){renderRevenueSlide();clearModes();stage.classList.add('revenueMode');return;}
       if(currentSlide===2){renderServiceSlide();clearModes();stage.classList.add('serviceMode');return;}
@@ -1710,7 +1723,18 @@
       if(currentSlide===4){renderNpsSlide();clearModes();stage.classList.add('npsMode');return;}
       if(currentSlide===5){renderAvvSlide();clearModes();stage.classList.add('avvMode');return;}
       if(currentSlide>=6&&currentSlide<=12){renderKpiServiceSlide(currentSlide-6);clearModes();stage.classList.add('kpiServiceMode');return;}
-      renderCarouselImage(carouselImages[currentSlide-13]);clearModes();stage.classList.add('mediaMode');
+      const mediaIndex=currentSlide-13;
+      if(mediaIndex<carouselImages.length){
+        renderCarouselImage(carouselImages[mediaIndex]);
+        clearModes();
+        stage.classList.add('mediaMode');
+        return;
+      }
+      const incentive=tvIncentives[mediaIndex-carouselImages.length];
+      const totals=incentiveData.progress(incentive,incentiveMonths,period);
+      incentiveRenderer.render(document.getElementById('incentiveSlide'),incentive,totals,adminConfig.shop?.naam||'Diest');
+      clearModes();
+      stage.classList.add('incentiveMode');
     }
     function nextSlide(){showSlide(currentSlide+1);}
     function prevSlide(){showSlide(currentSlide-1);}
@@ -1838,25 +1862,40 @@
     if (location.protocol.startsWith('http') && !tvParams.has('export')) {
       let checkingForUpdate = false;
       const refreshBlocked = () => document.getElementById('tvExportOverlay')?.classList.contains('show');
+      async function dataUpdate(){
+        const response=await fetch('dashboard-version.json',{cache:'no-store'});
+        if(!response.ok) return '';
+        const latest=await response.json();
+        const revision=latest.dataRevision;
+        if(latest.format!==2||revision===window.DIESTROYERS_DATA_REVISION||!/^[a-f0-9]{64}$/.test(revision)) return '';
+        const bundle=await fetch(dataUrl(revision),{cache:'reload'});
+        if(!bundle.ok) return '';
+        const text=await bundle.text();
+        return text.startsWith('window.DIESTROYERS_DATA_REVISION = "'+revision+'";')?revision:'';
+      }
+      async function configUpdate(){
+        const response=await fetch(configUrl(''),{cache:'no-cache'});
+        if(!response.ok) return '';
+        const match=(await response.text()).match(/^\s*window\.DIESTROYERS_CONFIG_DATA\s*=\s*([\s\S]+);\s*$/);
+        if(!match) return '';
+        const {version}=JSON.parse(match[1]);
+        return typeof version==='string'&&/^[a-z0-9:_.-]{1,64}$/i.test(version)&&version!==adminConfig.version?version:'';
+      }
       async function checkForUpdate() {
-        if (checkingForUpdate || refreshBlocked()) return;
-        checkingForUpdate = true;
-        try {
-          const response = await fetch('dashboard-version.json', { cache: 'no-store' });
-          if (!response.ok) return;
-          const latest = await response.json();
-          if (latest.format !== 2 || latest.dataRevision === window.DIESTROYERS_DATA_REVISION) return;
-          if (!/^[a-f0-9]{64}$/.test(latest.dataRevision)) return;
-          const bundle = await fetch(dataUrl(latest.dataRevision), { cache: 'reload' });
-          if (!bundle.ok) return;
-          const text = await bundle.text();
-          if (!text.startsWith('window.DIESTROYERS_DATA_REVISION = "' + latest.dataRevision + '";') || refreshBlocked()) return;
-          try { sessionStorage.setItem(refreshKey, JSON.stringify({ slide: currentSlide, playing })); } catch {}
-          const nextUrl = new URL(location.href);
-          nextUrl.searchParams.set('rev', latest.dataRevision);
+        if(checkingForUpdate||refreshBlocked()) return;
+        checkingForUpdate=true;
+        try{
+          const [dataResult,configResult]=await Promise.allSettled([dataUpdate(),configUpdate()]);
+          const revision=dataResult.value,version=configResult.value;
+          if((!revision&&!version)||refreshBlocked()) return;
+          try{sessionStorage.setItem(refreshKey,JSON.stringify({slide:currentSlide,playing}));}catch{}
+          const nextUrl=new URL(location.href);
+          if(revision) nextUrl.searchParams.set('rev',revision);
+          if(version) nextUrl.searchParams.set('cfg',version);
           location.replace(nextUrl.href);
-        } catch { /* Tijdelijk offline. Laat de huidige dia beschikbaar. */ }
-        finally { checkingForUpdate = false; }
+        }finally{
+          checkingForUpdate=false;
+        }
       }
       checkForUpdate();
       setInterval(checkForUpdate, 60000);
