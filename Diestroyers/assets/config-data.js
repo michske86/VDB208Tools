@@ -1,5 +1,5 @@
 window.DIESTROYERS_CONFIG_DATA = {
-  "version": "2026-11-25T12:13:34.976Z",
+  "version": "2026-11-25T12:20:58.888Z",
   "source": "admin",
   "shop": {
     "shopNr": "208",
