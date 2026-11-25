@@ -245,9 +245,10 @@
     .serviceStoreLabel{color:#fff;text-shadow:0 0 18px rgba(225,25,25,.48);}
     .serviceStoreLabel small{display:block;margin-top:2px;color:#d5a7a7;font-size:13px;letter-spacing:.1em;}
     .serviceCell{position:relative;height:76px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.018);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:visible;}
-    .serviceCell:before{content:'';position:absolute;left:5px;top:11px;bottom:11px;width:2px;border-radius:2px;background:var(--service-accent,var(--bad));opacity:.88}
-    .serviceCell.ok{--service-accent:var(--green)}
-    .serviceCell.close{--service-accent:var(--yellow)}
+    :is(.serviceCell,.revenueSummaryCard,.dayTile)::before{content:'';position:absolute;left:5px;top:11px;bottom:11px;width:2px;border-radius:2px;background:var(--tile-accent,#555);opacity:.88;pointer-events:none}
+    :is(.serviceCell,.revenueSummaryCard,.dayTile).ok{--tile-accent:var(--green)}
+    :is(.serviceCell,.revenueSummaryCard,.dayTile).close{--tile-accent:var(--yellow)}
+    :is(.serviceCell,.revenueSummaryCard,.dayTile).bad{--tile-accent:var(--bad)}
     .serviceCell.rankGold{border-color:rgba(255,209,102,.98);box-shadow:0 0 0 2px rgba(255,209,102,.18),0 0 16px rgba(255,209,102,.24),inset 0 0 0 1px rgba(255,255,255,.018);}
     .serviceCell.rankSilver{border-color:rgba(217,226,239,.95);box-shadow:0 0 0 2px rgba(217,226,239,.16),0 0 16px rgba(217,226,239,.20),inset 0 0 0 1px rgba(255,255,255,.018);}
     .serviceCell.rankBronze{border-color:rgba(208,138,75,.95);box-shadow:0 0 0 2px rgba(208,138,75,.16),0 0 16px rgba(208,138,75,.20),inset 0 0 0 1px rgba(255,255,255,.018);}
@@ -271,11 +272,12 @@
     .revenueMiniValue{font-size:30px;font-weight:900;line-height:1.05;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .revenueMiniSub{font-size:16px;font-weight:900;color:#aaa;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .revenueSummary{height:128px;position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:12px 22px 12px 32px;}
-    .revenueSummaryCard{border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:5px 16px;min-width:0;}
+    .revenueSummaryCard{position:relative;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:5px 16px;min-width:0;}
     .revenueSummaryCard.ok{border-color:rgba(46,204,113,.65);box-shadow:0 0 18px rgba(46,204,113,.16)}
     .revenueSummaryCard.close{border-color:rgba(242,201,76,.65);box-shadow:0 0 18px rgba(242,201,76,.14)}
     .revenueSummaryCard.bad{border-color:rgba(255,52,52,.65);box-shadow:0 0 18px rgba(255,52,52,.16)}
     .revenueSummaryCard.targetToday{
+      --tile-accent:#67adff;
       border-color:rgba(52,145,255,.96);
       box-shadow:0 0 0 1px rgba(52,145,255,.34),0 0 28px rgba(52,145,255,.34),inset 0 0 22px rgba(52,145,255,.10);
       background:linear-gradient(180deg,rgba(15,62,118,.84),rgba(7,22,46,.94));
@@ -291,10 +293,6 @@
     .revenueCalendarTitle{margin:0 0 12px;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.05em;text-shadow:0 0 22px rgba(225,25,25,.33)}
     .revenueDayGrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
     .dayTile{position:relative;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);padding:10px 12px;overflow:hidden;min-width:0;display:grid;grid-template-rows:auto 1fr auto;}
-    .dayTile:after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#444;}
-    .dayTile.ok:after{background:var(--green);box-shadow:0 0 12px rgba(46,204,113,.6)}
-    .dayTile.close:after{background:var(--yellow);box-shadow:0 0 12px rgba(242,201,76,.55)}
-    .dayTile.bad:after{background:var(--bad);box-shadow:0 0 12px rgba(255,52,52,.6)}
     .dayTile.future{opacity:.48;}
     .dayTile.today{border-color:rgba(225,25,25,.85);box-shadow:0 0 18px rgba(225,25,25,.25)}
     .dayTop{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:15px;text-transform:uppercase;font-weight:900;color:#ddd;letter-spacing:.05em;}
@@ -358,9 +356,9 @@
       box-shadow:0 0 0 1px rgba(255,52,52,.20),0 0 27px rgba(255,52,52,.27),inset 0 0 24px rgba(255,52,52,.10)!important;
     }
 
-    .salesCard.ok:after,.kpiCard.ok:after,.missionCard.ok:after,.dayTile.ok:after,.mtd.ok:after,
-    .salesCard.close:after,.kpiCard.close:after,.missionCard.close:after,.dayTile.close:after,.mtd.close:after,
-    .salesCard.bad:after,.kpiCard.bad:after,.missionCard.bad:after,.dayTile.bad:after,.mtd.bad:after{
+    .salesCard.ok:after,.kpiCard.ok:after,.missionCard.ok:after,.mtd.ok:after,
+    .salesCard.close:after,.kpiCard.close:after,.missionCard.close:after,.mtd.close:after,
+    .salesCard.bad:after,.kpiCard.bad:after,.missionCard.bad:after,.mtd.bad:after{
       width:6px!important;
     }
 
