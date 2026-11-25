@@ -51,6 +51,8 @@
     .target-matrix input:focus{outline:none;border-color:var(--red);box-shadow:0 0 12px rgba(225,25,25,.28)}
     .target-empty{padding:28px;font-size:20px;font-weight:900;color:#aaa;text-align:center}
 
+      #githubSaveDialog{width:min(490px,calc(100% - 24px));color:#fff;background:#171517;margin:auto}
+    #githubSaveDialog::backdrop{background:#000b}
   </style>
 </head>
 <body>
@@ -63,7 +65,7 @@
   </section>
 
   <div class="admin-warning">
-    Klik na wijzigingen op <strong>Wijzigingen opslaan</strong>. Sla het bestand op als <strong>assets/config-data.js</strong>. Bij het openen of verwerken leest de XLSM deze configuratie automatisch in via de VBA-module.
+    <strong>Wijzigingen opslaan</strong> publiceert rechtstreeks op GitHub. Bij het eerste gebruik in dit tabblad vraagt Admin om een GitHub-token. Downloaden blijft beschikbaar als reservekopie.
   </div>
 
   <section class="intel-panel">
@@ -148,7 +150,15 @@
       <button class="admin-btn secondary" id="downloadConfig">Download config-data.js</button>
       <button class="admin-btn secondary" id="validateConfig">Controleer</button>
     </div>
-    <div id="saveStatus"></div>
+    <div id="saveStatus" role="status"></div>
+    <dialog id="githubSaveDialog" aria-labelledby="githubSaveTitle" class="intel-panel">
+      <form method="dialog">
+        <h2 id="githubSaveTitle">Opslaan op GitHub</h2>
+        <p>Gebruik een fine-grained token voor <strong>VDB208Tools</strong> met <strong>Contents: Read and write</strong>.</p>
+        <div class="admin-field"><label for="githubSaveToken">GitHub-token</label><input type="password" id="githubSaveToken" autocomplete="off" required autofocus></div>
+        <div class="admin-actions"><button type="submit" value="publish" class="admin-btn">Publiceer wijzigingen</button><button type="submit" value="cancel" formnovalidate class="admin-btn secondary">Annuleer</button></div>
+      </form>
+    </dialog>
   </section>
 </main>
 
@@ -159,6 +169,6 @@
 <script src="assets/components.js"></script>
 <script src="assets/navigation.js"></script>
 <script src="assets/tv-incentives-data.js"></script>
-<script src="assets/admin.js?v=2"></script>
+<script src="assets/admin.js?v=3"></script>
 <script src="assets/nps-ui.js"></script></body>
 </html>

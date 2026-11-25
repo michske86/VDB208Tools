@@ -149,7 +149,7 @@
     .districtRankName{font-size:64px;line-height:.98;font-weight:900;text-transform:uppercase;text-shadow:0 0 28px rgba(225,25,25,.36);margin-top:8px;}
     .districtRankPanel{position:relative;flex:1;min-height:0;background:linear-gradient(180deg,#171717,#090909);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.025);overflow:hidden;padding:20px 24px 22px 32px;}
     .districtPodium .shop-data{min-width:0;min-height:0}
-    .districtPodium .place{font:700 35px/.9 Rajdhani,Arial,sans-serif;color:var(--rank,#f7c9d0);white-space:nowrap}
+    .districtPodium .place{font:700 35px/.9 Rajdhani,Arial,sans-serif;color:var(--rank,#c5cbd1);white-space:nowrap}
     .districtPodium .shop{font:700 33px/.9 Rajdhani,Arial,sans-serif;text-transform:uppercase;overflow-wrap:anywhere;min-width:0}
     .districtPodium .score,.districtPodium .revenue{white-space:nowrap}
     .districtPodium .shop-top,.districtPodium .shop-totals{display:flex;align-items:baseline;gap:10px;min-width:0}
@@ -168,13 +168,16 @@
     .districtPodium{display:grid;grid-template-rows:minmax(0,1.28fr);grid-auto-rows:minmax(0,1fr);gap:12px;min-height:0}
     .districtPodium .band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
     .districtPodium .band:first-child{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .districtPodium .band:first-child .tile{padding:15px 20px;background:radial-gradient(ellipse at 10% 0%,#88506455,transparent 64%),linear-gradient(155deg,#302029,#19141b);border-top:3px solid #f0a6b6}
-    .districtPodium .band:first-child .place{font-size:70px;color:#ffb6c4}
+    .districtPodium .band:first-child .tile{padding:15px 20px;border-top-width:3px}
+    .districtPodium .band:first-child .tile:nth-child(1):not(.own){--rank:#ffdd86;--tile-glow:#b9933a52;--tile-edge:#d6ae57}
+    .districtPodium .band:first-child .tile:nth-child(2):not(.own){--rank:#edf4fb;--tile-glow:#8fabc050;--tile-edge:#b7c6d5}
+    .districtPodium .band:first-child .tile:nth-child(3):not(.own){--rank:#f3bb94;--tile-glow:#b3643b55;--tile-edge:#c58b62}
+    .districtPodium .band:first-child .place{font-size:70px}
     .districtPodium .band:first-child .shop{font-size:54px}
     .districtPodium .band:first-child .shop-totals{font-size:24px}
     .districtPodium .band:first-child .metric strong{font-size:33px}
-    .districtPodium .band .tile{background:linear-gradient(145deg,#251c25,#171418);border-radius:5px 15px 5px 5px;border-top:2px solid #6e5360}
-    .districtPodium .band:last-child .tile{border-top-color:#453f4b}
+    .districtPodium .band .tile{background:radial-gradient(ellipse at 10% 0%,var(--tile-glow,#9ea5ad26),transparent 75%),linear-gradient(145deg,#23262a,#151619);border-radius:5px 15px 5px 5px;border-top-style:solid;border-top-color:var(--tile-edge,#60646a)}
+    .districtPodium .band:not(:first-child) .tile{border-top-width:2px}
     .districtPodium .band .tile.own{border-color:#ff5268;background:#361822}
 
     .districtRankSlide{inset:28px 28px 50px}

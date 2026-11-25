@@ -424,22 +424,84 @@
 
   function content(){return "window.DIESTROYERS_CONFIG_DATA = "+JSON.stringify(clean(),null,2)+";\n";}
 
+
+  const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
+  let savedConfig = JSON.stringify(base);
+  let githubToken = "";
+
+  function requestGithubToken(){
+    const dialog=$("githubSaveDialog"),form=dialog.querySelector("form"),field=$("githubSaveToken");
+    return new Promise(resolve=>{
+      form.reset();
+      dialog.returnValue="";
+      dialog.showModal();
+      dialog.addEventListener("close",()=>{
+        const token=dialog.returnValue==="publish"?field.value.trim():"";
+        field.value="";
+        resolve(token);
+      },{once:true});
+    });
+  }
+
+  function parsePublishedConfig(file){
+    if(file.encoding!=="base64"||!file.sha) throw new Error("GitHub gaf geen leesbare configuratie terug.");
+    const bytes=Uint8Array.from(atob(file.content.replace(/\s/g,"")),char=>char.charCodeAt(0));
+    const source=new TextDecoder().decode(bytes);
+    const match=source.match(/^\s*window\.DIESTROYERS_CONFIG_DATA\s*=\s*([\s\S]+);\s*$/);
+    if(!match) throw new Error("De configuratie op GitHub heeft een ongeldige indeling.");
+    return JSON.stringify(JSON.parse(match[1]));
+  }
+
+  function base64(text){
+    const bytes=new TextEncoder().encode(text);
+    let binary="";
+    for(const byte of bytes) binary+=String.fromCharCode(byte);
+    return btoa(binary);
+  }
+
+  function checkGithubResponse(response){
+    if(response.ok) return;
+    if([401,403,404].includes(response.status)){
+      githubToken="";
+      throw new Error("GitHub weigert toegang. Controleer of je token schrijfrechten heeft voor Contents in VDB208Tools.");
+    }
+    if(response.status===409||response.status===422) throw new Error("GitHub accepteerde de wijziging niet. Download je wijzigingen als reservekopie en herlaad Admin voordat je opnieuw opslaat.");
+    throw new Error("GitHub kon de configuratie niet opslaan (HTTP "+response.status+").");
+  }
+
   async function saveConfig(){
     validate();
     if(incentiveIssues().length){showIncentiveError();return;}
-    const txt=content();
-    if(window.showSaveFilePicker){
-      try{
-        const handle=await window.showSaveFilePicker({suggestedName:"config-data.js",types:[{description:"JavaScript",accept:{"text/javascript":[".js"]}}]});
-        const writable=await handle.createWritable();
-        await writable.write(txt);
-        await writable.close();
-        $("saveStatus").innerHTML='<div class="admin-ok">Upload config-data.js naar VDB208Tools/Diestroyers/assets op GitHub. Kies daarna in Excel Website updaten.</div>';
-        return;
-      }catch(e){if(e.name==="AbortError")return;}
+    const button=$("saveConfig"),status=$("saveStatus");
+    if(button.disabled) return;
+    button.disabled=true;
+    try{
+      const token=githubToken||await requestGithubToken();
+      if(!token) return;
+      status.textContent="Configuratie wordt opgeslagen op GitHub…";
+      const headers={Authorization:"Bearer "+token,Accept:"application/vnd.github+json"};
+      const current=await fetch(configEndpoint+"?ref=main",{headers,cache:"no-store"});
+      checkGithubResponse(current);
+      const file=await current.json();
+      if(parsePublishedConfig(file)!==savedConfig){
+        throw new Error("De configuratie op GitHub is intussen gewijzigd. Download je wijzigingen als reservekopie en herlaad Admin.");
+      }
+
+      const text=content(),snapshot=JSON.stringify(state);
+      const response=await fetch(configEndpoint,{
+        method:"PUT",
+        headers:{...headers,"Content-Type":"application/json"},
+        body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(text)})
+      });
+      checkGithubResponse(response);
+      savedConfig=snapshot;
+      githubToken=token;
+      status.innerHTML='<div class="admin-ok">Opgeslagen op GitHub. De TV neemt de wijziging over zodra GitHub Pages de nieuwe configuratie heeft gepubliceerd.</div>';
+    }catch(error){
+      status.innerHTML='<div class="admin-warning">'+esc(error.message||"Opslaan op GitHub is mislukt.")+'</div>';
+    }finally{
+      button.disabled=false;
     }
-    downloadConfig();
-    $("saveStatus").innerHTML='<div class="admin-warning">Upload config-data.js naar VDB208Tools/Diestroyers/assets op GitHub. Kies daarna in Excel Website updaten.</div>';
   }
 
   function showIncentiveError(){
