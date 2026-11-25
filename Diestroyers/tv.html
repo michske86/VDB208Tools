@@ -572,6 +572,46 @@
     .kpiTargetTrack{height:7px;background:var(--score-rail);border-radius:5px;overflow:hidden}
     .kpiTargetReading.target-ytd .kpiTargetTrack{height:5px}
     .kpiTargetTrack i{display:block;height:100%;width:var(--bar);background:var(--score);border-radius:inherit}
+
+    /* Short reveal on entry, with the scores and targets visible throughout. */
+    @media (prefers-reduced-motion:no-preference){
+      body:not([data-tv-export]) .avvMode .avvStroke,
+      body:not([data-tv-export]) .npsMode .npsDialFill{
+        animation:tvDialReveal 640ms cubic-bezier(.2,.74,.3,1) 140ms backwards;
+      }
+      body:not([data-tv-export]) .npsMode .npsTvComment{
+        animation:tvContentReveal 280ms ease-out 450ms backwards;
+      }
+      body:not([data-tv-export]) .npsMode .npsTvComment:nth-child(n+3){animation-delay:550ms}
+      body:not([data-tv-export]) .npsMode .npsTvComment:nth-child(n+5){animation-delay:650ms}
+
+      body:not([data-tv-export]) .kpiServiceMode .kpiMonth:last-child .kpiMonthPlot i{
+        animation:tvMonthAccent 690ms ease-in-out 180ms;
+      }
+
+      body:not([data-tv-export]) .districtRankMode .districtPodium .serviceBubble{
+        animation:tvContentReveal 320ms ease-out 180ms backwards;
+      }
+      body:not([data-tv-export]) .districtRankMode .districtPodium .band:nth-child(2) .serviceBubble{animation-delay:300ms}
+      body:not([data-tv-export]) .districtRankMode .districtPodium .band:nth-child(n+3) .serviceBubble{animation-delay:420ms}
+
+      body:not([data-tv-export]) .yesterdayMode .yesterdayOmzet{position:relative;overflow:hidden}
+      body:not([data-tv-export]) .yesterdayMode .yesterdayOmzet strong{position:relative;z-index:1}
+      body:not([data-tv-export]) .yesterdayMode .yesterdayOmzet::after{
+        content:'';position:absolute;inset:0 auto 0 -50%;width:50%;opacity:0;pointer-events:none;
+        background:linear-gradient(90deg,transparent,rgba(255,166,178,.24),transparent);
+        animation:tvRevenueSweep 720ms ease-in-out 170ms;
+      }
+    }
+    @keyframes tvDialReveal{from{stroke-dasharray:0 100}}
+    @keyframes tvContentReveal{from{opacity:.55}to{opacity:1}}
+    @keyframes tvMonthAccent{50%{filter:brightness(1.55) drop-shadow(0 0 7px var(--score))}}
+    @keyframes tvRevenueSweep{
+      from{transform:translateX(0);opacity:0}
+      22%{opacity:1}
+      78%{opacity:1}
+      to{transform:translateX(300%);opacity:0}
+    }
 </style>
   <link rel="stylesheet" href="assets/nps-tv.css?v=3">
   <link rel="stylesheet" href="assets/avv-tv.css?v=3">
@@ -736,6 +776,7 @@
   <script src="assets/config-data.js"></script>
   <script>
     const tvParams = new URLSearchParams(location.search);
+    if(tvParams.has('export')) document.body.dataset.tvExport='';
     const requestedRevision = tvParams.get('rev') || '';
     const dataUrl = revision => 'assets/dashboard-data.js' + (revision ? '?rev=' + revision : '');
     document.write('<script src="' + dataUrl(/^[a-f0-9]{64}$/.test(requestedRevision) ? requestedRevision : '') + '"><\/script>');
