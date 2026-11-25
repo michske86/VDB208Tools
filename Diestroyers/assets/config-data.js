@@ -1,5 +1,5 @@
 window.DIESTROYERS_CONFIG_DATA = {
-  "version": "2026-11-25T01:33:06.961Z",
+  "version": "2026-11-25T12:09:03.547Z",
   "source": "admin",
   "shop": {
     "shopNr": "208",
@@ -3883,7 +3883,7 @@ window.DIESTROYERS_CONFIG_DATA = {
       "Naam": "Diest",
       "ShopNr": "208",
       "OmzetTarget": 610000,
-      "LifeTarget": 60,
+      "LifeTarget": 56,
       "InsuranceTargetPct": 13,
       "AboTargetPct": 12,
       "DSPTargetPct": 45,
