@@ -1,4 +1,4 @@
-window.DIESTROYERS_DATA_REVISION = "88c2336e553b52afbbeb6e964a6560e418ed49037478f8fce44e7519c32dcc19";
+window.DIESTROYERS_DATA_REVISION = "b819cf1ae227ccc4e5d1949d57dbb9139ae1de146cfcead63df455ecad66e186";
 // Diestroyers: agenda-data.js
 window.DIESTROYERS_AGENDA = [
   {"datum":"2026-06-15","type":"Varia","titel":"Mid-year wedstrijd Mooiste winkel","info":""},
