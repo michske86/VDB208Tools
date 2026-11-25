@@ -1,172 +1,144 @@
 #decemberSlide {
   --ivory:#fff0d8;
-  --carmine:#d73545;
-  position:absolute; inset:27px 27px 61px; z-index:8; overflow:hidden; isolation:isolate;
-  display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:18px;
-  border:1px solid #65404b; border-radius:20px; padding:27px 34px 17px;
-  background:#0b080e center/cover no-repeat; color:var(--ivory);
+  position:absolute;inset:27px 27px 61px;z-index:8;overflow:hidden;isolation:isolate;
+  border:1px solid #694750;border-radius:20px;background:#130e17;color:var(--ivory);
 }
-#decemberSlide[hidden], #decemberReplay[hidden], #decemberOpen[hidden] {display:none}
+#decemberSlide[hidden],#decemberReplay[hidden],#decemberOpen[hidden] {display:none}
 #stage.decemberMode > :not(#decemberSlide,.tvControls,#updateLabel) {visibility:hidden}
-#decemberSlide[data-scene="calendar"] {background-image:linear-gradient(90deg,#0907116e,#2a0b1040 64%,#0a060bd6),url('december/cabinet.webp')}
-#decemberSlide[data-scene="race"] {background-image:linear-gradient(90deg,#070b1b50,transparent 75%),url('december/race.webp')}
-#decemberSlide[data-scene="garage"] {background-image:linear-gradient(#0c080c24,#1109105c),url('december/workshop.webp')}
-
-.dec-heading {z-index:2;display:flex;align-items:start;justify-content:space-between;gap:24px}
-.dec-heading > div {width:max-content;max-width:100%;padding:9px 44px 10px 27px;background:linear-gradient(100deg,#7c101e 5%,#2d121c 80%,transparent);border-left:6px solid #e54d5a}
-.dec-heading span,.dec-meta,.dec-preview {font-size:22px;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
-.dec-heading h2 {margin:3px 0 0;font-size:67px;font-weight:900;line-height:.93;text-transform:uppercase;text-shadow:2px 4px #23040c}
-.dec-preview {background:#23151d;border:1px solid #c28c71;padding:7px 14px}
-.dec-stage {min-height:0;position:relative;z-index:1}
-.dec-meta {z-index:1;justify-self:start;margin:0;background:#120b14dd;padding:5px 13px;border-left:2px solid #a53444;letter-spacing:.055em}
-#decemberReplay {padding-inline:12px}
-
-.dec-calendar {height:100%;display:grid;gap:27px;grid-template-columns:minmax(0,1.58fr) minmax(0,1fr)}
-.dec-doors {margin:0;padding:12px;display:grid;min-height:0;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;list-style:none;background:#130a13ba;border:1px solid #6d3f4c;box-shadow:0 15px 55px #0009}
-.dec-door {position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;background:linear-gradient(140deg,#2f202a,#120e17);border:1px solid #78535b;box-shadow:inset 0 0 0 4px #08070b6e;color:#dfc9b7}
-.dec-door::after {content:'';position:absolute;right:10px;top:50%;width:8px;height:8px;border-radius:50%;background:#b08c77;box-shadow:0 1px 3px #000}
-.dec-door span {font-size:clamp(33px,3vw,59px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
-.dec-door small {font-size:21px;font-weight:800}
-.dec-door.was-open {border-color:#80444e;background:linear-gradient(140deg,#42212c,#1a111b)}
-.dec-door.is-open {border-color:#f09179;background:radial-gradient(ellipse at center,#931f37,#370e1c 76%);box-shadow:inset 0 0 28px #ee454e80}
-.dec-reveal {position:relative;isolation:isolate;align-self:center;display:grid;gap:13px;overflow:hidden;min-height:320px;padding:40px 30px;align-content:center;border:2px solid #c9686b;background:linear-gradient(130deg,#39101c,#18101b 65%);box-shadow:0 18px 70px #07050b}
-.dec-reveal-beam {position:absolute;inset:-35%;z-index:-1;background:radial-gradient(ellipse at 10% 40%,#cf34455c,transparent 56%)}
-.dec-reveal span,.dec-reveal small {font-size:29px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-.dec-reveal strong {font-size:clamp(60px,5.1vw,100px);line-height:.94;overflow-wrap:anywhere;text-transform:uppercase;text-shadow:3px 5px #080609}
-
-.dec-race {position:relative;height:100%;margin:24px 10px 16px 0}
-.dec-racer {position:absolute;top:var(--lane);left:var(--track);width:296px;translate:0 -50%;z-index:2}
-.dec-racer-scene {position:relative;margin-top:7px}
-.dec-racer .dec-sled {transform:scale(.86);transform-origin:48% 75%}
-.dec-racer-scene::before {content:'';position:absolute;right:90%;top:66%;width:210px;height:10px;transform:rotate(-8deg);background:linear-gradient(90deg,transparent,#e2d5eb75);border-radius:50%;pointer-events:none}
-.dec-racer.near-wall .dec-racer-scene::before {background:linear-gradient(90deg,transparent,#e6445e99)}
-.dec-name {position:absolute;right:100%;bottom:11px;white-space:nowrap;display:flex;align-items:center;gap:11px;padding:2px 10px;background:#140e1be8;border-left:3px solid #ae4456;font-size:31px;line-height:1.1;text-transform:uppercase;font-weight:900}
-.dec-name b {font-size:36px;color:#ffac97;font-variant-numeric:tabular-nums}
-.dec-wall-flare {position:absolute;right:-2%;bottom:0;width:40%;height:48%;opacity:0;background:radial-gradient(ellipse,#fccdd859,transparent 58%);pointer-events:none}
-
-.dec-garage {height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:14px}
-.dec-garage-card {position:relative;display:grid;align-items:center;grid-template-columns:minmax(0,1fr) 330px;min-height:0;overflow:hidden;padding:10px 24px 10px 29px;border:1px solid #895261;border-left:4px solid #b13d50;background:linear-gradient(125deg,#130b15ee,#2e1a28a9)}
-.dec-garage-card::after {content:'';position:absolute;inset:0;pointer-events:none;opacity:.18;background:conic-gradient(from 156deg at 75% 0,transparent 0deg,#edb9a4aa 14deg,#edb9a447 34deg,transparent 53deg)}
-.dec-garage-info {z-index:1;min-width:0}
-.dec-garage-info h3 {margin:0 0 1px;font-size:36px;font-weight:900;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dec-garage-info strong {display:block;font-size:80px;line-height:.93;font-variant-numeric:tabular-nums;color:#ffc29e}
-.dec-garage-info small {font-size:22px;font-weight:700}
-.dec-garage-card .dec-sled {justify-self:center;transform:scale(1.1);transform-origin:50% 75%}
-.dec-sled {position:relative;flex:none;width:278px;height:112px;isolation:isolate}
+#stage #decemberOpen {border-color:#eeb17e;background:#6c2433;color:#fff1d7;padding-inline:17px}
+#stage #decemberOpen:focus-visible {outline:2px solid #ffdfac;outline-offset:3px}
+#decemberSlide[data-scene=calendar] {background:url('december/locker-wall.webp') center/100% 100% no-repeat}
+#decemberSlide[data-scene=race] {background:url('december/escape-wall.webp') center/100% 100% no-repeat}
+.dec-stage,.dec-calendar,.dec-race,.dec-doors {position:absolute;inset:0}
+.dec-heading {position:absolute;top:4%;left:4%;right:4%;z-index:5;display:flex;justify-content:space-between;align-items:start;pointer-events:none}
+.dec-heading > div {position:relative;padding:13px 38px 16px 23px;color:#ffe6b1;background:#29202b;clip-path:polygon(0 4%,99% 0,96% 93%,1% 100%);box-shadow:inset 5px 0 #a64e45}
+.dec-heading span,.dec-meta,.dec-preview {font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.dec-heading h2 {margin:3px 0 0;font-size:64px;line-height:.93;text-transform:uppercase;text-shadow:3px 3px #180f18}
+.dec-preview,.dec-meta {color:#f5dcb4;background:#211820e8;padding:5px 12px}
+.dec-meta {position:absolute;z-index:5;left:4%;bottom:2.5%;margin:0;font-size:18px}
+[data-scene=calendar] .dec-heading {top:6%;left:73%;right:2.5%;display:block;text-align:center}
+[data-scene=calendar] .dec-heading > div {padding:8px 14px 10px;background:#24191cde;box-shadow:none;color:#fff0d3}
+[data-scene=calendar] .dec-heading h2 {font-size:43px}
+[data-scene=calendar] .dec-preview {display:inline-block;margin-top:9px;font-size:15px}
+[data-scene=calendar] .dec-meta {left:auto;right:3%;bottom:3%}
+[data-scene=race] .dec-preview {position:absolute;top:0;right:0}
+.dec-doors {list-style:none;margin:0;padding:0}
+.dec-door {
+  position:absolute;left:var(--door-x);top:var(--door-y);width:9%;height:9%;translate:-50% -50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#f6d898;text-shadow:2px 3px 0 #1a100c,0 0 9px #130b07;line-height:1;
+}
+.dec-door span {font:900 italic 58px/.9 Georgia,serif;letter-spacing:-.085em;filter:drop-shadow(0 2px 1px #1c100c)}
+.dec-door small {margin-top:5px;font-weight:800;font-size:19px;color:#ffe9bc}
+.dec-door.is-rest {color:#c3b4a4}
+.dec-door.is-rest small {color:#ead7c3}
+.dec-door.is-rest span {text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:#a15443}
+.dec-door.was-open span {color:#f4c586}
+.dec-door.is-current span,.dec-door.is-open span {color:#fff0b6;text-shadow:0 0 18px #ff6724,2px 3px #351806}
+.dec-door.is-current::before,.dec-door.is-open::before {
+  content:'';position:absolute;inset:-31% -2%;border-radius:48% 51% 10% 12%;
+  outline:2px dashed #ffcea28c;outline-offset:3px;
+  background:radial-gradient(ellipse,#f88e3c45,transparent 72%);mix-blend-mode:screen;pointer-events:none;
+}
+.dec-hatch {display:none;position:absolute;top:50%;left:0;width:100%;height:188.888%;translate:0 -50%;transform-origin:0 50%;z-index:2;pointer-events:none;
+  clip-path:polygon(0 33%,6% 22%,19% 10%,35% 3%,52% 1%,73% 8%,87% 18%,99% 34%,99% 99%,0 100%);
+  background:url('december/locker-wall.webp') var(--leaf-x) var(--leaf-y)/1111.111% 588.235% no-repeat;
+}
+.dec-portal {position:absolute;inset:15% 3% 8% 73%;isolation:isolate}
+.dec-portal-light,.dec-portal-burst {position:absolute;inset:0;pointer-events:none}
+.dec-portal-light {opacity:0;mix-blend-mode:screen;background:radial-gradient(ellipse at 50% 47%,#ffb65e88,transparent 70%),radial-gradient(ellipse at 1% 43%,#ff6d4a9e,transparent 22%)}
+.dec-portal.is-unsealed .dec-portal-light {opacity:1}
+.dec-reveal {
+  position:absolute;inset:auto 4% 14%;padding:19px 22px 24px;transform:rotate(-2deg);
+  display:grid;gap:8px;text-align:center;color:#312027;
+  background:radial-gradient(ellipse at 28% 20%,#f1d7a5,#c59d69 77%,#91593d);
+  filter:drop-shadow(4px 8px 0 #220f12);border:2px solid #ab7547;
+  clip-path:polygon(1% 4%,95% 0,99% 5%,98% 50%,100% 86%,96% 96%,55% 94%,2% 100%,0% 50%);
+}
+.dec-reveal span,.dec-reveal small {font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.055em}
+.dec-reveal strong {font:900 italic 44px/.98 Georgia,serif;overflow-wrap:anywhere}
+.dec-racer {position:absolute;inset:0;pointer-events:none}
+.dec-flight {position:absolute;left:var(--track);top:var(--lane);width:238px;translate:-50% -50%;transform:rotate(var(--lean));z-index:1}
+.dec-racer.escapes .dec-flight {width:278px;transform:rotate(-11deg);filter:drop-shadow(0 0 9px #ffc97d98)}
+.dec-racer.doomed .dec-flight {filter:drop-shadow(1px 4px 10px #690f1d9b)}
+.dec-racer-scene {position:relative;transform-origin:0 50%}
+.dec-racer-scene::before {
+  content:'';position:absolute;right:84%;top:71%;width:78%;height:26%;transform:skewX(-15deg);
+  clip-path:polygon(0 20%,84% 31%,100% 0%,92% 18%,99% 30%,91% 45%,100% 69%,81% 58%,10% 95%,73% 57%);
+  background:#e7d8c872;pointer-events:none;
+}
+.dec-racer.escapes .dec-racer-scene::before {background:#ffe4abbb}
+.dec-racer.doomed .dec-racer-scene::before {background:#c04435b2}
+.dec-sled {position:relative;width:278px;height:112px;isolation:isolate}
+.dec-racer:not(.escapes) .dec-sled {transform:scale(.82);transform-origin:0 50%}
 .dec-sled > img {position:absolute;z-index:2;inset:0;width:100%;height:100%;object-fit:contain}
 .dec-load {position:absolute;inset:0;z-index:1}
 .dec-load i {position:absolute;left:var(--x);bottom:var(--y);width:var(--box);height:var(--box);background:url('december/gift.webp') center/contain no-repeat;filter:drop-shadow(1px 2px 1px #000)}
-.dec-load i:nth-child(3n+2) {filter:hue-rotate(28deg) drop-shadow(1px 2px 1px #000)}
-.dec-load i:nth-child(3n+3) {filter:saturate(.55) brightness(1.24) drop-shadow(1px 2px 1px #000)}
-.dec-snow {position:absolute;inset:-65px 0 0;pointer-events:none;z-index:0;opacity:.23;background-image:radial-gradient(circle,#ffe9e0 1px,transparent 1.9px),radial-gradient(circle,#f1c9d1 1px,transparent 2px);background-size:79px 83px,145px 131px;background-position:17px 23px,42px 17px}
-
+.dec-load i:nth-child(3n+2) {background-image:url('december/gift-alt.webp')}
+.dec-load i:nth-child(3n+3) {filter:saturate(.58) brightness(1.22) drop-shadow(1px 2px 1px #000)}
+.dec-name {
+  position:absolute;top:var(--lane);left:calc(var(--track) - 131px);translate:-100% -15%;z-index:3;
+  white-space:nowrap;display:flex;align-items:center;gap:9px;color:#ffe9d3;
+  text-transform:uppercase;font-size:27px;font-weight:900;text-shadow:2px 3px #150e18,0 0 10px #150e18;
+}
+.dec-name b {font-size:35px;color:#ffcc9a;font-variant-numeric:tabular-nums}
+.dec-name em {
+  border-radius:53% 47% 48% 46%;padding:2px 7px 4px;background:#f2cf8f;color:#341b23;
+  box-shadow:2px 2px #25141f;font-style:normal;font-size:17px;text-shadow:none;transform:rotate(-8deg);
+}
+.dec-racer.escapes .dec-name {top:calc(var(--lane) + 57px);left:var(--track);translate:-50% 0}
+.dec-race-caption,.dec-wall-caption {
+  position:absolute;z-index:2;padding:7px 20px 11px;color:#321a21;background:#e8bd81;
+  font:900 italic 25px/1.1 Georgia,serif;
+  clip-path:polygon(1% 7%,100% 0,98% 87%,5% 99%);transform:rotate(-4deg);
+}
+.dec-race-caption {top:23%;left:4%}
+.dec-wall-caption {right:8%;bottom:15%;background:#812f34;color:#ffddb0;transform:rotate(-9deg)}
+.dec-wall-flare {position:absolute;inset:55% 9% 14% 71%;pointer-events:none;z-index:2}
+.dec-flurries,.dec-fog {position:absolute;inset:0;pointer-events:none;z-index:2}
+.dec-flurries {opacity:.36}
+.dec-fog {background:radial-gradient(ellipse at 37% 90%,#c08e751c,transparent 52%);z-index:0}
+.dec-particle {
+  position:absolute;width:var(--size);height:calc(var(--size) / 2);left:var(--px);top:var(--py);
+  rotate:-25deg;background:#fff0cb;pointer-events:none;border-radius:52% 30%;
+}
+.dec-shard {left:50%;top:49%;opacity:0;width:calc(2.6 * var(--size));height:var(--size);border-radius:0;clip-path:polygon(25% 0,100% 30%,68% 100%,0% 60%);background:#ffc485}
 @media (prefers-reduced-motion:no-preference) {
-  body:not([data-tv-export]) .dec-snow {animation:decSnow 20s linear infinite}
-  body:not([data-tv-export]) .dec-reveal-beam {animation:decDoorLight 5.3s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-race:has(.near-wall) .dec-wall-flare {animation:decBreath 6s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-racer-scene {animation:decHover 3s ease-in-out infinite;animation-delay:calc(-.35s * var(--rank))}
-  body:not([data-tv-export]) .dec-door.is-open {animation:decDoorGlow 4s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-garage-card::after {animation:decLight 8s linear infinite}
-  body:not([data-tv-export]) .dec-garage-card:nth-child(even)::after {animation-delay:-3s}
+  body:not([data-tv-export]) .dec-flake {animation:decFlake 8s linear infinite;animation-delay:calc(-12 * var(--delay))}
+  body:not([data-tv-export]) .dec-racer-scene {animation:decHover 3.8s ease-in-out infinite;animation-delay:calc(-5 * var(--flight-delay))}
+  body:not([data-tv-export]) .dec-door.is-current::before {animation:decEmber 3.7s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-replaying .dec-hatch {display:block;animation:decHatch 1.2s ease-in-out both}
   body:not([data-tv-export]) .dec-replaying .dec-door.is-open span,
-  body:not([data-tv-export]) .dec-replaying .dec-door.is-open small {animation:decKnock .72s ease-out both}
-  body:not([data-tv-export]) .dec-replaying .dec-door.is-open::before {content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(145deg,#44232c,#1d121b);border:1px solid #9d5b60;transform-origin:left;animation:decDoorOpen .92s cubic-bezier(.22,.8,.28,1) both}
-  body:not([data-tv-export]) .dec-replaying .dec-reveal {animation:decReveal .65s cubic-bezier(.16,.87,.21,1) .55s both}
-  body:not([data-tv-export]) .dec-replaying .dec-racer {animation:decRaceIn 1.4s cubic-bezier(.17,.7,.19,1) both;animation-delay:calc(var(--rank) * 60ms)}
-  body:not([data-tv-export]) .dec-replaying .dec-racer.near-wall {animation-name:decWallRun}
-  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-wall-flare {animation:decFlash .5s ease-out 1.1s both}
-  body:not([data-tv-export]) .dec-replaying .dec-load i {animation:decGiftIn .53s cubic-bezier(.14,.77,.32,1) backwards;animation-delay:calc(110ms + 48ms * var(--gift-index))}
+  body:not([data-tv-export]) .dec-replaying .dec-door.is-open small {animation:decUnlock 1s ease-out both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-light {animation:decIgnite 1.5s ease-out both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-shard {animation:decScatter .95s ease-out both;animation-delay:calc(.36s + var(--delay))}
+  body:not([data-tv-export]) .dec-replaying .dec-racer.escapes .dec-flight {animation:decEscape 2.6s cubic-bezier(.27,.72,.38,1) both;animation-delay:var(--flight-delay)}
+  body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-flight {animation:decDive 3.2s cubic-bezier(.26,.61,.41,1) both;animation-delay:var(--flight-delay)}
+  body:not([data-tv-export]) .dec-replaying .dec-race:has(.doomed) .dec-wall-flare .dec-shard {animation:decScatter 1s ease-out both;animation-delay:calc(1.9s + var(--delay))}
 }
-@keyframes decSnow {to{background-position:96px 106px,187px 148px}}
-@keyframes decHover {50%{transform:translateY(-7px)}}
-@keyframes decDoorGlow {50%{box-shadow:inset 0 0 42px #fb5c608e,0 0 14px #982c48}}
-@keyframes decDoorLight {50%{transform:scale(1.2);opacity:.48}}
-@keyframes decBreath {45%,55%{opacity:.32}}
-@keyframes decLight {0%,30%,34%,69%,100%{opacity:.18} 32%,70%{opacity:.055}}
-@keyframes decKnock {10%,30%,50%{transform:translateX(-5px) rotate(-2deg)} 19%,38%,58%{transform:translateX(4px) rotate(2deg)}}
-@keyframes decDoorOpen {0%,34%{transform:none;opacity:1} 100%{transform:perspective(700px) rotateY(-88deg);opacity:0}}
-@keyframes decReveal {from{opacity:0;transform:translateX(-38px) scale(.985)} to{opacity:1;transform:none}}
-@keyframes decRaceIn {from{opacity:0;transform:translate(-330px,90px) rotate(-5deg)} to{opacity:1;transform:none}}
-@keyframes decWallRun {0%{opacity:0;transform:translate(-360px,24px)} 75%{opacity:1;transform:translate(315px,4px) rotate(3deg)} 100%{transform:none}}
-@keyframes decFlash {0%,100%{opacity:0} 26%{opacity:.8}}
-@keyframes decGiftIn {from{opacity:0;transform:translate(25px,-60px) rotate(22deg)} to{opacity:1;transform:none}}
-
-#stage #decemberOpen {border-color:#ffbc79;background:linear-gradient(135deg,#861d35,#470d27);color:#fff1d7;padding-inline:17px}
-#stage #decemberOpen:focus-visible {outline:2px solid #ffdfac;outline-offset:3px}
-.dec-heading > div {background:linear-gradient(102deg,#8b1e35,#311928 76%,transparent);border-color:#ffa270;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
-.dec-doors {background:linear-gradient(135deg,#170e18d9,#0c0c14c9);border-color:#80545d;box-shadow:inset 0 0 24px #2c122c,0 18px 55px #000b}
-.dec-door {border-radius:3px;background:repeating-linear-gradient(163deg,#ffb1ba13 0 1px,transparent 1px 7px),linear-gradient(135deg,#443144,#19131d 68%);box-shadow:inset 0 0 0 3px #0c070c7d,3px 4px 0 #09050cc2;text-shadow:2px 3px #0a060d}
-.dec-door.is-rest {background:repeating-linear-gradient(145deg,#272332a8 0 2px,#10101aac 2px 7px);color:#b6aebb;border-color:#4b4554}
-.dec-door.is-rest::after {display:none}
-.dec-door.is-current {border:2px solid #ffb76e;color:#ffdbab;background:radial-gradient(ellipse at 50% 85%,#7e3048,#331827);box-shadow:inset 0 0 24px #e9905670,0 0 19px #db4c536d}
-.dec-portal {position:relative;display:grid;align-items:end;min-width:0;isolation:isolate}
-.dec-portal-frame {position:absolute;inset:2% 8% 14%;overflow:hidden;transform:perspective(900px) rotateY(-6deg) skewY(-2deg);border-radius:7% 7% 3% 3%;border:7px solid #7e475c;box-shadow:0 0 0 2px #1c1020,0 0 0 10px #0907138a,0 16px 35px #080410;isolation:isolate;background:#311021}
-.dec-portal-light,.dec-portal-shutter {position:absolute;inset:0}
-.dec-portal-light {background:repeating-conic-gradient(from 14deg at 52% 61%,transparent 0deg 13deg,#f9a5707a 14deg 17deg,transparent 19deg 27deg),radial-gradient(ellipse at 53% 60%,#ffddaf,#f95854 12%,#9b2e57 36%,#261030 70%)}
-.dec-portal-shutter {transform-origin:left;background:repeating-linear-gradient(96deg,#af677620 0 1px,#100c19bb 2px 6px),repeating-linear-gradient(0deg,#22131e 0,#5d3b51 8px,#22131e 10px,#332236 33px);border:8px ridge #6b4255;box-shadow:inset 0 0 55px #0f0615}
-.dec-portal-shutter::after {content:'';position:absolute;inset:36% 29%;background:radial-gradient(ellipse,#f3a264 3%,#311725 10%,#4e2c46 46%,#1d101b 54%,transparent 55%);filter:drop-shadow(0 0 8px #e77a6a88)}
-.dec-portal.is-unsealed .dec-portal-shutter {transform:perspective(650px) rotateY(-86deg);opacity:.22}
-.dec-portal.is-unsealed .dec-portal-frame {box-shadow:0 0 0 2px #6e2b49,0 0 35px #ef7651a0,0 0 110px #a32b5b}
-.dec-bell {position:absolute;width:24%;height:31%;left:2%;top:-10%;object-fit:contain;object-position:top;transform-origin:52% 0;filter:drop-shadow(5px 9px 8px #170811);z-index:2}
-.dec-reveal {z-index:3;align-self:end;min-height:0;padding:19px 22px 20px;gap:8px;margin:0 0 12px;background:linear-gradient(110deg,#261321f5,#1b1124ed 78%,#391625b0);clip-path:polygon(2% 0,100% 0,97% 100%,0% 100%);border:1px solid #b37b73;border-left:5px solid #fd985d}
-.dec-reveal strong {font-size:clamp(42px,4.6vw,78px)}
-.dec-reveal span,.dec-reveal small {font-size:22px;color:#ffceae}
-.dec-portal-burst,.dec-flurries {position:absolute;inset:0;pointer-events:none}
-.dec-portal-burst {z-index:4}
-.dec-flurries {z-index:2;opacity:.42}
-.dec-particle {position:absolute;width:var(--size);height:var(--size);left:var(--px);top:var(--py);border-radius:100%;background:#ffead1;box-shadow:0 0 9px #f47e78;pointer-events:none}
-.dec-shard {left:52%;top:56%;opacity:0;width:calc(2.6 * var(--size));height:var(--size);border-radius:0;clip-path:polygon(50% 0,100% 30%,68% 100%,0% 60%);background:#ffbc82}
-.dec-fog {position:absolute;inset:-12% -9%;pointer-events:none;background:radial-gradient(ellipse at 35% 76%,#9a78903e,transparent 42%),radial-gradient(ellipse at 85% 20%,#df52391f,transparent 37%);z-index:1}
-.dec-race-wind {position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(163deg,transparent 0 73px,#85bcec19 75px,transparent 78px 145px);mask-image:linear-gradient(105deg,black,transparent 70%)}
-.dec-racer .dec-sled {filter:drop-shadow(0 4px 10px #994d976e)}
-.dec-racer.near-wall .dec-sled {filter:drop-shadow(0 4px 13px #f04267a9)}
-.dec-racer-scene::before {height:15px;background:linear-gradient(90deg,transparent,#68bbfb70,#ffe7eecc);filter:drop-shadow(0 0 7px #60cbff)}
-.dec-racer.near-wall .dec-racer-scene::before {filter:drop-shadow(0 0 7px #ef405d)}
-.dec-wall-flare {z-index:3;right:-10%;bottom:18%;width:49%;height:63%;background:radial-gradient(ellipse,#ffb580ba,#ff39584f 29%,transparent 63%)}
-.dec-claw {position:absolute;right:-2%;bottom:-9%;width:31%;height:35%;object-fit:contain;object-position:bottom right;filter:drop-shadow(-7px 3px 11px #090711);z-index:3;pointer-events:none}
-.dec-garage {position:relative}
-.dec-garage-card {background:repeating-linear-gradient(150deg,#b7759e0e 0 1px,transparent 1px 7px),linear-gradient(110deg,#1b1025ee,#27213d9e 78%,#482433b5);border-color:#9b6978;box-shadow:inset 0 0 15px #4622404d,0 9px 25px #0a041d93}
-.dec-garage-card .dec-sled {z-index:1}
-.dec-garage-card::after {opacity:.34;background:conic-gradient(from 156deg at 73% 0,transparent 0deg,#ff9a7666 11deg,#f7c6a62c 31deg,transparent 53deg)}
-.dec-garage-card:nth-of-type(even)::after {background:conic-gradient(from 156deg at 73% 0,transparent 0deg,#a7c6ff66 11deg,#bca5eb23 31deg,transparent 53deg)}
-.dec-garage-info strong {color:#ffd3a0;text-shadow:0 0 26px #b04c70,3px 4px #170e26}
-.dec-runner {position:absolute;right:4%;width:42%;height:9px;bottom:12%;background:repeating-linear-gradient(105deg,#ffae9787 0 5px,#78618942 6px 13px,transparent 14px 26px);box-shadow:0 0 13px #ffa88a80;transform:skew(-18deg);opacity:.43}
-.dec-workshop-haze {position:absolute;inset:-3%;background:radial-gradient(ellipse at 56% 50%,#ca598650,transparent 69%);pointer-events:none}
-.dec-load i:nth-child(3n+2) {background-image:url('december/gift-alt.webp');filter:drop-shadow(1px 2px 1px #000)}
-@media (prefers-reduced-motion:no-preference) {
-  body:not([data-tv-export]) .dec-fog {animation:decFog 13s ease-in-out infinite alternate}
-  body:not([data-tv-export]) .dec-flake {animation:decFlake 7s linear infinite;animation-delay:calc(-12 * var(--delay))}
-  body:not([data-tv-export]) .dec-bell {animation:decBell 4s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-door.is-current {animation:decDoorGlow 2.9s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-portal.is-unsealed .dec-portal-light {animation:decPortalPulse 5s ease-in-out infinite alternate}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-shutter {animation:decUnseal 1.42s cubic-bezier(.29,.81,.18,1) both}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-light {animation:decPortalPulse 850ms ease-out .63s backwards}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-bell {animation:decBellImpact 1.7s ease-out both}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-shard {animation:decBurst 920ms ease-out both;animation-delay:calc(760ms + var(--delay))}
-  body:not([data-tv-export]) .dec-race-wind {animation:decWind 1.9s linear infinite}
-  body:not([data-tv-export]) .dec-claw {animation:decClaw 5s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-claw {animation:decLunge 1.5s cubic-bezier(.25,.73,.22,1) both}
-  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-wall-flare .dec-shard {animation:decBurst 650ms ease-out both;animation-delay:calc(900ms + var(--delay))}
-  body:not([data-tv-export]) .dec-runner {animation:decConveyor .85s linear infinite}
-  body:not([data-tv-export]) .dec-workshop-haze {animation:decFog 9s ease-in-out infinite alternate}
+@keyframes decFlake {from{transform:translate(180px,-70px);opacity:0} 19%,70%{opacity:.84} to{transform:translate(-145px,165px);opacity:0}}
+@keyframes decEmber {50%{opacity:.47}}
+@keyframes decHover {50%{transform:translateY(-9px)}}
+@keyframes decHatch {
+  0%,23%{transform:none;opacity:1}
+  30%{transform:rotate(-1deg);opacity:1}
+  76%{transform:perspective(390px) rotateY(-72deg);opacity:1}
+  to{transform:perspective(390px) rotateY(-86deg);opacity:0}
 }
-@keyframes decFog {to{transform:translate(6%,-5%) scale(1.12);opacity:.52}}
-@keyframes decFlake {from{transform:translate(var(--dx),-130px);opacity:0} 22%,76%{opacity:.8} to{transform:translate(-160px,190px);opacity:0}}
-@keyframes decBell {50%{transform:rotate(-8deg)} 80%{transform:rotate(5deg)}}
-@keyframes decBellImpact {18%{transform:rotate(-19deg)} 40%{transform:rotate(23deg)} 69%{transform:rotate(-9deg)}}
-@keyframes decPortalPulse {from{opacity:.54;transform:scale(.92)} to{opacity:.96;transform:scale(1.13)}}
-@keyframes decUnseal {0%,30%{transform:none;opacity:1} 41%{transform:rotate(-1deg)} 57%{transform:rotate(1deg)} 100%{transform:perspective(650px) rotateY(-86deg);opacity:.22}}
-@keyframes decBurst {0%{opacity:0;transform:scale(.25)} 15%{opacity:1} to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(140deg) scale(.28)}}
-@keyframes decWind {to{background-position:0 151px}}
-@keyframes decClaw {54%{transform:translate(-7px,-11px) rotate(-2deg)}}
-@keyframes decLunge {55%{transform:translate(-45px,-32px) rotate(-8deg)} 84%{transform:translate(-5px,4px) rotate(3deg)}}
-@keyframes decConveyor {to{background-position:27px 0}}
-
-.dec-portal-gift {display:none;position:absolute;top:45%;left:38%;width:27%;height:27%;object-fit:contain;filter:drop-shadow(0 0 16px #ffb278) drop-shadow(7px 12px 9px #591c26)}
-.dec-portal.is-unsealed .dec-portal-gift {display:block}
-@media (prefers-reduced-motion:no-preference) {
-  body:not([data-tv-export]) .dec-portal-gift {animation:decGiftFloat 3.4s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-replaying .dec-portal-gift {animation:decGiftBreach 1.5s cubic-bezier(.16,.7,.26,1) .72s both}
+@keyframes decUnlock {0%,39%{opacity:0;transform:scale(.8)} 74%{opacity:1;transform:scale(1.06)} to{transform:none}}
+@keyframes decIgnite {0%,23%{opacity:0} 55%{opacity:1;transform:scale(1.1)} 75%{opacity:.66}}
+@keyframes decScatter {0%{opacity:0;transform:scale(.15)} 19%{opacity:1} to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(125deg) scale(.25)}}
+@keyframes decEscape {
+  0%{left:7%;top:57%;transform:rotate(-3deg) scale(.72);opacity:0}
+  34%{left:38%;top:48%;transform:rotate(-19deg);opacity:1}
+  69%{left:55%;top:22%;transform:rotate(-24deg)}
+  100%{left:var(--track);top:var(--lane);transform:rotate(-11deg)}
 }
-@keyframes decGiftFloat {50%{transform:translateY(-13px) rotate(6deg)}}
-@keyframes decGiftBreach {0%{opacity:0;transform:scale(.07) rotate(-50deg)} 45%{opacity:1;transform:translateY(-34px) scale(1.43) rotate(14deg)} to{transform:none}}
+@keyframes decDive {
+  0%{left:6%;top:calc(var(--lane) - 12%);opacity:0;transform:scale(.72)}
+  32%{left:var(--track);top:var(--lane);opacity:1;transform:rotate(var(--lean))}
+  58%{left:68%;top:calc(55% + var(--lane) * .16);transform:rotate(24deg) scale(.76);opacity:1}
+  73%{left:82%;top:67%;opacity:0;transform:rotate(31deg) scale(.22)}
+  74%{left:var(--track);top:var(--lane);opacity:0;transform:rotate(var(--lean))}
+  100%{left:var(--track);top:var(--lane);opacity:1;transform:rotate(var(--lean))}
+}

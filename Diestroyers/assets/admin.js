@@ -360,7 +360,8 @@
     const tools=window.DIESTROYERS_DECEMBER;
     const rule=state.decemberIncentive ||= tools.defaults();
     delete rule.revealTime;
-    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate',decemberWall:'wallTarget'};
+    delete rule.wallTarget;
+    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate'};
     const button=$('decemberOpenAll');
     let stagedDate;
     const update=()=>{

@@ -630,9 +630,9 @@
   <link rel="stylesheet" href="assets/incentive-tv.css">
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/incentive-tv.js"></script>
-  <link rel="stylesheet" href="assets/december-tv.css?v=2">
-  <script src="assets/december-incentive.js?v=2"></script>
-  <script src="assets/december-tv.js?v=2"></script>
+  <link rel="stylesheet" href="assets/december-tv.css?v=3">
+  <script src="assets/december-incentive.js?v=3"></script>
+  <script src="assets/december-tv.js?v=3"></script>
 </head>
 <body>
   <div id="stage">
@@ -1726,7 +1726,7 @@
     let currentSlide=0;
     let playing=false;
     let slideTimer=null;
-    function totalSlides(){return decemberStart+(decemberEnabled?3:0);}
+    function totalSlides(){return decemberStart+(decemberEnabled?decemberRenderer.sceneCount:0);}
     function currentDecemberState(){
       return decemberData.snapshot(decemberRule,decemberRoster,decemberArchive,
         {preview:decemberPreview,previewOpened:decemberPreviewOpened,openedDates:decemberOpenedDates});

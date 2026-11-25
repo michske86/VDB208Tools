@@ -20,7 +20,7 @@
 
   function defaults(now) {
     const year = belgianTime(now).date.slice(0,4);
-    return {active: false, startDate: `${year}-12-01`, endDate: `${year}-12-30`, openedDates: [], wallTarget: 12};
+    return {active: false, startDate: `${year}-12-01`, endDate: `${year}-12-30`, openedDates: []};
   }
 
   function issues(rule) {
@@ -28,9 +28,7 @@
     return [
       (!decemberDate.test(rule.startDate) || !decemberDate.test(rule.endDate) ||
         rule.startDate.slice(0,4) !== rule.endDate.slice(0,4) || rule.startDate > rule.endDate)
-        && 'Kies een start- en einddatum in dezelfde decembermaand.',
-      (!Number.isInteger(rule.wallTarget) || rule.wallTarget < 1 || rule.wallTarget > 500)
-        && 'Vul een veilige vlieghoogte tussen 1 en 500 cadeaus in.'
+        && 'Kies een start- en einddatum in dezelfde decembermaand.'
     ].filter(Boolean);
   }
 
@@ -111,7 +109,7 @@
     return {calendar: calendar.map(day=>({...day,open:open(day)})), today, pending, current, ranking,
       preview, latestDate: counted.at(-1)?.date, reportedDays: counted.length,
       missingDays: elapsed.filter(day=>gaps.has(day.date)&&!Array.isArray(days[day.date])).length,
-      wallTarget: rule.wallTarget, ended: now.date > rule.endDate};
+      ended: now.date > rule.endDate};
   }
 
   root.DIESTROYERS_DECEMBER = {kpis, defaults, issues, belgianTime, labelDate, sellers, snapshot};
