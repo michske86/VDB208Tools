@@ -59,6 +59,7 @@ window.DIESTROYERS_CAROUSEL = [
   "AEGIciParis011026.301126.png",
   "Electrolux011026.311226.png",
   "LifeNovember2026.png",
+  "ProximusNovember2026.png",
   "Teams.png",
   "zDiestroyersLogo.png"
 ];
