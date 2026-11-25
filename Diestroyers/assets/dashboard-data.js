@@ -1,4 +1,4 @@
-window.DIESTROYERS_DATA_REVISION = "5ee1d781e78ddf53d4ef7699aba801996e16d1c9d27aabadec18fb83687d974e";
+window.DIESTROYERS_DATA_REVISION = "88c2336e553b52afbbeb6e964a6560e418ed49037478f8fce44e7519c32dcc19";
 // Diestroyers: agenda-data.js
 window.DIESTROYERS_AGENDA = [
   {"datum":"2026-06-15","type":"Varia","titel":"Mid-year wedstrijd Mooiste winkel","info":""},
@@ -58,9 +58,7 @@ window.DIESTROYERS_AVV = {"generatedAt":"2026-11-25T10:37:33","latestPeriod":"20
 window.DIESTROYERS_CAROUSEL = [
   "AEGIciParis011026.301126.png",
   "Electrolux011026.311226.png",
-  "Life.301126.png",
   "LifeNovember2026.png",
-  "Proximus.301126.png",
   "Teams.png",
   "zDiestroyersLogo.png"
 ];
