@@ -8,15 +8,15 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
   const pilots = new Map([
-    ['freek', {crest:'❄', color:'#93cee7'}],
-    ['rodrick', {crest:'◆', color:'#ffb688'}],
-    ['foeke', {crest:'▲', color:'#a6daa5'}],
-    ['jonathan', {crest:'✦', color:'#ff9b9b'}],
-    ['myron', {crest:'ϟ', color:'#d6afff'}],
-    ['bert', {crest:'♛', color:'#ffe09a'}]
+    ['freek', {crest:'❄', color:'#93cee7', sprite:'0% 0%'}],
+    ['rodrick', {crest:'◆', color:'#ffb688', sprite:'50% 0%'}],
+    ['foeke', {crest:'▲', color:'#a6daa5', sprite:'100% 0%'}],
+    ['jonathan', {crest:'✦', color:'#ff9b9b', sprite:'0% 100%'}],
+    ['myron', {crest:'ϟ', color:'#d6afff', sprite:'50% 100%'}],
+    ['bert', {crest:'♛', color:'#ffe09a', sprite:'100% 100%'}]
   ]);
 
-  function sled({gifts, name}) {
+  function sled({gifts, name}, burned) {
     const key = name.trim().toLowerCase();
     const pilot = pilots.get(key);
     const visible = Math.min(45,gifts);
@@ -28,7 +28,10 @@
     }).join('');
     return `<div class="dec-sled" aria-hidden="true"${pilot?` style="--pilot-color:${pilot.color}"`:''}>
       <div class="dec-load">${boxes}</div>
-      ${pilot?`<span class="dec-pilot"><img alt="" src="${files}pilot-${key}.webp"></span>`:''}
+      ${pilot?`<span class="dec-pilot">
+        <img class="dec-pilot-live" alt="" src="${files}pilot-${key}.webp">
+        ${burned?`<i class="dec-pilot-skeleton" style="--skeleton-position:${pilot.sprite}"></i>`:''}
+      </span>`:''}
       <img alt="" src="${files}sled.webp">
       ${pilot?`<span class="dec-sled-crest">${pilot.crest}</span>`:''}
     </div>`;
@@ -106,7 +109,7 @@
       const delta = row.latestGifts > 0 ?
         `<em aria-label="${row.latestGifts} cadeaus erbij op de laatste dag">+${fmt.format(row.latestGifts)}</em>` : '';
       return `<article class="dec-racer ${status}" style="--track:${x}%;--lane:${y}%;--flight-delay:${index*180}ms;--lean:${2+span*10}deg" data-gifts="${row.gifts}">
-        <div class="dec-flight" aria-hidden="true"><div class="dec-racer-scene">${sled(row)}</div></div>
+        <div class="dec-flight" aria-hidden="true"><div class="dec-racer-scene">${sled(row,status==='doomed')}</div></div>
         <span class="dec-name"><span>${esc(row.name)}</span> <b>${fmt.format(row.gifts)}</b>${delta}</span>
       </article>`;
     }).join('');

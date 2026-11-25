@@ -125,7 +125,12 @@
   position:absolute;z-index:1;right:34px;bottom:40px;width:121px;height:118px;
   transform-origin:53% 87%;rotate:-2deg;filter:drop-shadow(1px 3px 3px #180c15);
 }
-.dec-pilot img {display:block;width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+.dec-pilot-live {display:block;width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+.dec-pilot-skeleton {
+  position:absolute;inset:0;background:url('december/pilot-skeletons.webp') var(--skeleton-position)/300% 200% no-repeat;
+  filter:brightness(1.18);
+}
+.dec-racer.doomed .dec-pilot-live {opacity:0}
 .dec-sled-crest {
   position:absolute;z-index:3;left:101px;top:59px;width:27px;height:27px;display:grid;place-items:center;
   border:1px solid var(--pilot-color);border-radius:47% 47% 58% 58%;
@@ -190,6 +195,8 @@
   body:not([data-tv-export]) .dec-replaying .dec-racer.escapes .dec-flight {animation:decEscape 2.6s cubic-bezier(.27,.72,.38,1) both;animation-delay:var(--flight-delay)}
   body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-flight {animation:decDive 3.2s cubic-bezier(.26,.61,.41,1) both;animation-delay:var(--flight-delay)}
   body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-sled {animation:decScorch 250ms var(--fire-hit) both}
+  body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-pilot-live {animation:decSwapPilot 90ms var(--fire-hit) step-end both}
+  body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-pilot-skeleton {animation:decSwapPilot 90ms var(--fire-hit) step-start both reverse}
   body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-racer-scene::after {animation:decSmokeIn .68s var(--fire-hit) both}
   body:not([data-tv-export]) #decemberSlide[data-scene=race] .dec-racer.doomed {--fire-hit:calc(2336ms + var(--flight-delay))}
   body:not([data-tv-export]) .dec-replaying .dec-mouth-fire {animation:decFireBreath var(--fire-duration) var(--impact) both}
@@ -239,6 +246,7 @@
   100%{left:var(--track);top:var(--lane);opacity:1;transform:rotate(var(--lean))}
 }
 
+@keyframes decSwapPilot {from{opacity:1} to{opacity:0}}
 @keyframes decScorch {
   from{filter:grayscale(0) brightness(1) contrast(1) drop-shadow(0 2px 3px #10070600)}
   to{filter:var(--soot-filter)}
