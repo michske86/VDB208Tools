@@ -4,8 +4,27 @@ function validDate(s){if(typeof s!=='string'||!/^2027-\d{2}-\d{2}$/.test(s))retu
 function charged(date,dayOff){if(!validDate(date))return false;const weekday=new Date(date+'T12:00:00Z').getUTCDay();return weekday!==0 && weekday!==dayOff && !HOLIDAYS.some(h=>h[0]===date)}
 const enc = new TextEncoder();
 function hex(a){return [...new Uint8Array(a)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function signature(secret,message){const key=await crypto.subtle.importKey('raw',enc.encode(secret),'HMAC',false,['sign']);return hex(await crypto.subtle.sign('HMAC',key,enc.encode(message)))}
+async function signature(secret,message){const key=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return hex(await crypto.subtle.sign('HMAC',key,enc.encode(message)))}
 function constantEq(a,b){if(a.length!==b.length)return false;let v=0;for(let i=0;i<a.length;i++)v|=a.charCodeAt(i)^b.charCodeAt(i);return v===0}
+async function readDayLimits(db) {
+  const { results } = await db.prepare('SELECT date, day_limit FROM day_limits ORDER BY date').all();
+  return Object.fromEntries(results.map(({ date, day_limit }) => [date, day_limit]));
+}
+
+async function saveDayLimit(db, body, reply) {
+  const { date, maximum } = (await body()) ?? {};
+  if (!validDate(date) || (maximum !== null && (!Number.isSafeInteger(maximum) || maximum < 0))) {
+    return reply({ error: 'Kies een geldige datum en een geheel richtmaximum vanaf 0.' }, 400);
+  }
+  if (maximum === null) {
+    await db.prepare('DELETE FROM day_limits WHERE date = ?').bind(date).run();
+  } else {
+    await db.prepare(`INSERT INTO day_limits (date, day_limit) VALUES (?, ?)
+      ON CONFLICT(date) DO UPDATE SET day_limit = excluded.day_limit`).bind(date, maximum).run();
+  }
+  return reply({ ok: true });
+}
+
 export default {async fetch(request,env){
  const url=new URL(request.url),origin=request.headers.get('Origin')||'',allowed=(env.ALLOWED_ORIGIN||'').split(',').map(x=>x.trim());
  const cors={'Access-Control-Allow-Origin':allowed.includes(origin)?origin:'null','Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
@@ -18,9 +37,10 @@ export default {async fetch(request,env){
  const path=url.pathname;
  if(path==='/api/state'&&request.method==='GET'){
   const employees=(await env.DB.prepare('SELECT id,name,number,allowance,day_off FROM employees ORDER BY name').all()).results;
-  const requests=(await env.DB.prepare('SELECT r.id,r.date,r.employee_id,e.name FROM requests r JOIN employees e ON e.id=r.employee_id ORDER BY r.date').all()).results;
+  const requests=(await env.DB.prepare('SELECT r.id,r.date,r.employee_id,e.name,r.status,r.reviewed_at,r.reviewed_by,r.review_note FROM requests r JOIN employees e ON e.id=r.employee_id ORDER BY r.date').all()).results;
   const periods=(await env.DB.prepare('SELECT * FROM periods ORDER BY start_date,title').all()).results;
-  return reply({employees:employees.map(e=>({...e,charged:requests.filter(r=>r.employee_id===e.id&&charged(r.date,e.day_off)).length})),requests,periods,holidays:HOLIDAYS.map(([date,title])=>({date,title}))});
+  const dayLimits=await readDayLimits(env.DB);
+  return reply({employees:employees.map(e=>({...e,charged:requests.filter(r=>r.employee_id===e.id&&r.status==='approved'&&charged(r.date,e.day_off)).length,pending:requests.filter(r=>r.employee_id===e.id&&r.status==='pending'&&charged(r.date,e.day_off)).length})),requests,periods,holidays:HOLIDAYS.map(([date,title])=>({date,title})),dayLimits});
  }
  if(path==='/api/admin/login'&&request.method==='POST'){
   const {number,pin}=await body();const n=String(number||'').trim();
@@ -45,16 +65,29 @@ export default {async fetch(request,env){
  }
  if(path==='/api/my-requests'&&request.method==='POST'){
   const {number}=await body(),e=await env.DB.prepare('SELECT id,name,allowance,day_off FROM employees WHERE number=?').bind(String(number||'').trim()).first();if(!e)return reply({error:'Personeelsnummer niet gevonden'},404);
-  const mine=(await env.DB.prepare('SELECT id,date FROM requests WHERE employee_id=? ORDER BY date').bind(e.id).all()).results;
-  return reply({employee:e,requests:mine,charged:mine.filter(r=>charged(r.date,e.day_off)).length});
+  const mine=(await env.DB.prepare('SELECT id,date,status,review_note FROM requests WHERE employee_id=? ORDER BY date').bind(e.id).all()).results;
+  return reply({employee:e,requests:mine,charged:mine.filter(r=>r.status==='approved'&&charged(r.date,e.day_off)).length,pending:mine.filter(r=>r.status==='pending'&&charged(r.date,e.day_off)).length});
  }
  if(path==='/api/request/cancel'&&request.method==='POST'){
   const {number,date}=await body();if(!validDate(date))return reply({error:'Ongeldige datum'},400);
   const e=await env.DB.prepare('SELECT id FROM employees WHERE number=?').bind(String(number||'').trim()).first();if(!e)return reply({error:'Personeelsnummer niet gevonden'},404);
-  await env.DB.prepare('DELETE FROM requests WHERE employee_id=? AND date=?').bind(e.id,date).run();return reply({ok:true});
+  const r=await env.DB.prepare('SELECT status FROM requests WHERE employee_id=? AND date=?').bind(e.id,date).first();if(r&&r.status!=='pending')return reply({error:'Enkel aanvragen in behandeling kunnen worden ingetrokken. Contacteer een beheerder.'},409);await env.DB.prepare('DELETE FROM requests WHERE employee_id=? AND date=?').bind(e.id,date).run();return reply({ok:true});
  }
  if(path.startsWith('/api/admin/')){
   if(!await admin())return reply({error:'Beheerderssessie verlopen of geen toegang'},403);
+  if(path==='/api/admin/day-limit'&&request.method==='POST'){
+   return await saveDayLimit(env.DB,body,reply);
+  }
+  if(path==='/api/admin/review'&&request.method==='POST'){
+   const {id,status,note}=await body();
+   if(!Number.isInteger(id)||!['approved','rejected','pending'].includes(status))return reply({error:'Ongeldige beslissing'},400);
+   const existing=await env.DB.prepare('SELECT id FROM requests WHERE id=?').bind(id).first();
+   if(!existing)return reply({error:'Aanvraag niet gevonden'},404);
+   const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
+   const reviewer=token.split('.')[0];
+   await env.DB.prepare('UPDATE requests SET status=?,reviewed_at=?,reviewed_by=?,review_note=? WHERE id=?').bind(status,status==='pending'?null:new Date().toISOString(),status==='pending'?null:reviewer,String(note||'').slice(0,500),id).run();
+   return reply({ok:true});
+  }
   if(path==='/api/admin/employee/delete'&&request.method==='POST'){
    const {number}=await body();const n=String(number||'').trim();
    if(ADMIN_NUMBERS.has(n))return reply({error:'Beheerders kunnen niet via deze functie worden verwijderd'},400);
@@ -79,8 +112,5 @@ export default {async fetch(request,env){
   if(path.startsWith('/api/admin/request/')&&request.method==='DELETE'){await env.DB.prepare('DELETE FROM requests WHERE id=?').bind(Number(path.split('/').pop())).run();return reply({ok:true})}
  }
  return reply({error:'Niet gevonden'},404);
-}catch(e){
-  console.error('VERLOFPLANNER FOUT:', e);
-  return reply({error:'Serverfout. Controleer database/migratie.'},500);
-}
+ }catch(e){return reply({error:'Serverfout. Controleer database/migratie.'},500)}
 }};
