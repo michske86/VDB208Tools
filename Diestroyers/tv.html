@@ -808,6 +808,7 @@
 
 
 
+  <script src="assets/data-bridge.js?v=tv-targets-1" data-targets-only></script>
   <script src="assets/calculations.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1264,6 +1265,11 @@
       return s(row.Winkel)||s(row.Naam)||s(row.ShopNaam)||s(row.ShopNr)||'Winkel';
     }
     function districtShopNr(row){return s(row.ShopNr)}
+    function isOwnDistrictRow(row){
+      const ownShop=shopKey(adminConfig.shop?.shopNr || '208');
+      const ownName=norm(adminConfig.shop?.naam || 'Diest');
+      return shopKey(districtShopNr(row))===ownShop || norm(districtName(row))===ownName || norm(row.EigenWinkel)==='ja';
+    }
     function districtTargetRow(row){
       const name=norm(districtName(row));
       const shop=districtShopNr(row);
@@ -1283,23 +1289,21 @@
       return n(row[k.val]);
     }
     function districtTarget(row,key){
-      const k=def(key);
-      const trow=districtTargetRow(row);
-      if(key==='Link') return n(trow.LinkTargetPct || row.LinkTargetPct);
-      if(k.type==='ratio') return n(trow[k.target] || row[k.target]);
-      return n(trow[k.target] || row[k.target]);
+      const field=def(key).target;
+      const districtGoal=n(districtTargetRow(row)[field]);
+      if(districtGoal) return districtGoal;
+      if(isOwnDistrictRow(row) && s(store[field])!=='') return n(store[field]);
+      return n(row[field]);
     }
     function districtLifeStatus(row){
-      const trow=districtTargetRow(row);
       const actual=n(row.Life);
-      const fullTarget=n(trow.LifeTarget || row.LifeTarget);
+      const fullTarget=districtTarget(row,'Life');
       const expected=fullTarget*monthProgressRatio();
       const pacePct=expected?actual/expected*100:0;
       return pacePct>=100?'ok':(pacePct>=90?'close':'bad');
     }
     function districtKpiMetric(row,key){
       if(key==='Life'){
-        const target=n(districtTargetRow(row).LifeTarget || row.LifeTarget);
         const status=districtLifeStatus(row);
         return {display:moneyFmt.format(n(row.Life)), status, points:status==='ok'?3:status==='close'?1:0};
       }
@@ -1353,8 +1357,6 @@
 
     function renderDistrictRankingSlide(){
       const panel=document.getElementById('districtPodium');
-      const ownShop=shopKey(adminConfig.shop?.shopNr || '208');
-      const ownName=norm(adminConfig.shop?.naam || 'Diest');
       const rows=districtRows.filter(row=>activeFlag(row.Actief ?? 'JA')).map(row=>{
         const metrics=districtBig7.map(key=>{
           const result=districtKpiMetric(row,key);
@@ -1364,7 +1366,7 @@
       }).sort((a,b)=>b.score-a.score || n(b.row.Omzet)-n(a.row.Omzet));
       const cards=rows.map(({row,metrics,score},index)=>{
         const name=districtName(row);
-        const own=shopKey(districtShopNr(row))===ownShop || norm(name)===ownName || norm(row.EigenWinkel)==='ja';
+        const own=isOwnDistrictRow(row);
         const cells=metrics.map(m=>`<span class="metric ${esc(m.status)}"><small>${esc(m.label)}</small><strong>${esc(m.display)}</strong>${m.backlog?`<span class="serviceBubble" aria-label="Nog ${esc(m.backlog)}">${esc(m.backlog)}</span>`:''}</span>`).join('');
         return `<article class="shop-data tile${own?' own':''}"><div class="shop-top"><span class="place">#${index+1}</span><span class="shop">${esc(name)}</span></div><div class="shop-totals"><span>Omzet <b class="revenue">€ ${moneyFmt.format(n(row.Omzet))}</b></span><span>Score <b class="score">${score}</b></span></div><div class="metrics">${cells}</div></article>`;
       });

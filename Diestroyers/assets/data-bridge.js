@@ -82,6 +82,12 @@
     return out;
   }
 
+  // The TV has its own rules for sellers, district rankings and history.
+  if (w.document?.currentScript?.hasAttribute('data-targets-only')) {
+    w.DIESTROYERS_RESULTATEN = rawResults.map(row => mergeTarget(row));
+    return;
+  }
+
   const activeShopSet = new Set(
     cfgDistrict.filter(isActive).map(d=>norm(d.ShopNr || d.shopNr)).filter(Boolean)
   );
