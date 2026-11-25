@@ -7,15 +7,31 @@
   let stopGateMotion;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
-  function sled(gifts) {
+  const pilots = new Map([
+    ['freek', {crest:'❄', color:'#93cee7'}],
+    ['rodrick', {crest:'◆', color:'#ffb688'}],
+    ['foeke', {crest:'▲', color:'#a6daa5'}],
+    ['jonathan', {crest:'✦', color:'#ff9b9b'}],
+    ['myron', {crest:'ϟ', color:'#d6afff'}],
+    ['bert', {crest:'♛', color:'#ffe09a'}]
+  ]);
+
+  function sled({gifts, name}) {
+    const key = name.trim().toLowerCase();
+    const pilot = pilots.get(key);
     const visible = Math.min(45,gifts);
     const size = Math.max(20,Math.min(46,53-visible*.85));
-    const columns = Math.max(3,Math.floor(160/(size*.82)));
+    const columns = Math.max(3,Math.floor((pilot?115:160)/(size*.82)));
     const boxes = Array.from({length:visible},(_,i)=>{
       const row = Math.floor(i/columns), col = i%columns;
       return `<i style="--x:${52+col*size*.78+(row%2)*size*.18}px;--y:${38+row*size*.42}px;--box:${size}px;--gift-index:${Math.min(i,10)}"></i>`;
     }).join('');
-    return `<div class="dec-sled" aria-hidden="true"><div class="dec-load">${boxes}</div><img alt="" src="${files}sled.webp"></div>`;
+    return `<div class="dec-sled" aria-hidden="true"${pilot?` style="--pilot-color:${pilot.color}"`:''}>
+      <div class="dec-load">${boxes}</div>
+      ${pilot?`<span class="dec-pilot"><img alt="" src="${files}pilot-${key}.webp"></span>`:''}
+      <img alt="" src="${files}sled.webp">
+      ${pilot?`<span class="dec-sled-crest">${pilot.crest}</span>`:''}
+    </div>`;
   }
 
   function sparks(count, spread, type) {
@@ -90,7 +106,7 @@
       const delta = row.latestGifts > 0 ?
         `<em aria-label="${row.latestGifts} cadeaus erbij op de laatste dag">+${fmt.format(row.latestGifts)}</em>` : '';
       return `<article class="dec-racer ${status}" style="--track:${x}%;--lane:${y}%;--flight-delay:${index*180}ms;--lean:${2+span*10}deg" data-gifts="${row.gifts}">
-        <div class="dec-flight" aria-hidden="true"><div class="dec-racer-scene">${sled(row.gifts)}</div></div>
+        <div class="dec-flight" aria-hidden="true"><div class="dec-racer-scene">${sled(row)}</div></div>
         <span class="dec-name"><span>${esc(row.name)}</span> <b>${fmt.format(row.gifts)}</b>${delta}</span>
       </article>`;
     }).join('');
