@@ -6,11 +6,11 @@
   border:1px solid #65404b; border-radius:20px; padding:27px 34px 17px;
   background:#0b080e center/cover no-repeat; color:var(--ivory);
 }
-#decemberSlide[hidden], #decemberReplay[hidden] {display:none}
+#decemberSlide[hidden], #decemberReplay[hidden], #decemberOpen[hidden] {display:none}
 #stage.decemberMode > :not(#decemberSlide,.tvControls,#updateLabel) {visibility:hidden}
-#decemberSlide[data-scene="calendar"] {background-image:linear-gradient(90deg,#090710a6,#12070ac4),url('december/calendar.webp')}
+#decemberSlide[data-scene="calendar"] {background-image:linear-gradient(90deg,#0907116e,#2a0b1040 64%,#0a060bd6),url('december/cabinet.webp')}
 #decemberSlide[data-scene="race"] {background-image:linear-gradient(90deg,#070b1b50,transparent 75%),url('december/race.webp')}
-#decemberSlide[data-scene="garage"] {background-image:linear-gradient(#0c080c69,#1109105c),url('december/garage.webp')}
+#decemberSlide[data-scene="garage"] {background-image:linear-gradient(#0c080c24,#1109105c),url('december/workshop.webp')}
 
 .dec-heading {z-index:2;display:flex;align-items:start;justify-content:space-between;gap:24px}
 .dec-heading > div {width:max-content;max-width:100%;padding:9px 44px 10px 27px;background:linear-gradient(100deg,#7c101e 5%,#2d121c 80%,transparent);border-left:6px solid #e54d5a}
@@ -87,6 +87,86 @@
 @keyframes decDoorOpen {0%,34%{transform:none;opacity:1} 100%{transform:perspective(700px) rotateY(-88deg);opacity:0}}
 @keyframes decReveal {from{opacity:0;transform:translateX(-38px) scale(.985)} to{opacity:1;transform:none}}
 @keyframes decRaceIn {from{opacity:0;transform:translate(-330px,90px) rotate(-5deg)} to{opacity:1;transform:none}}
-@keyframes decWallRun {0%{opacity:0;transform:translate(-360px,24px)} 75%{opacity:1;transform:translate(130px,4px)} 100%{transform:none}}
+@keyframes decWallRun {0%{opacity:0;transform:translate(-360px,24px)} 75%{opacity:1;transform:translate(315px,4px) rotate(3deg)} 100%{transform:none}}
 @keyframes decFlash {0%,100%{opacity:0} 26%{opacity:.8}}
 @keyframes decGiftIn {from{opacity:0;transform:translate(25px,-60px) rotate(22deg)} to{opacity:1;transform:none}}
+
+#stage #decemberOpen {border-color:#ffbc79;background:linear-gradient(135deg,#861d35,#470d27);color:#fff1d7;padding-inline:17px}
+#stage #decemberOpen:focus-visible {outline:2px solid #ffdfac;outline-offset:3px}
+.dec-heading > div {background:linear-gradient(102deg,#8b1e35,#311928 76%,transparent);border-color:#ffa270;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
+.dec-doors {background:linear-gradient(135deg,#170e18d9,#0c0c14c9);border-color:#80545d;box-shadow:inset 0 0 24px #2c122c,0 18px 55px #000b}
+.dec-door {border-radius:3px;background:repeating-linear-gradient(163deg,#ffb1ba13 0 1px,transparent 1px 7px),linear-gradient(135deg,#443144,#19131d 68%);box-shadow:inset 0 0 0 3px #0c070c7d,3px 4px 0 #09050cc2;text-shadow:2px 3px #0a060d}
+.dec-door.is-rest {background:repeating-linear-gradient(145deg,#272332a8 0 2px,#10101aac 2px 7px);color:#b6aebb;border-color:#4b4554}
+.dec-door.is-rest::after {display:none}
+.dec-door.is-current {border:2px solid #ffb76e;color:#ffdbab;background:radial-gradient(ellipse at 50% 85%,#7e3048,#331827);box-shadow:inset 0 0 24px #e9905670,0 0 19px #db4c536d}
+.dec-portal {position:relative;display:grid;align-items:end;min-width:0;isolation:isolate}
+.dec-portal-frame {position:absolute;inset:2% 8% 14%;overflow:hidden;transform:perspective(900px) rotateY(-6deg) skewY(-2deg);border-radius:7% 7% 3% 3%;border:7px solid #7e475c;box-shadow:0 0 0 2px #1c1020,0 0 0 10px #0907138a,0 16px 35px #080410;isolation:isolate;background:#311021}
+.dec-portal-light,.dec-portal-shutter {position:absolute;inset:0}
+.dec-portal-light {background:repeating-conic-gradient(from 14deg at 52% 61%,transparent 0deg 13deg,#f9a5707a 14deg 17deg,transparent 19deg 27deg),radial-gradient(ellipse at 53% 60%,#ffddaf,#f95854 12%,#9b2e57 36%,#261030 70%)}
+.dec-portal-shutter {transform-origin:left;background:repeating-linear-gradient(96deg,#af677620 0 1px,#100c19bb 2px 6px),repeating-linear-gradient(0deg,#22131e 0,#5d3b51 8px,#22131e 10px,#332236 33px);border:8px ridge #6b4255;box-shadow:inset 0 0 55px #0f0615}
+.dec-portal-shutter::after {content:'';position:absolute;inset:36% 29%;background:radial-gradient(ellipse,#f3a264 3%,#311725 10%,#4e2c46 46%,#1d101b 54%,transparent 55%);filter:drop-shadow(0 0 8px #e77a6a88)}
+.dec-portal.is-unsealed .dec-portal-shutter {transform:perspective(650px) rotateY(-86deg);opacity:.22}
+.dec-portal.is-unsealed .dec-portal-frame {box-shadow:0 0 0 2px #6e2b49,0 0 35px #ef7651a0,0 0 110px #a32b5b}
+.dec-bell {position:absolute;width:24%;height:31%;left:2%;top:-10%;object-fit:contain;object-position:top;transform-origin:52% 0;filter:drop-shadow(5px 9px 8px #170811);z-index:2}
+.dec-reveal {z-index:3;align-self:end;min-height:0;padding:19px 22px 20px;gap:8px;margin:0 0 12px;background:linear-gradient(110deg,#261321f5,#1b1124ed 78%,#391625b0);clip-path:polygon(2% 0,100% 0,97% 100%,0% 100%);border:1px solid #b37b73;border-left:5px solid #fd985d}
+.dec-reveal strong {font-size:clamp(42px,4.6vw,78px)}
+.dec-reveal span,.dec-reveal small {font-size:22px;color:#ffceae}
+.dec-portal-burst,.dec-flurries {position:absolute;inset:0;pointer-events:none}
+.dec-portal-burst {z-index:4}
+.dec-flurries {z-index:2;opacity:.42}
+.dec-particle {position:absolute;width:var(--size);height:var(--size);left:var(--px);top:var(--py);border-radius:100%;background:#ffead1;box-shadow:0 0 9px #f47e78;pointer-events:none}
+.dec-shard {left:52%;top:56%;opacity:0;width:calc(2.6 * var(--size));height:var(--size);border-radius:0;clip-path:polygon(50% 0,100% 30%,68% 100%,0% 60%);background:#ffbc82}
+.dec-fog {position:absolute;inset:-12% -9%;pointer-events:none;background:radial-gradient(ellipse at 35% 76%,#9a78903e,transparent 42%),radial-gradient(ellipse at 85% 20%,#df52391f,transparent 37%);z-index:1}
+.dec-race-wind {position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(163deg,transparent 0 73px,#85bcec19 75px,transparent 78px 145px);mask-image:linear-gradient(105deg,black,transparent 70%)}
+.dec-racer .dec-sled {filter:drop-shadow(0 4px 10px #994d976e)}
+.dec-racer.near-wall .dec-sled {filter:drop-shadow(0 4px 13px #f04267a9)}
+.dec-racer-scene::before {height:15px;background:linear-gradient(90deg,transparent,#68bbfb70,#ffe7eecc);filter:drop-shadow(0 0 7px #60cbff)}
+.dec-racer.near-wall .dec-racer-scene::before {filter:drop-shadow(0 0 7px #ef405d)}
+.dec-wall-flare {z-index:3;right:-10%;bottom:18%;width:49%;height:63%;background:radial-gradient(ellipse,#ffb580ba,#ff39584f 29%,transparent 63%)}
+.dec-claw {position:absolute;right:-2%;bottom:-9%;width:31%;height:35%;object-fit:contain;object-position:bottom right;filter:drop-shadow(-7px 3px 11px #090711);z-index:3;pointer-events:none}
+.dec-garage {position:relative}
+.dec-garage-card {background:repeating-linear-gradient(150deg,#b7759e0e 0 1px,transparent 1px 7px),linear-gradient(110deg,#1b1025ee,#27213d9e 78%,#482433b5);border-color:#9b6978;box-shadow:inset 0 0 15px #4622404d,0 9px 25px #0a041d93}
+.dec-garage-card .dec-sled {z-index:1}
+.dec-garage-card::after {opacity:.34;background:conic-gradient(from 156deg at 73% 0,transparent 0deg,#ff9a7666 11deg,#f7c6a62c 31deg,transparent 53deg)}
+.dec-garage-card:nth-of-type(even)::after {background:conic-gradient(from 156deg at 73% 0,transparent 0deg,#a7c6ff66 11deg,#bca5eb23 31deg,transparent 53deg)}
+.dec-garage-info strong {color:#ffd3a0;text-shadow:0 0 26px #b04c70,3px 4px #170e26}
+.dec-runner {position:absolute;right:4%;width:42%;height:9px;bottom:12%;background:repeating-linear-gradient(105deg,#ffae9787 0 5px,#78618942 6px 13px,transparent 14px 26px);box-shadow:0 0 13px #ffa88a80;transform:skew(-18deg);opacity:.43}
+.dec-workshop-haze {position:absolute;inset:-3%;background:radial-gradient(ellipse at 56% 50%,#ca598650,transparent 69%);pointer-events:none}
+.dec-load i:nth-child(3n+2) {background-image:url('december/gift-alt.webp');filter:drop-shadow(1px 2px 1px #000)}
+@media (prefers-reduced-motion:no-preference) {
+  body:not([data-tv-export]) .dec-fog {animation:decFog 13s ease-in-out infinite alternate}
+  body:not([data-tv-export]) .dec-flake {animation:decFlake 7s linear infinite;animation-delay:calc(-12 * var(--delay))}
+  body:not([data-tv-export]) .dec-bell {animation:decBell 4s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-door.is-current {animation:decDoorGlow 2.9s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-portal.is-unsealed .dec-portal-light {animation:decPortalPulse 5s ease-in-out infinite alternate}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-shutter {animation:decUnseal 1.42s cubic-bezier(.29,.81,.18,1) both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-light {animation:decPortalPulse 850ms ease-out .63s backwards}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-bell {animation:decBellImpact 1.7s ease-out both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-shard {animation:decBurst 920ms ease-out both;animation-delay:calc(760ms + var(--delay))}
+  body:not([data-tv-export]) .dec-race-wind {animation:decWind 1.9s linear infinite}
+  body:not([data-tv-export]) .dec-claw {animation:decClaw 5s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-claw {animation:decLunge 1.5s cubic-bezier(.25,.73,.22,1) both}
+  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-wall-flare .dec-shard {animation:decBurst 650ms ease-out both;animation-delay:calc(900ms + var(--delay))}
+  body:not([data-tv-export]) .dec-runner {animation:decConveyor .85s linear infinite}
+  body:not([data-tv-export]) .dec-workshop-haze {animation:decFog 9s ease-in-out infinite alternate}
+}
+@keyframes decFog {to{transform:translate(6%,-5%) scale(1.12);opacity:.52}}
+@keyframes decFlake {from{transform:translate(var(--dx),-130px);opacity:0} 22%,76%{opacity:.8} to{transform:translate(-160px,190px);opacity:0}}
+@keyframes decBell {50%{transform:rotate(-8deg)} 80%{transform:rotate(5deg)}}
+@keyframes decBellImpact {18%{transform:rotate(-19deg)} 40%{transform:rotate(23deg)} 69%{transform:rotate(-9deg)}}
+@keyframes decPortalPulse {from{opacity:.54;transform:scale(.92)} to{opacity:.96;transform:scale(1.13)}}
+@keyframes decUnseal {0%,30%{transform:none;opacity:1} 41%{transform:rotate(-1deg)} 57%{transform:rotate(1deg)} 100%{transform:perspective(650px) rotateY(-86deg);opacity:.22}}
+@keyframes decBurst {0%{opacity:0;transform:scale(.25)} 15%{opacity:1} to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(140deg) scale(.28)}}
+@keyframes decWind {to{background-position:0 151px}}
+@keyframes decClaw {54%{transform:translate(-7px,-11px) rotate(-2deg)}}
+@keyframes decLunge {55%{transform:translate(-45px,-32px) rotate(-8deg)} 84%{transform:translate(-5px,4px) rotate(3deg)}}
+@keyframes decConveyor {to{background-position:27px 0}}
+
+.dec-portal-gift {display:none;position:absolute;top:45%;left:38%;width:27%;height:27%;object-fit:contain;filter:drop-shadow(0 0 16px #ffb278) drop-shadow(7px 12px 9px #591c26)}
+.dec-portal.is-unsealed .dec-portal-gift {display:block}
+@media (prefers-reduced-motion:no-preference) {
+  body:not([data-tv-export]) .dec-portal-gift {animation:decGiftFloat 3.4s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-replaying .dec-portal-gift {animation:decGiftBreach 1.5s cubic-bezier(.16,.7,.26,1) .72s both}
+}
+@keyframes decGiftFloat {50%{transform:translateY(-13px) rotate(6deg)}}
+@keyframes decGiftBreach {0%{opacity:0;transform:scale(.07) rotate(-50deg)} 45%{opacity:1;transform:translateY(-34px) scale(1.43) rotate(14deg)} to{transform:none}}

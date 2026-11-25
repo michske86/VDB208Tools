@@ -630,9 +630,9 @@
   <link rel="stylesheet" href="assets/incentive-tv.css">
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/incentive-tv.js"></script>
-  <link rel="stylesheet" href="assets/december-tv.css?v=1">
-  <script src="assets/december-incentive.js?v=1"></script>
-  <script src="assets/december-tv.js?v=1"></script>
+  <link rel="stylesheet" href="assets/december-tv.css?v=2">
+  <script src="assets/december-incentive.js?v=2"></script>
+  <script src="assets/december-tv.js?v=2"></script>
 </head>
 <body>
   <div id="stage">
@@ -783,6 +783,7 @@
       <button id="prevSlide" title="Vorige">PREV</button>
       <button id="playPause" title="Play/Pause">PLAY</button>
       <button id="nextSlide" title="Volgende">NEXT</button>
+      <button id="decemberOpen" hidden>Open deurtje</button>
       <button id="decemberReplay" title="Speel scène opnieuw (R)" aria-label="Speel scène opnieuw" hidden>↻ Replay</button>
     </div>
     <section id="incentiveSlide" aria-label="TV-incentive"></section>
@@ -852,7 +853,17 @@
     const decemberRoster=decemberData.sellers(adminConfig.verkopers,verkopers);
     const decemberSlide=document.getElementById('decemberSlide');
     const decemberReplay=document.getElementById('decemberReplay');
-    let decemberArchive=null, decemberUnavailable=false, decemberDoorState='';
+    const decemberOpen=document.getElementById('decemberOpen');
+    const decemberOpenKey='diestroyers.december.openedDates';
+    let decemberArchive=null, decemberUnavailable=false, decemberDoorState='', decemberPreviewOpened=false;
+    let decemberOpenedDates=readDecemberOpenedDates();
+
+    function readDecemberOpenedDates(){
+      try {
+        const dates=JSON.parse(localStorage.getItem(decemberOpenKey));
+        return Array.isArray(dates)?dates:[];
+      } catch {return [];}
+    }
     const rawDistrictRows = Array.isArray(window.DIESTROYERS_DISTRICT) ? window.DIESTROYERS_DISTRICT : [];
     const npsData = window.DIESTROYERS_NPS || {};
     const avvData = window.DIESTROYERS_AVV || {};
@@ -1716,16 +1727,41 @@
     let playing=false;
     let slideTimer=null;
     function totalSlides(){return decemberStart+(decemberEnabled?3:0);}
-    function renderDecemberSlide() {
-      const state=decemberData.snapshot(decemberRule,decemberRoster,decemberArchive,{preview:decemberPreview});
-      decemberDoorState=[state.today?.date,state.pending?.date,state.ended].join('|');
+    function currentDecemberState(){
+      return decemberData.snapshot(decemberRule,decemberRoster,decemberArchive,
+        {preview:decemberPreview,previewOpened:decemberPreviewOpened,openedDates:decemberOpenedDates});
+    }
+    function decemberStateKey(state){
+      return [state.current?.date,state.today?.date,state.pending?.date,state.ended].join('|');
+    }
+    function renderDecemberSlide(state=currentDecemberState()) {
+      decemberDoorState=decemberStateKey(state);
+      decemberOpen.hidden=currentSlide!==decemberStart||!state.pending;
       decemberRenderer.render(decemberSlide,currentSlide-decemberStart,state,decemberRule,decemberUnavailable);
     }
     function refreshDecemberDoor(){
       if(decemberSlide.hidden||decemberPreview) return;
-      const state=decemberData.snapshot(decemberRule,decemberRoster,decemberArchive);
-      if([state.today?.date,state.pending?.date,state.ended].join('|')!==decemberDoorState)renderDecemberSlide();
+      const state=currentDecemberState();
+      if(decemberStateKey(state)!==decemberDoorState) renderDecemberSlide(state);
     }
+    function openDecember(){
+      if(decemberOpen.hidden) return;
+      const day=currentDecemberState().pending;
+      if(!day) return;
+      if(decemberPreview) decemberPreviewOpened=true;
+      else {
+        decemberOpenedDates=[...new Set([...readDecemberOpenedDates(),...decemberOpenedDates,day.date])];
+        try {localStorage.setItem(decemberOpenKey,JSON.stringify(decemberOpenedDates));} catch {}
+      }
+      renderDecemberSlide();
+      decemberReplay.focus();
+      restartAutoplayTimer();
+    }
+    window.addEventListener('storage',event=>{
+      if(event.key!==decemberOpenKey) return;
+      decemberOpenedDates=readDecemberOpenedDates();
+      refreshDecemberDoor();
+    });
     function replayDecember(){
       if(decemberSlide.hidden) return;
       decemberRenderer.replay(decemberSlide);
@@ -1767,6 +1803,7 @@
       incentiveRenderer?.stop();
       decemberSlide.hidden=true;
       decemberReplay.hidden=true;
+      decemberOpen.hidden=true;
       const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode','incentiveMode','decemberMode');
       if(decemberEnabled&&currentSlide>=decemberStart){
         clearModes();
@@ -1815,9 +1852,10 @@
     document.getElementById('prevSlide').addEventListener('click',()=>{prevSlide();restartAutoplayTimer();});
     document.getElementById('playPause').addEventListener('click',()=>{setPlaying(!playing);});
     decemberReplay.addEventListener('click',replayDecember);
+    decemberOpen.addEventListener('click',openDecember);
     document.addEventListener('keydown',function(e){
       const k=e.key;
-      if(e.target===decemberReplay&&(k===' '||k==='Enter')) return;
+      if([decemberReplay,decemberOpen].includes(e.target)&&(k===' '||k==='Enter')) return;
       if(k.toLowerCase()==='r'&&!decemberSlide.hidden){e.preventDefault();replayDecember();return;}
       if(k==='ArrowRight'||k==='PageDown'){e.preventDefault();nextSlide();restartAutoplayTimer();}
       else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();prevSlide();restartAutoplayTimer();}

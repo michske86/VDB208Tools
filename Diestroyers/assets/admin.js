@@ -359,8 +359,25 @@
   function renderDecemberIncentive(){
     const tools=window.DIESTROYERS_DECEMBER;
     const rule=state.decemberIncentive ||= tools.defaults();
-    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate',decemberReveal:'revealTime',decemberWall:'wallTarget'};
-    const update=()=>{$('decemberStatus').textContent=tools.issues(rule).join(' ');};
+    delete rule.revealTime;
+    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate',decemberWall:'wallTarget'};
+    const button=$('decemberOpenAll');
+    let stagedDate;
+    const update=()=>{
+      const issues=tools.issues(rule);
+      const result=issues.length?null:tools.snapshot(rule,[],null);
+      button.disabled=!(rule.active && result?.pending);
+      $('decemberStatus').textContent=issues.join(' ') ||
+        (stagedDate && result?.today?.date===stagedDate ? 'Klik op Wijzigingen opslaan om het deurtje op alle schermen te openen.' :
+         result?.today ? 'Het deurtje van vandaag is geopend in deze configuratie.' : '');
+    };
+    button.onclick=()=>{
+      const day=tools.snapshot(rule,[],null).pending;
+      if(!rule.active || !day) return;
+      stagedDate=day.date;
+      rule.openedDates=[...(Array.isArray(rule.openedDates)?rule.openedDates:[]),stagedDate];
+      update();
+    };
     Object.entries(fields).forEach(([id,key])=>{
       const input=$(id);
       if(input.type==='checkbox') input.checked=rule[key]===true;

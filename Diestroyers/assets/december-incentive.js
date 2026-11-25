@@ -11,7 +11,6 @@
   });
   const longDate = new Intl.DateTimeFormat('nl-BE', {timeZone: 'UTC', day: 'numeric', month: 'long'});
   const decemberDate = /^\d{4}-12-(0[1-9]|[12]\d|3[01])$/;
-  const timeOfDay = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
   const previewPoints = [18, 15, 13, 11, 8, 6];
 
   function belgianTime(now = new Date()) {
@@ -21,7 +20,7 @@
 
   function defaults(now) {
     const year = belgianTime(now).date.slice(0,4);
-    return {active: false, startDate: `${year}-12-01`, endDate: `${year}-12-24`, revealTime: '08:45', wallTarget: 12};
+    return {active: false, startDate: `${year}-12-01`, endDate: `${year}-12-30`, openedDates: [], wallTarget: 12};
   }
 
   function issues(rule) {
@@ -30,7 +29,6 @@
       (!decemberDate.test(rule.startDate) || !decemberDate.test(rule.endDate) ||
         rule.startDate.slice(0,4) !== rule.endDate.slice(0,4) || rule.startDate > rule.endDate)
         && 'Kies een start- en einddatum in dezelfde decembermaand.',
-      !timeOfDay.test(rule.revealTime) && 'Kies een geldig uur voor het openen van de deurtjes.',
       (!Number.isInteger(rule.wallTarget) || rule.wallTarget < 1 || rule.wallTarget > 500)
         && 'Vul een veilige vlieghoogte tussen 1 en 500 cadeaus in.'
     ].filter(Boolean);
@@ -50,12 +48,17 @@
     return bag[day % bag.length];
   }
 
+  function isScoringDate(date) {
+    return !date.endsWith('-12-25') && (date === '2026-12-20' ||
+      new Date(date + 'T12:00:00Z').getUTCDay() !== 0);
+  }
+
   function doors(rule) {
     const d = new Date(rule.startDate + 'T12:00:00Z');
     const days = [];
     while (d.toISOString().slice(0,10) <= rule.endDate) {
       const date = d.toISOString().slice(0,10);
-      days.push({date, day: Number(date.slice(-2)), kpi:kpiFor(date)});
+      days.push({date, day: Number(date.slice(-2)), eligible:isScoringDate(date), kpi:kpiFor(date)});
       d.setUTCDate(d.getUTCDate()+1);
     }
     return days;
@@ -75,15 +78,19 @@
   function snapshot(rule, roster, archive, options = {}) {
     const preview = options.preview === true;
     const calendar = doors(rule);
-    const sample = calendar[Math.min(9,calendar.length-1)].date;
-    const now = preview ? {date:sample,time:'12:00'} : belgianTime(options.now);
-    const open = day => day.date < now.date || day.date === now.date && now.time >= (preview ? '00:00' : rule.revealTime);
-    const revealed = calendar.filter(open);
-    const today = revealed.at(-1);
-    const pending = calendar.find(day => day.date === now.date && !open(day));
+    const eligible = calendar.filter(day => day.eligible);
+    const sample = eligible.find(day => day.day >= 10)?.date ?? eligible.at(-1)?.date ?? rule.startDate;
+    const now = preview ? {date:sample} : belgianTime(options.now);
+    const dates = new Set([rule.openedDates,options.openedDates].flatMap(value=>Array.isArray(value)?value:[]));
+    const open = day => day.eligible && day.date <= now.date &&
+      (preview ? day.date < sample || options.previewOpened === true : dates.has(day.date));
+    const current = calendar.find(day => day.date === now.date);
+    const today = current && open(current) ? current : undefined;
+    const pending = current?.eligible && !today ? current : undefined;
+    const elapsed = eligible.filter(day=>day.date <= now.date);
     const totals = new Map(roster.map(row => [row.id,{...row,gifts:0,latestGifts:0}]));
     const days = archive?.version === 1 ? archive.days || {} : {};
-    const counted = revealed.filter(day => Array.isArray(days[day.date]));
+    const counted = elapsed.filter(day => Array.isArray(days[day.date]));
     const gaps = new Set(Array.isArray(archive?.gaps) ? archive.gaps : []);
     for (const day of counted) {
       for (const record of days[day.date]) {
@@ -101,9 +108,9 @@
       row.latestGifts = (i % 3) + 1;
     });
     const ranking = [...totals.values()].sort((a,b) => b.gifts - a.gifts || a.name.localeCompare(b.name,'nl'));
-    return {calendar: calendar.map(day=>({...day,open:open(day)})), today, pending, ranking,
+    return {calendar: calendar.map(day=>({...day,open:open(day)})), today, pending, current, ranking,
       preview, latestDate: counted.at(-1)?.date, reportedDays: counted.length,
-      missingDays: revealed.filter(day=>gaps.has(day.date)&&!Array.isArray(days[day.date])).length,
+      missingDays: elapsed.filter(day=>gaps.has(day.date)&&!Array.isArray(days[day.date])).length,
       wallTarget: rule.wallTarget, ended: now.date > rule.endDate};
   }
 
