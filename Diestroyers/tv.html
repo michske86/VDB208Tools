@@ -63,7 +63,7 @@
     .rankSilver .valuePill{border-color:rgba(217,226,239,.95);box-shadow:0 0 0 2px rgba(217,226,239,.18),0 0 16px rgba(217,226,239,.25);}
     .rankBronze .valuePill{border-color:rgba(208,138,75,.95);box-shadow:0 0 0 2px rgba(208,138,75,.20),0 0 16px rgba(208,138,75,.25);}
     .statusOk{color:#baffc9}.statusClose{color:#ffe484}.statusBad{color:#ffb0b0}
-    .foot{position:absolute;right:34px;bottom:10px;color:#777;text-transform:uppercase;letter-spacing:.08em;font-weight:800;font-size:14px;z-index:5;}
+    .foot{position:absolute;right:34px;bottom:10px;color:#a9a4a6;text-transform:uppercase;letter-spacing:.08em;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;z-index:5;}
     .empty{color:#aaa;font-size:24px;font-weight:800;text-transform:uppercase;}
 
     #overviewContent{position:absolute;inset:28px;transition:transform .65s cubic-bezier(.22,.9,.24,1);z-index:2;}
@@ -782,7 +782,7 @@
       <button id="nextSlide" title="Volgende">NEXT</button>
     </div>
     <section id="incentiveSlide" aria-label="TV-incentive"></section>
-    <div class="foot" id="periodLabel"></div>
+    <div class="foot" id="updateLabel">Laatste update: <time id="updateTime">onbekend</time></div>
   </div>
 
   <div class="tvExportOverlay" id="tvExportOverlay"><div class="tvExportCard"><h2>TV PDF Export</h2><p id="tvExportStatus">De eerste vijf slides worden voorbereid.</p><button id="tvExportRetry" type="button">Download opnieuw</button></div></div>
@@ -931,7 +931,16 @@
       document.getElementById('hqSubtitle').textContent=
       `Gisteren deden we € ${moneyFmt.format(n(salesExtra.omzetGisteren))}, dankzij een concretisatie van ${pctDisplayValue(salesExtra.concretisatieGisteren)} op ${moneyFmt.format(n(salesExtra.klantenGisteren))} klanten. Dat brengt ons deze maand op ${yoy>=0?'+':''}${pctFmt.format(yoy)}% ten opzichte van vorig jaar.`;
     }
-    document.getElementById('periodLabel').textContent = 'Periode ' + period;
+    const importStatus = window.DIESTROYERS_IMPORT_STATUS;
+    const checkedAt = importStatus?.valid === true
+      ? String(importStatus.checkedAt ?? '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/)
+      : null;
+    if (checkedAt) {
+      const [,year,month,day,hour,minute,second] = checkedAt;
+      const time = document.getElementById('updateTime');
+      time.dateTime = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+      time.textContent = `${day}/${month}/${year} · ${hour}:${minute}`;
+    }
     function isActieveVerkoper(row){
       const id = s(row.PersoneelsNr);
       const naam = s(row.Naam);
@@ -1816,13 +1825,13 @@
 
     const stage = document.getElementById('stage');
     const playbackControls = stage.querySelector('.tvControls');
-    const periodLabel = document.getElementById('periodLabel');
+    const updateLabel = document.getElementById('updateLabel');
     const touchViewport = matchMedia('(pointer: coarse) and (max-width: 1366px)');
     function fit(){
       const touch = touchViewport.matches && !tvParams.has('export');
       document.body.toggleAttribute('data-tv-touch', touch);
       if (touch && playbackControls.parentElement === stage) document.body.append(playbackControls);
-      if (!touch && playbackControls.parentElement !== stage) periodLabel.before(playbackControls);
+      if (!touch && playbackControls.parentElement !== stage) updateLabel.before(playbackControls);
       const controlsSpace = touch ? (innerWidth > innerHeight ? 52 : 100) : 0;
       const scale = Math.min(innerWidth / 1920, Math.max(1, innerHeight - controlsSpace) / 1080);
       stage.style.transform = `scale(${scale})`;
