@@ -311,7 +311,7 @@
 
   function incentiveIssues(){
     const tools=window.DIESTROYERS_TV_INCENTIVES;
-    return state.tvIncentives.flatMap((entry,index)=>{
+    const monthlyIssues=state.tvIncentives.flatMap((entry,index)=>{
       const label=entry.name?.trim()||`Incentive ${index+1}`;
       const dateIssue=tools.dateError(entry);
       return [
@@ -320,9 +320,11 @@
         dateIssue&&`${label}: ${dateIssue}`
       ].filter(Boolean);
     });
+    return [...monthlyIssues,...window.DIESTROYERS_DECEMBER.issues(state.decemberIncentive)];
   }
 
   function renderIncentives(){
+    renderDecemberIncentive();
     const tools=window.DIESTROYERS_TV_INCENTIVES;
     const months=tools.monthlyCounts(window.DIESTROYERS_RESULTATEN||[],window.DIESTROYERS_HISTORIEK_MAAND||[],state.shop);
     const report=[...months.keys()].sort().at(-1),table=$("tvIncentiveTable");
@@ -352,6 +354,23 @@
       row.querySelector('[data-remove]').onclick=()=>{state.tvIncentives.splice(index,1);renderIncentives();};
       update();
     });
+  }
+
+  function renderDecemberIncentive(){
+    const tools=window.DIESTROYERS_DECEMBER;
+    const rule=state.decemberIncentive ||= tools.defaults();
+    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate',decemberReveal:'revealTime',decemberWall:'wallTarget'};
+    const update=()=>{$('decemberStatus').textContent=tools.issues(rule).join(' ');};
+    Object.entries(fields).forEach(([id,key])=>{
+      const input=$(id);
+      if(input.type==='checkbox') input.checked=rule[key]===true;
+      else input.value=rule[key]??'';
+      input.oninput=()=>{
+        rule[key]=input.type==='checkbox'?input.checked:input.type==='number'?input.valueAsNumber:input.value;
+        update();
+      };
+    });
+    update();
   }
 
   function addIncentive(){

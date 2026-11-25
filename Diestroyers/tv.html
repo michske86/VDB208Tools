@@ -630,6 +630,9 @@
   <link rel="stylesheet" href="assets/incentive-tv.css">
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/incentive-tv.js"></script>
+  <link rel="stylesheet" href="assets/december-tv.css?v=1">
+  <script src="assets/december-incentive.js?v=1"></script>
+  <script src="assets/december-tv.js?v=1"></script>
 </head>
 <body>
   <div id="stage">
@@ -780,8 +783,10 @@
       <button id="prevSlide" title="Vorige">PREV</button>
       <button id="playPause" title="Play/Pause">PLAY</button>
       <button id="nextSlide" title="Volgende">NEXT</button>
+      <button id="decemberReplay" title="Speel scène opnieuw (R)" aria-label="Speel scène opnieuw" hidden>↻ Replay</button>
     </div>
     <section id="incentiveSlide" aria-label="TV-incentive"></section>
+    <section id="decemberSlide" aria-label="Incentive december" hidden></section>
     <div class="foot" id="updateLabel">Laatste update: <time id="updateTime">onbekend</time></div>
   </div>
 
@@ -836,6 +841,18 @@
       ? adminConfig.tvIncentives.filter(item=>item?.active===true&&incentiveData.valid(item)) : [];
     const incentiveMonths=tvIncentives.length
       ? incentiveData.monthlyCounts(data,window.DIESTROYERS_HISTORIEK_MAAND||[],adminConfig.shop) : new Map();
+    const decemberData=window.DIESTROYERS_DECEMBER;
+    const decemberRenderer=window.DIESTROYERS_DECEMBER_TV;
+    const decemberPreview=tvParams.has('decemberPreview');
+    const configuredDecember=adminConfig.decemberIncentive;
+    const decemberRule=configuredDecember&&!decemberData.issues(configuredDecember).length
+      ? configuredDecember : decemberData.defaults();
+    const decemberEnabled=Boolean(decemberRenderer&&(decemberPreview||decemberRule.active===true));
+    const decemberStart=13+carouselImages.length+(decemberPreview?0:tvIncentives.length);
+    const decemberRoster=decemberData.sellers(adminConfig.verkopers,verkopers);
+    const decemberSlide=document.getElementById('decemberSlide');
+    const decemberReplay=document.getElementById('decemberReplay');
+    let decemberArchive=null, decemberUnavailable=false, decemberDoorState='';
     const rawDistrictRows = Array.isArray(window.DIESTROYERS_DISTRICT) ? window.DIESTROYERS_DISTRICT : [];
     const npsData = window.DIESTROYERS_NPS || {};
     const avvData = window.DIESTROYERS_AVV || {};
@@ -1698,7 +1715,22 @@
     let currentSlide=0;
     let playing=false;
     let slideTimer=null;
-    function totalSlides(){return 13 + carouselImages.length + tvIncentives.length;}
+    function totalSlides(){return decemberStart+(decemberEnabled?3:0);}
+    function renderDecemberSlide() {
+      const state=decemberData.snapshot(decemberRule,decemberRoster,decemberArchive,{preview:decemberPreview});
+      decemberDoorState=[state.today?.date,state.pending?.date,state.ended].join('|');
+      decemberRenderer.render(decemberSlide,currentSlide-decemberStart,state,decemberRule,decemberUnavailable);
+    }
+    function refreshDecemberDoor(){
+      if(decemberSlide.hidden||decemberPreview) return;
+      const state=decemberData.snapshot(decemberRule,decemberRoster,decemberArchive);
+      if([state.today?.date,state.pending?.date,state.ended].join('|')!==decemberDoorState)renderDecemberSlide();
+    }
+    function replayDecember(){
+      if(decemberSlide.hidden) return;
+      decemberRenderer.replay(decemberSlide);
+      restartAutoplayTimer();
+    }
     function imagePath(fileName){
       const f=s(fileName);
       if(!f) return '';
@@ -1733,7 +1765,17 @@
       currentSlide=((idx%total)+total)%total;
       const stage=document.getElementById('stage');
       incentiveRenderer?.stop();
-      const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode','incentiveMode');
+      decemberSlide.hidden=true;
+      decemberReplay.hidden=true;
+      const clearModes=()=>stage.classList.remove('detailMode','mediaMode','yesterdayMode','revenueMode','serviceMode','storeServiceMode','kpiServiceMode','districtRankMode','npsMode','avvMode','incentiveMode','decemberMode');
+      if(decemberEnabled&&currentSlide>=decemberStart){
+        clearModes();
+        decemberSlide.hidden=false;
+        decemberReplay.hidden=false;
+        stage.classList.add('decemberMode');
+        renderDecemberSlide();
+        return;
+      }
       if(currentSlide===0){renderYesterdaySlide();clearModes();stage.classList.add('yesterdayMode');return;}
       if(currentSlide===1){renderRevenueSlide();clearModes();stage.classList.add('revenueMode');return;}
       if(currentSlide===2){renderServiceSlide();clearModes();stage.classList.add('serviceMode');return;}
@@ -1772,8 +1814,11 @@
     document.getElementById('nextSlide').addEventListener('click',()=>{nextSlide();restartAutoplayTimer();});
     document.getElementById('prevSlide').addEventListener('click',()=>{prevSlide();restartAutoplayTimer();});
     document.getElementById('playPause').addEventListener('click',()=>{setPlaying(!playing);});
+    decemberReplay.addEventListener('click',replayDecember);
     document.addEventListener('keydown',function(e){
       const k=e.key;
+      if(e.target===decemberReplay&&(k===' '||k==='Enter')) return;
+      if(k.toLowerCase()==='r'&&!decemberSlide.hidden){e.preventDefault();replayDecember();return;}
       if(k==='ArrowRight'||k==='PageDown'){e.preventDefault();nextSlide();restartAutoplayTimer();}
       else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();prevSlide();restartAutoplayTimer();}
       else if(k===' '||k==='Enter'){e.preventDefault();setPlaying(!playing);}
@@ -1866,6 +1911,20 @@
       safeTvStart('eerste slide-herstel',()=>showSlide(0));
     }
     setPlaying(!tvParams.has('export')); setInterval(renderInc,7000); setInterval(renderAgenda,5000);
+    if(decemberPreview){
+      setPlaying(false);
+      showSlide(decemberStart);
+    }else if(decemberEnabled){
+      fetch('assets/december-sales.json?rev='+encodeURIComponent(window.DIESTROYERS_DATA_REVISION||''),{cache:'no-cache'})
+        .then(response=>{if(!response.ok)throw Error('Dagstanden ontbreken');return response.json();})
+        .then(archive=>{
+          if(archive.version!==1||!archive.days||typeof archive.days!=='object')throw Error('Dagstanden ongeldig');
+          decemberArchive=archive;
+        })
+        .catch(()=>{decemberUnavailable=true;})
+        .finally(()=>{if(!decemberSlide.hidden)renderDecemberSlide();});
+      setInterval(refreshDecemberDoor,20000);
+    }
     document.getElementById('tvExportRetry')?.addEventListener('click',startTvPdfExport);
     // De tv houdt de huidige dia en afspeelstatus bij een data-update.
     const refreshKey = 'diestroyers-tv-data-refresh';

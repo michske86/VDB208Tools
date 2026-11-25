@@ -138,6 +138,17 @@
       <p>Gebruik volledige kalendermaanden. Om november later te tonen, laat je de oorspronkelijke novemberdatums staan en zet je de incentive actief.</p>
       <div class="admin-actions"><button class="admin-btn secondary" type="button" id="addTvIncentive">Incentive toevoegen</button></div>
       <div class="admin-scroll"><table class="admin-table" id="tvIncentiveTable"></table></div>
+      <h2>Incentive december</h2>
+      <div class="admin-grid">
+        <div class="admin-field"><label for="decemberActive"><input type="checkbox" id="decemberActive"> Actief op TV</label></div>
+        <div class="admin-field"><label for="decemberStart">Startdatum</label><input type="date" id="decemberStart"></div>
+        <div class="admin-field"><label for="decemberEnd">Einddatum</label><input type="date" id="decemberEnd"></div>
+        <div class="admin-field"><label for="decemberReveal">Deurtje opent om (Belgische tijd)</label><input type="time" id="decemberReveal"></div>
+        <div class="admin-field"><label for="decemberWall">Cadeaus om over de muur te komen</label><input type="number" id="decemberWall" min="1" max="500" step="1"></div>
+      </div>
+      <p>De kerstslides volgen de carrousel. De kalender loot tussen Life, Insurance, Abonnementen, DSP, SPG en SRP. Elk verkocht stuk telt als één cadeau.</p>
+      <div class="admin-actions"><a class="admin-btn secondary" href="tv.html?decemberPreview=1" target="_blank" rel="noopener">Bekijk voorbeeld met testcijfers</a></div>
+      <p id="decemberStatus" role="status"></p>
     </div>
 
     <div id="validatie" class="admin-section">
@@ -169,6 +180,7 @@
 <script src="assets/components.js"></script>
 <script src="assets/navigation.js"></script>
 <script src="assets/tv-incentives-data.js"></script>
-<script src="assets/admin.js?v=4"></script>
+<script src="assets/december-incentive.js?v=1"></script>
+<script src="assets/admin.js?v=5"></script>
 <script src="assets/nps-ui.js"></script></body>
 </html>

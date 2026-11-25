@@ -1,0 +1,92 @@
+#decemberSlide {
+  --ivory:#fff0d8;
+  --carmine:#d73545;
+  position:absolute; inset:27px 27px 61px; z-index:8; overflow:hidden; isolation:isolate;
+  display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:18px;
+  border:1px solid #65404b; border-radius:20px; padding:27px 34px 17px;
+  background:#0b080e center/cover no-repeat; color:var(--ivory);
+}
+#decemberSlide[hidden], #decemberReplay[hidden] {display:none}
+#stage.decemberMode > :not(#decemberSlide,.tvControls,#updateLabel) {visibility:hidden}
+#decemberSlide[data-scene="calendar"] {background-image:linear-gradient(90deg,#090710a6,#12070ac4),url('december/calendar.webp')}
+#decemberSlide[data-scene="race"] {background-image:linear-gradient(90deg,#070b1b50,transparent 75%),url('december/race.webp')}
+#decemberSlide[data-scene="garage"] {background-image:linear-gradient(#0c080c69,#1109105c),url('december/garage.webp')}
+
+.dec-heading {z-index:2;display:flex;align-items:start;justify-content:space-between;gap:24px}
+.dec-heading > div {width:max-content;max-width:100%;padding:9px 44px 10px 27px;background:linear-gradient(100deg,#7c101e 5%,#2d121c 80%,transparent);border-left:6px solid #e54d5a}
+.dec-heading span,.dec-meta,.dec-preview {font-size:22px;text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+.dec-heading h2 {margin:3px 0 0;font-size:67px;font-weight:900;line-height:.93;text-transform:uppercase;text-shadow:2px 4px #23040c}
+.dec-preview {background:#23151d;border:1px solid #c28c71;padding:7px 14px}
+.dec-stage {min-height:0;position:relative;z-index:1}
+.dec-meta {z-index:1;justify-self:start;margin:0;background:#120b14dd;padding:5px 13px;border-left:2px solid #a53444;letter-spacing:.055em}
+#decemberReplay {padding-inline:12px}
+
+.dec-calendar {height:100%;display:grid;gap:27px;grid-template-columns:minmax(0,1.58fr) minmax(0,1fr)}
+.dec-doors {margin:0;padding:12px;display:grid;min-height:0;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;list-style:none;background:#130a13ba;border:1px solid #6d3f4c;box-shadow:0 15px 55px #0009}
+.dec-door {position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;background:linear-gradient(140deg,#2f202a,#120e17);border:1px solid #78535b;box-shadow:inset 0 0 0 4px #08070b6e;color:#dfc9b7}
+.dec-door::after {content:'';position:absolute;right:10px;top:50%;width:8px;height:8px;border-radius:50%;background:#b08c77;box-shadow:0 1px 3px #000}
+.dec-door span {font-size:clamp(33px,3vw,59px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.dec-door small {font-size:21px;font-weight:800}
+.dec-door.was-open {border-color:#80444e;background:linear-gradient(140deg,#42212c,#1a111b)}
+.dec-door.is-open {border-color:#f09179;background:radial-gradient(ellipse at center,#931f37,#370e1c 76%);box-shadow:inset 0 0 28px #ee454e80}
+.dec-reveal {position:relative;isolation:isolate;align-self:center;display:grid;gap:13px;overflow:hidden;min-height:320px;padding:40px 30px;align-content:center;border:2px solid #c9686b;background:linear-gradient(130deg,#39101c,#18101b 65%);box-shadow:0 18px 70px #07050b}
+.dec-reveal-beam {position:absolute;inset:-35%;z-index:-1;background:radial-gradient(ellipse at 10% 40%,#cf34455c,transparent 56%)}
+.dec-reveal span,.dec-reveal small {font-size:29px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.dec-reveal strong {font-size:clamp(60px,5.1vw,100px);line-height:.94;overflow-wrap:anywhere;text-transform:uppercase;text-shadow:3px 5px #080609}
+
+.dec-race {position:relative;height:100%;margin:24px 10px 16px 0}
+.dec-racer {position:absolute;top:var(--lane);left:var(--track);width:296px;translate:0 -50%;z-index:2}
+.dec-racer-scene {position:relative;margin-top:7px}
+.dec-racer .dec-sled {transform:scale(.86);transform-origin:48% 75%}
+.dec-racer-scene::before {content:'';position:absolute;right:90%;top:66%;width:210px;height:10px;transform:rotate(-8deg);background:linear-gradient(90deg,transparent,#e2d5eb75);border-radius:50%;pointer-events:none}
+.dec-racer.near-wall .dec-racer-scene::before {background:linear-gradient(90deg,transparent,#e6445e99)}
+.dec-name {position:absolute;right:100%;bottom:11px;white-space:nowrap;display:flex;align-items:center;gap:11px;padding:2px 10px;background:#140e1be8;border-left:3px solid #ae4456;font-size:31px;line-height:1.1;text-transform:uppercase;font-weight:900}
+.dec-name b {font-size:36px;color:#ffac97;font-variant-numeric:tabular-nums}
+.dec-wall-flare {position:absolute;right:-2%;bottom:0;width:40%;height:48%;opacity:0;background:radial-gradient(ellipse,#fccdd859,transparent 58%);pointer-events:none}
+
+.dec-garage {height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:14px}
+.dec-garage-card {position:relative;display:grid;align-items:center;grid-template-columns:minmax(0,1fr) 330px;min-height:0;overflow:hidden;padding:10px 24px 10px 29px;border:1px solid #895261;border-left:4px solid #b13d50;background:linear-gradient(125deg,#130b15ee,#2e1a28a9)}
+.dec-garage-card::after {content:'';position:absolute;inset:0;pointer-events:none;opacity:.18;background:conic-gradient(from 156deg at 75% 0,transparent 0deg,#edb9a4aa 14deg,#edb9a447 34deg,transparent 53deg)}
+.dec-garage-info {z-index:1;min-width:0}
+.dec-garage-info h3 {margin:0 0 1px;font-size:36px;font-weight:900;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dec-garage-info strong {display:block;font-size:80px;line-height:.93;font-variant-numeric:tabular-nums;color:#ffc29e}
+.dec-garage-info small {font-size:22px;font-weight:700}
+.dec-garage-card .dec-sled {justify-self:center;transform:scale(1.1);transform-origin:50% 75%}
+.dec-sled {position:relative;flex:none;width:278px;height:112px;isolation:isolate}
+.dec-sled > img {position:absolute;z-index:2;inset:0;width:100%;height:100%;object-fit:contain}
+.dec-load {position:absolute;inset:0;z-index:1}
+.dec-load i {position:absolute;left:var(--x);bottom:var(--y);width:var(--box);height:var(--box);background:url('december/gift.webp') center/contain no-repeat;filter:drop-shadow(1px 2px 1px #000)}
+.dec-load i:nth-child(3n+2) {filter:hue-rotate(28deg) drop-shadow(1px 2px 1px #000)}
+.dec-load i:nth-child(3n+3) {filter:saturate(.55) brightness(1.24) drop-shadow(1px 2px 1px #000)}
+.dec-snow {position:absolute;inset:-65px 0 0;pointer-events:none;z-index:0;opacity:.23;background-image:radial-gradient(circle,#ffe9e0 1px,transparent 1.9px),radial-gradient(circle,#f1c9d1 1px,transparent 2px);background-size:79px 83px,145px 131px;background-position:17px 23px,42px 17px}
+
+@media (prefers-reduced-motion:no-preference) {
+  body:not([data-tv-export]) .dec-snow {animation:decSnow 20s linear infinite}
+  body:not([data-tv-export]) .dec-reveal-beam {animation:decDoorLight 5.3s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-race:has(.near-wall) .dec-wall-flare {animation:decBreath 6s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-racer-scene {animation:decHover 3s ease-in-out infinite;animation-delay:calc(-.35s * var(--rank))}
+  body:not([data-tv-export]) .dec-door.is-open {animation:decDoorGlow 4s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-garage-card::after {animation:decLight 8s linear infinite}
+  body:not([data-tv-export]) .dec-garage-card:nth-child(even)::after {animation-delay:-3s}
+  body:not([data-tv-export]) .dec-replaying .dec-door.is-open span,
+  body:not([data-tv-export]) .dec-replaying .dec-door.is-open small {animation:decKnock .72s ease-out both}
+  body:not([data-tv-export]) .dec-replaying .dec-door.is-open::before {content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(145deg,#44232c,#1d121b);border:1px solid #9d5b60;transform-origin:left;animation:decDoorOpen .92s cubic-bezier(.22,.8,.28,1) both}
+  body:not([data-tv-export]) .dec-replaying .dec-reveal {animation:decReveal .65s cubic-bezier(.16,.87,.21,1) .55s both}
+  body:not([data-tv-export]) .dec-replaying .dec-racer {animation:decRaceIn 1.4s cubic-bezier(.17,.7,.19,1) both;animation-delay:calc(var(--rank) * 60ms)}
+  body:not([data-tv-export]) .dec-replaying .dec-racer.near-wall {animation-name:decWallRun}
+  body:not([data-tv-export]) .dec-replaying:has(.near-wall) .dec-wall-flare {animation:decFlash .5s ease-out 1.1s both}
+  body:not([data-tv-export]) .dec-replaying .dec-load i {animation:decGiftIn .53s cubic-bezier(.14,.77,.32,1) backwards;animation-delay:calc(110ms + 48ms * var(--gift-index))}
+}
+@keyframes decSnow {to{background-position:96px 106px,187px 148px}}
+@keyframes decHover {50%{transform:translateY(-7px)}}
+@keyframes decDoorGlow {50%{box-shadow:inset 0 0 42px #fb5c608e,0 0 14px #982c48}}
+@keyframes decDoorLight {50%{transform:scale(1.2);opacity:.48}}
+@keyframes decBreath {45%,55%{opacity:.32}}
+@keyframes decLight {0%,30%,34%,69%,100%{opacity:.18} 32%,70%{opacity:.055}}
+@keyframes decKnock {10%,30%,50%{transform:translateX(-5px) rotate(-2deg)} 19%,38%,58%{transform:translateX(4px) rotate(2deg)}}
+@keyframes decDoorOpen {0%,34%{transform:none;opacity:1} 100%{transform:perspective(700px) rotateY(-88deg);opacity:0}}
+@keyframes decReveal {from{opacity:0;transform:translateX(-38px) scale(.985)} to{opacity:1;transform:none}}
+@keyframes decRaceIn {from{opacity:0;transform:translate(-330px,90px) rotate(-5deg)} to{opacity:1;transform:none}}
+@keyframes decWallRun {0%{opacity:0;transform:translate(-360px,24px)} 75%{opacity:1;transform:translate(130px,4px)} 100%{transform:none}}
+@keyframes decFlash {0%,100%{opacity:0} 26%{opacity:.8}}
+@keyframes decGiftIn {from{opacity:0;transform:translate(25px,-60px) rotate(22deg)} to{opacity:1;transform:none}}
