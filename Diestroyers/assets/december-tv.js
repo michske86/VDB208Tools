@@ -58,7 +58,7 @@
     const leaders = best > 0 ? state.ranking.filter(row => row.gifts === best).length : 0;
     const falling = state.ranking.length - leaders;
     const caption = !leaders ? 'Startklaar' : leaders > 1 ?
-      (state.ended?'Gedeelde winst':'Gedeelde leiding') : (state.ended?'Enige overlever':'De koploper ontsnapt');
+      (state.ended?'Gedeelde winst':'Gedeelde leiding') : '';
     const cards = state.ranking.map((row,i)=>{
       const lead = i < leaders;
       const index = lead ? i : i-leaders;
@@ -73,11 +73,13 @@
         <span class="dec-name"><span>${esc(row.name)}</span> <b>${fmt.format(row.gifts)}</b>${delta}</span>
       </article>`;
     }).join('');
+    const fire = leaders && falling ? `<div class="dec-wall-flare" aria-hidden="true" style="--fire-duration:${1000+(falling-1)*180}ms">
+      <img class="dec-mouth-fire" src="${files}hellfire.webp" alt="">
+      ${sparks(32,8,'dec-shard')}
+    </div>` : '';
     return `<div class="dec-race">${cards}
-      <div class="dec-race-caption">${caption}</div>
-      ${leaders&&falling?'<div class="dec-wall-caption">Recht op de muur</div>':''}
-      <div class="dec-wall-flare" aria-hidden="true">${sparks(28,7,'dec-shard')}</div>
-      </div>`;
+      ${caption?`<div class="dec-race-caption">${caption}</div>`:''}
+      ${fire}</div>`;
   }
 
   const panels = [
