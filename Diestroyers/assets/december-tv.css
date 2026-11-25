@@ -25,29 +25,65 @@
 .dec-doors {list-style:none;margin:0;padding:0}
 .dec-door {
   position:absolute;left:var(--door-x);top:var(--door-y);width:9%;height:9%;translate:-50% -50%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;isolation:isolate;
   color:#f6d898;text-shadow:2px 3px 0 #1a100c,0 0 9px #130b07;line-height:1;
 }
 .dec-door span {font:900 italic 58px/.9 Georgia,serif;letter-spacing:-.085em;filter:drop-shadow(0 2px 1px #1c100c)}
+.dec-door span,.dec-door small {position:relative;z-index:1}
 .dec-door small {margin-top:5px;font-weight:800;font-size:19px;color:#ffe9bc}
 .dec-door.is-rest {color:#c3b4a4}
 .dec-door.is-rest small {color:#ead7c3}
 .dec-door.is-rest span {text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:#a15443}
-.dec-door.was-open span {color:#f4c586}
-.dec-door.is-current span,.dec-door.is-open span {color:#fff0b6;text-shadow:0 0 18px #ff6724,2px 3px #351806}
-.dec-door.is-current::before,.dec-door.is-open::before {
-  content:'';position:absolute;inset:-31% -2%;border-radius:48% 51% 10% 12%;
-  outline:2px dashed #ffcea28c;outline-offset:3px;
-  background:radial-gradient(ellipse,#f88e3c45,transparent 72%);mix-blend-mode:screen;pointer-events:none;
+.dec-door.was-open span {color:#e2b989}
+.dec-door.was-open::before,.dec-door.is-open::before {
+  content:'';position:absolute;z-index:-1;inset:-40% 0;border-radius:50% 50% 5% 5% / 35% 35% 5% 5%;
+  border:3px solid #432920;background:radial-gradient(ellipse at 45% 90%,#3c201a,#110c10 62%,#09070a);
+  box-shadow:inset 6px 9px 15px #060507,1px 3px 2px #090508;
 }
-.dec-hatch {display:none;position:absolute;top:50%;left:0;width:100%;height:188.888%;translate:0 -50%;transform-origin:0 50%;z-index:2;pointer-events:none;
+.dec-door.is-current span,.dec-door.is-open span {color:#fff4c5;text-shadow:0 0 22px #ff852f,2px 3px #351806}
+.dec-door.is-current::after,.dec-door.is-open::after {
+  content:'';position:absolute;z-index:-1;inset:-42% -2%;border-radius:48% 51% 9% 9% / 34% 34% 5% 5%;
+  border:2px solid #ffe0a8;box-shadow:inset 0 0 20px #ff963eaa,0 0 11px #ffc174,0 0 30px #f65725cc;
+  background:radial-gradient(ellipse at 47% 75%,#fa863629,transparent 68%);pointer-events:none;
+}
+.dec-door.is-spare {width:5%;height:6%;border-radius:50% 50% 8% 8%;background:#241713}
+.dec-hatch {position:absolute;top:50%;left:0;width:100%;height:188.888%;translate:0 -50%;transform-origin:0 50%;z-index:0;pointer-events:none;
+  transform:perspective(1200px) rotateY(-85deg);filter:brightness(.83) drop-shadow(3px 0 3px #110908);
   clip-path:polygon(0 33%,6% 22%,19% 10%,35% 3%,52% 1%,73% 8%,87% 18%,99% 34%,99% 99%,0 100%);
   background:url('december/locker-wall.webp') var(--leaf-x) var(--leaf-y)/1111.111% 588.235% no-repeat;
 }
-.dec-portal {position:absolute;inset:15% 3% 8% 73%;isolation:isolate}
-.dec-portal-light,.dec-portal-burst {position:absolute;inset:0;pointer-events:none}
-.dec-portal-light {opacity:0;mix-blend-mode:screen;background:radial-gradient(ellipse at 50% 47%,#ffb65e88,transparent 70%),radial-gradient(ellipse at 1% 43%,#ff6d4a9e,transparent 22%)}
-.dec-portal.is-unsealed .dec-portal-light {opacity:1}
+.dec-portal {position:absolute;inset:7% 2.8% 4.6% 73.65%;isolation:isolate;--gate-ink:#fb8b43}
+.dec-portal[data-kpi=insurance],.dec-portal[data-kpi=abo] {--gate-ink:#afd477}
+.dec-portal[data-kpi=life] {--gate-ink:#c2a0ec}
+.dec-portal[data-kpi=spg] {--gate-ink:#9ae5fc}
+.dec-gate,.dec-gate-leaves {position:absolute;inset:0;border-radius:51% 51% 2% 2% / 23% 23% 1% 1%}
+.dec-gate {overflow:hidden;background:#140e14;box-shadow:0 0 21px #100a0b}
+.dec-gate::after {
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 32px 11px #100b12,inset 0 0 8px 3px var(--gate-ink);
+  background:linear-gradient(#100a147a,transparent 41%,transparent 65%,#110b0ee8);
+}
+.dec-gate-art {display:block;width:100%;height:100%;object-fit:cover;object-position:50% 48%}
+.dec-gate-glow {position:absolute;inset:0;mix-blend-mode:screen;pointer-events:none;opacity:.24;
+  background:radial-gradient(ellipse at 48% 61%,var(--gate-ink),transparent 63%)}
+.dec-gate-leaves {overflow:hidden;pointer-events:none;perspective:680px}
+.dec-gate-leaves i {
+  position:absolute;inset:0 50% 0 0;transform-origin:0 50%;opacity:0;
+  background:url('december/locker-wall.webp') 83.48% 60.34% / 849.26% 113.12% no-repeat;
+}
+.dec-gate-leaves i+i {inset:0 0 0 50%;transform-origin:100% 50%;--swing:78deg;background-position:96.83% 60.34%}
+.dec-gate-leaves i:first-child {--swing:-78deg}
+.dec-portal-burst {position:absolute;z-index:2;inset:20% 0 0;pointer-events:none}
+.dec-portal-burst .dec-shard {background:var(--gate-ink)}
+.dec-portal.is-unsealed .dec-reveal {
+  z-index:3;inset:auto 3% 6%;padding:12px 7px 14px;transform:rotate(-1deg);
+  background:#1b1117ec;color:#fff2d8;border:1px solid var(--gate-ink);
+  box-shadow:inset 0 -25px 48px #100810;
+}
+.dec-portal.is-unsealed .dec-reveal strong {font-size:clamp(35px,3.25vw,68px);color:#fff2d7;text-shadow:0 0 17px var(--gate-ink),2px 3px #230d14}
+.dec-portal.is-unsealed .dec-reveal span {color:var(--gate-ink)}
+.dec-portal[data-kpi=abo] .dec-reveal strong {font-size:47px}
+.dec-portal[data-kpi=insurance] .dec-reveal strong {font-size:54px}
 .dec-reveal {
   position:absolute;inset:auto 4% 14%;padding:19px 22px 24px;transform:rotate(-2deg);
   display:grid;gap:8px;text-align:center;color:#312027;
@@ -125,12 +161,17 @@
 @media (prefers-reduced-motion:no-preference) {
   body:not([data-tv-export]) .dec-flake {animation:decFlake 8s linear infinite;animation-delay:calc(-12 * var(--delay))}
   body:not([data-tv-export]) .dec-racer-scene {animation:decHover 3.8s ease-in-out infinite;animation-delay:calc(-5 * var(--flight-delay))}
-  body:not([data-tv-export]) .dec-door.is-current::before {animation:decEmber 3.7s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-replaying .dec-hatch {display:block;animation:decHatch 1.2s ease-in-out both}
+  body:not([data-tv-export]) .dec-door.is-current::after,
+  body:not([data-tv-export]) .dec-door.is-open::after {animation:decEmber 3.7s ease-in-out infinite}
+  body:not([data-tv-export]) .dec-portal .dec-gate-art {animation:decGateDrift 11s ease-in-out infinite alternate}
+  body:not([data-tv-export]) .dec-portal .dec-gate-glow {animation:decGateGlow 5s ease-in-out infinite alternate}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-gate-leaves i {animation:decGateSwing 1.85s cubic-bezier(.27,.74,.2,1) both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-gate {animation:decGateIgnite 1.55s .35s both}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-reveal {animation:decShowKpi .8s cubic-bezier(.16,.82,.2,1) 1.46s both}
+  body:not([data-tv-export]) .dec-replaying .dec-door.is-open .dec-hatch {animation:decHatch 1.2s ease-in-out both}
   body:not([data-tv-export]) .dec-replaying .dec-door.is-open span,
   body:not([data-tv-export]) .dec-replaying .dec-door.is-open small {animation:decUnlock 1s ease-out both}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-portal-light {animation:decIgnite 1.5s ease-out both}
-  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-shard {animation:decScatter .95s ease-out both;animation-delay:calc(.36s + var(--delay))}
+  body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-shard {animation:decScatter 1s ease-out both;animation-delay:calc(.95s + var(--delay))}
   body:not([data-tv-export]) .dec-replaying .dec-racer.escapes .dec-flight {animation:decEscape 2.6s cubic-bezier(.27,.72,.38,1) both;animation-delay:var(--flight-delay)}
   body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-flight {animation:decDive 3.2s cubic-bezier(.26,.61,.41,1) both;animation-delay:var(--flight-delay)}
   body:not([data-tv-export]) .dec-replaying .dec-racer.doomed .dec-sled {animation:decScorch 250ms var(--fire-hit) both}
@@ -149,11 +190,19 @@
 @keyframes decHatch {
   0%,23%{transform:none;opacity:1}
   30%{transform:rotate(-1deg);opacity:1}
-  76%{transform:perspective(390px) rotateY(-72deg);opacity:1}
-  to{transform:perspective(390px) rotateY(-86deg);opacity:0}
+  76%{transform:perspective(1200px) rotateY(-72deg);opacity:1}
+  to{transform:perspective(1200px) rotateY(-85deg);opacity:1}
 }
 @keyframes decUnlock {0%,39%{opacity:0;transform:scale(.8)} 74%{opacity:1;transform:scale(1.06)} to{transform:none}}
-@keyframes decIgnite {0%,23%{opacity:0} 55%{opacity:1;transform:scale(1.1)} 75%{opacity:.66}}
+@keyframes decGateSwing {
+  0%,28%{opacity:1;transform:none}
+  68%{opacity:.95;transform:rotateY(var(--swing))}
+  to{opacity:0;transform:rotateY(var(--swing))}
+}
+@keyframes decGateIgnite {from{opacity:0;filter:brightness(.5)} 66%{opacity:1;filter:brightness(1.26)} to{opacity:1;filter:none}}
+@keyframes decShowKpi {from{opacity:0;transform:translateY(30px) scale(.92) rotate(-3deg)} to{opacity:1;transform:rotate(-1deg)}}
+@keyframes decGateDrift {to{transform:scale(1.065) translateY(-4px)}}
+@keyframes decGateGlow {to{opacity:.08;transform:scale(1.13)}}
 @keyframes decScatter {0%{opacity:0;transform:scale(.15)} 19%{opacity:1} to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(125deg) scale(.25)}}
 @keyframes decEscape {
   0%{left:7%;top:57%;transform:rotate(-3deg) scale(.72);opacity:0}

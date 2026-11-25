@@ -28,27 +28,44 @@
   const doorColumns = [9.4,20.45,31.5,42.53,53.53,64.59];
   const doorRows = [14.9,33.5,52.3,69.7,87.25];
 
+  const scenes = {
+    life: ['Hij leeft!', 'Een elf wekt een reusachtige peperkoekenman tot leven.'],
+    insurance: ['Santa in nood', 'Een paniekerige kerstman zit op het toilet en grijpt de laatste rol.'],
+    abo: ['Blijf aan de lijn', 'Een bezeten telefoon grijpt een elf met zijn snoeren.'],
+    dsp: ['De rendiergrill', 'Een elf zwaait met een hakmes bij een grill terwijl een rendier geschrokken toekijkt.'],
+    spg: ['Spook in beeld', 'Een grijnzende sneeuwman vangt een geest in een oude tv.'],
+    srp: ['De laatste reparatie', 'Een elf repareert een gehavende speelgoedsoldaat in een vonkende werkplaats.']
+  };
+
   function calendar(state, rule) {
     const all = state.calendar.map(day=>{
       const active = day.date === state.current?.date;
       const css = !day.eligible ? ' is-rest' : active && day.open ? ' is-open' :
         active ? ' is-current' : day.open ? ' was-open' : '';
       const slot = day.day - 1;
-      const x = doorColumns[slot%6], y = doorRows[Math.floor(slot/6)];
-      const leaf = active && day.open ? '<i class="dec-hatch" aria-hidden="true"></i>' : '';
-      return `<li class="dec-door${css}" style="--door-x:${x}%;--door-y:${y}%;--leaf-x:${(x-4.5)/.91}%;--leaf-y:${(y-8.5)/.83}%"${active?' aria-current="date"':''}>
+      const painted = slot < 30;
+      const x = painted ? doorColumns[slot%6] : 70;
+      const y = painted ? doorRows[Math.floor(slot/6)] : 94;
+      const leaf = day.open && painted ? '<i class="dec-hatch" aria-hidden="true"></i>' : '';
+      return `<li class="dec-door${css}${painted?'':' is-spare'}" style="--door-x:${x}%;--door-y:${y}%;--leaf-x:${(x-4.5)/.91}%;--leaf-y:${(y-8.5)/.83}%"${active?' aria-current="date"':''}>
         ${leaf}<span>${day.day}</span>${day.open?`<small>${kpis[day.kpi]}</small>`:!day.eligible?'<small>Rustdag</small>':''}</li>`;
     }).join('');
+    const kpi = state.today?.kpi;
+    const scene = scenes[kpi];
     const current = state.pending ? ['Deurtje '+state.pending.day,'Verzegeld',labelDate(state.pending.date)] :
-      state.today ? ['KPI van de dag',kpis[state.today.kpi],'1 stuk = 1 cadeau'] :
+      scene ? [scene[0],kpis[kpi],'1 stuk = 1 cadeau'] :
       state.ended ? ['Incentive afgelopen','Eindstand','Volgende scène: de kerstsleerace'] :
       state.current ? [labelDate(state.current.date),'Rustdag','De deuren blijven vandaag dicht'] :
       ['Eerste deurtje',labelDate(rule.startDate),'De kalender is nog gesloten'];
     return `<div class="dec-calendar">
       <ol class="dec-doors" aria-label="Adventskalender">${all}</ol>
-      <div class="dec-portal${state.today?' is-unsealed':''}">
-        <div class="dec-portal-light" aria-hidden="true"></div>
-        <div class="dec-portal-burst" aria-hidden="true">${sparks(32,9,'dec-shard')}</div>
+      <div class="dec-portal${scene?' is-unsealed':''}"${scene?` data-kpi="${kpi}"`:''}>
+        ${scene?`<div class="dec-gate">
+          <img class="dec-gate-art" src="${files}gate-${kpi}.webp" alt="${esc(scene[1])}">
+          <div class="dec-gate-glow" aria-hidden="true"></div>
+        </div>
+        <div class="dec-gate-leaves" aria-hidden="true"><i></i><i></i></div>
+        <div class="dec-portal-burst" aria-hidden="true">${sparks(28,8,'dec-shard')}</div>`:''}
         <article class="dec-reveal" aria-live="polite"><span>${current[0]}</span><strong>${current[1]}</strong><small>${current[2]}</small></article>
       </div></div>`;
   }

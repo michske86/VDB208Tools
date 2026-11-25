@@ -630,9 +630,9 @@
   <link rel="stylesheet" href="assets/incentive-tv.css">
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/incentive-tv.js"></script>
-  <link rel="stylesheet" href="assets/december-tv.css?v=4">
-  <script src="assets/december-incentive.js?v=3"></script>
-  <script src="assets/december-tv.js?v=4"></script>
+  <link rel="stylesheet" href="assets/december-tv.css?v=5">
+  <script src="assets/december-incentive.js?v=4"></script>
+  <script src="assets/december-tv.js?v=5"></script>
 </head>
 <body>
   <div id="stage">
@@ -845,6 +845,7 @@
     const decemberData=window.DIESTROYERS_DECEMBER;
     const decemberRenderer=window.DIESTROYERS_DECEMBER_TV;
     const decemberPreview=tvParams.has('decemberPreview');
+    const decemberPreviewDay=Number(tvParams.get('door'));
     const configuredDecember=adminConfig.decemberIncentive;
     const decemberRule=configuredDecember&&!decemberData.issues(configuredDecember).length
       ? configuredDecember : decemberData.defaults();
@@ -1729,7 +1730,7 @@
     function totalSlides(){return decemberStart+(decemberEnabled?decemberRenderer.sceneCount:0);}
     function currentDecemberState(){
       return decemberData.snapshot(decemberRule,decemberRoster,decemberArchive,
-        {preview:decemberPreview,previewOpened:decemberPreviewOpened,openedDates:decemberOpenedDates});
+        {preview:decemberPreview,previewDay:decemberPreviewDay,previewOpened:decemberPreviewOpened,openedDates:decemberOpenedDates});
     }
     function decemberStateKey(state){
       return [state.current?.date,state.today?.date,state.pending?.date,state.ended].join('|');

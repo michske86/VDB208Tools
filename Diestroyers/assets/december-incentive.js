@@ -77,11 +77,12 @@
     const preview = options.preview === true;
     const calendar = doors(rule);
     const eligible = calendar.filter(day => day.eligible);
-    const sample = eligible.find(day => day.day >= 10)?.date ?? eligible.at(-1)?.date ?? rule.startDate;
+    const sample = eligible.find(day => day.day === options.previewDay)?.date ??
+      eligible.find(day => day.day >= 10)?.date ?? eligible.at(-1)?.date ?? rule.startDate;
     const now = preview ? {date:sample} : belgianTime(options.now);
     const dates = new Set([rule.openedDates,options.openedDates].flatMap(value=>Array.isArray(value)?value:[]));
-    const open = day => day.eligible && day.date <= now.date &&
-      (preview ? day.date < sample || options.previewOpened === true : dates.has(day.date));
+    const open = day => day.eligible && (day.date < now.date ||
+      (day.date === now.date && (preview ? options.previewOpened === true : dates.has(day.date))));
     const current = calendar.find(day => day.date === now.date);
     const today = current && open(current) ? current : undefined;
     const pending = current?.eligible && !today ? current : undefined;
