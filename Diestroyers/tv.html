@@ -594,6 +594,13 @@
         transform-origin:left;
         animation:tvSellerLineFill 640ms cubic-bezier(.2,.74,.3,1) 140ms backwards;
       }
+      body:not([data-tv-export]) .kpiServiceMode .kpiMonthPlot i{
+        transform-origin:bottom;
+        animation:tvMonthBarFill 720ms cubic-bezier(.2,.74,.3,1) 140ms backwards;
+      }
+      body:not([data-tv-export]) .kpiServiceMode .kpiMonth:nth-child(n+7) .kpiMonthPlot i{
+        animation-delay:240ms;
+      }
 
       body:not([data-tv-export]) .districtRankMode .districtPodium .serviceBubble{
         animation:tvContentReveal 320ms ease-out 180ms backwards;
@@ -612,6 +619,7 @@
     @keyframes tvDialReveal{from{stroke-dasharray:0 100}}
     @keyframes tvContentReveal{from{opacity:.55}to{opacity:1}}
     @keyframes tvSellerLineFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @keyframes tvMonthBarFill{from{transform:scaleY(0)}to{transform:scaleY(1)}}
     @keyframes tvRevenueSweep{
       from{transform:translateX(0);opacity:0}
       22%{opacity:1}
