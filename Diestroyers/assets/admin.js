@@ -426,8 +426,21 @@
 
 
   const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
+  const tokenKey = "diestroyers.admin.github-token";
   let savedConfig = JSON.stringify(base);
-  let githubToken = "";
+  let githubToken = readGithubToken();
+
+  function readGithubToken(){
+    try{return sessionStorage.getItem(tokenKey)||"";}catch{return "";}
+  }
+
+  function rememberGithubToken(token){
+    githubToken=token;
+    try{
+      if(token) sessionStorage.setItem(tokenKey,token);
+      else sessionStorage.removeItem(tokenKey);
+    }catch{/* Saving still works when browser storage is unavailable. */}
+  }
 
   function requestGithubToken(){
     const dialog=$("githubSaveDialog"),form=dialog.querySelector("form"),field=$("githubSaveToken");
@@ -462,7 +475,7 @@
   function checkGithubResponse(response){
     if(response.ok) return;
     if([401,403,404].includes(response.status)){
-      githubToken="";
+      rememberGithubToken("");
       throw new Error("GitHub weigert toegang. Controleer of je token schrijfrechten heeft voor Contents in VDB208Tools.");
     }
     if(response.status===409||response.status===422) throw new Error("GitHub accepteerde de wijziging niet. Download je wijzigingen als reservekopie en herlaad Admin voordat je opnieuw opslaat.");
@@ -495,7 +508,7 @@
       });
       checkGithubResponse(response);
       savedConfig=snapshot;
-      githubToken=token;
+      rememberGithubToken(token);
       status.innerHTML='<div class="admin-ok">Opgeslagen op GitHub. De TV neemt de wijziging over zodra GitHub Pages de nieuwe configuratie heeft gepubliceerd.</div>';
     }catch(error){
       status.innerHTML='<div class="admin-warning">'+esc(error.message||"Opslaan op GitHub is mislukt.")+'</div>';
