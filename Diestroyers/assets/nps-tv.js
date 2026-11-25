@@ -13,6 +13,10 @@
   const metrics = ['promoters', 'passives', 'detractors'];
   const classNames = ['npsP', 'npsN', 'npsD'];
   const status = (value, target) => !valid(value) ? 'none' : value >= target ? 'ok' : value >= target * .9 ? 'close' : 'bad';
+  const reviewCacheKey = 'diestroyers-tv-reviews-v1';
+  const reviewDate = item => String(item?.dateIso || item?.date || '');
+  let reviewRender = 0;
+  let reviewBackupRequest;
 
   function mix(result) {
     const parts = metrics.map((name, index) => {
@@ -130,16 +134,81 @@
     }
   }
 
+  function recentReviews(items) {
+    return (Array.isArray(items) ? items : [])
+      .filter(item => typeof item?.comment === 'string' && item.comment.trim())
+      .sort((a, b) => reviewDate(b).localeCompare(reviewDate(a)))
+      .slice(0, 6);
+  }
+
+  function cachedReviews() {
+    try {
+      return recentReviews(JSON.parse(localStorage.getItem(reviewCacheKey) || 'null'));
+    } catch {
+      return [];
+    }
+  }
+
+  function saveReviews(reviews) {
+    try {
+      localStorage.setItem(reviewCacheKey, JSON.stringify(reviews));
+    } catch { /* The TV can also use the published backup. */ }
+  }
+
+  function loadReviewBackup() {
+    if (!reviewBackupRequest) {
+      reviewBackupRequest = fetch('assets/nps-reviews-last-good.json', {cache: 'no-cache'})
+        .then(response => response.ok ? response.json() : [])
+        .then(recentReviews)
+        .catch(() => [])
+        .then(reviews => {
+          if (!reviews.length) reviewBackupRequest = undefined;
+          return reviews;
+        });
+    }
+    return reviewBackupRequest;
+  }
+
+  function renderReviews(data) {
+    const renderId = ++reviewRender;
+    const panel = document.getElementById('npsTvComments');
+    const title = document.getElementById('npsTvReviewsTitle');
+    function show(reviews, fallback) {
+      if (title) title.textContent = fallback && reviews.length ? 'Laatste beschikbare reviews' : 'Recente reviews';
+      panel.innerHTML = reviews.length ? reviews.map(review).join('') : '<p>Geen recente commentaren.</p>';
+      requestAnimationFrame(fit);
+    }
+
+    const comments = recentReviews(data.comments);
+    const live = comments.length ? comments : recentReviews(data.details);
+    if (live.length) {
+      saveReviews(live);
+      show(live, false);
+      return;
+    }
+    if (data.control?.Commentaren === 0 || data.control?.Commentaren === '0') {
+      show([], false);
+      return;
+    }
+
+    const cached = cachedReviews();
+    if (cached.length) show(cached, true);
+    else panel.innerHTML = '<p>Reviews laden…</p>';
+    loadReviewBackup().then(backup => {
+      if (renderId !== reviewRender) return;
+      const reviews = backup.length && (!cached.length || reviewDate(backup[0]) > reviewDate(cached[0])) ? backup : cached;
+      if (reviews.length) saveReviews(reviews);
+      show(reviews, true);
+    });
+  }
+
   function render(data, config, period, target) {
     document.getElementById('npsTvPeriod').textContent = period;
     document.getElementById('npsTvStats').innerHTML = storeCard('maand', data.store?.month?.[period] || {}, target) +
       storeCard('YTD', data.store?.ytd?.[period] || {}, target);
     const rows = sellerRows(config, data.sellers || {}, period);
     document.getElementById('npsTvRanking').innerHTML = ranking(rows);
-    const comments = (data.comments || []).slice().sort((a, b) =>
-      String(b.dateIso || b.date).localeCompare(String(a.dateIso || a.date))).slice(0, 6);
-    document.getElementById('npsTvComments').innerHTML = comments.length ? comments.map(review).join('') : '<p>Geen recente commentaren.</p>';
-    requestAnimationFrame(fit);
+    renderReviews(data);
   }
 
   window.DIESTROYERS_TV_NPS = {render, fit};
