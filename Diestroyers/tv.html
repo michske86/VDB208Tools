@@ -630,9 +630,10 @@
   <link rel="stylesheet" href="assets/incentive-tv.css">
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/incentive-tv.js"></script>
-  <link rel="stylesheet" href="assets/december-tv.css?v=5">
+  <link rel="stylesheet" href="assets/december-tv.css?v=6">
   <script src="assets/december-incentive.js?v=4"></script>
-  <script src="assets/december-tv.js?v=5"></script>
+  <script src="assets/december-gate-motion.js?v=1"></script>
+  <script src="assets/december-tv.js?v=6"></script>
 </head>
 <body>
   <div id="stage">
@@ -1802,6 +1803,7 @@
       currentSlide=((idx%total)+total)%total;
       const stage=document.getElementById('stage');
       incentiveRenderer?.stop();
+      decemberRenderer?.stop();
       decemberSlide.hidden=true;
       decemberReplay.hidden=true;
       decemberOpen.hidden=true;

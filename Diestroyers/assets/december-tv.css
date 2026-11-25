@@ -63,6 +63,8 @@
   box-shadow:inset 0 0 32px 11px #100b12,inset 0 0 8px 3px var(--gate-ink);
   background:linear-gradient(#100a147a,transparent 41%,transparent 65%,#110b0ee8);
 }
+.dec-gate-world {position:absolute;inset:0}
+.dec-gate-motion {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .dec-gate-art {display:block;width:100%;height:100%;object-fit:cover;object-position:50% 48%}
 .dec-gate-glow {position:absolute;inset:0;mix-blend-mode:screen;pointer-events:none;opacity:.24;
   background:radial-gradient(ellipse at 48% 61%,var(--gate-ink),transparent 63%)}
@@ -163,7 +165,7 @@
   body:not([data-tv-export]) .dec-racer-scene {animation:decHover 3.8s ease-in-out infinite;animation-delay:calc(-5 * var(--flight-delay))}
   body:not([data-tv-export]) .dec-door.is-current::after,
   body:not([data-tv-export]) .dec-door.is-open::after {animation:decEmber 3.7s ease-in-out infinite}
-  body:not([data-tv-export]) .dec-portal .dec-gate-art {animation:decGateDrift 11s ease-in-out infinite alternate}
+  body:not([data-tv-export]) .dec-portal .dec-gate-world {animation:decGateDrift 11s ease-in-out infinite alternate}
   body:not([data-tv-export]) .dec-portal .dec-gate-glow {animation:decGateGlow 5s ease-in-out infinite alternate}
   body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-gate-leaves i {animation:decGateSwing 1.85s cubic-bezier(.27,.74,.2,1) both}
   body:not([data-tv-export]) .dec-replaying .dec-portal.is-unsealed .dec-gate {animation:decGateIgnite 1.55s .35s both}

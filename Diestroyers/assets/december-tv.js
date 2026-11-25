@@ -4,6 +4,7 @@
   const files = 'assets/december/';
   const fmt = Intl.NumberFormat('nl-BE');
   let replayTimer;
+  let stopGateMotion;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 
   function sled(gifts) {
@@ -61,7 +62,10 @@
       <ol class="dec-doors" aria-label="Adventskalender">${all}</ol>
       <div class="dec-portal${scene?' is-unsealed':''}"${scene?` data-kpi="${kpi}"`:''}>
         ${scene?`<div class="dec-gate">
-          <img class="dec-gate-art" src="${files}gate-${kpi}.webp" alt="${esc(scene[1])}">
+          <div class="dec-gate-world">
+            <img class="dec-gate-art" src="${files}gate-${kpi}.webp" alt="${esc(scene[1])}">
+            <canvas class="dec-gate-motion" width="440" height="880" aria-hidden="true"></canvas>
+          </div>
           <div class="dec-gate-glow" aria-hidden="true"></div>
         </div>
         <div class="dec-gate-leaves" aria-hidden="true"><i></i><i></i></div>
@@ -104,12 +108,22 @@
     {key:'race',title:'De kerstsleerace',draw:race}
   ];
 
+  function stop() {
+    clearTimeout(replayTimer);
+    stopGateMotion?.();
+    stopGateMotion = undefined;
+  }
+
   function replay(slide) {
     if (!slide || slide.hidden) return;
-    clearTimeout(replayTimer);
+    stop();
     slide.classList.remove('dec-replaying');
     void slide.offsetWidth;
     slide.classList.add('dec-replaying');
+    const gate = slide.querySelector('.dec-portal[data-kpi]');
+    if (gate) {
+      stopGateMotion = window.DIESTROYERS_DECEMBER_GATE_MOTION?.start(gate, gate.dataset.kpi);
+    }
     replayTimer=setTimeout(()=>slide.classList.remove('dec-replaying'),4550);
   }
 
@@ -129,5 +143,5 @@
     replay(slide);
   }
 
-  window.DIESTROYERS_DECEMBER_TV = {render,replay,sceneCount:panels.length};
+  window.DIESTROYERS_DECEMBER_TV = {render,replay,stop,sceneCount:panels.length};
 })();
