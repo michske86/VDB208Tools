@@ -59,7 +59,8 @@ window.DIESTROYERS_CAROUSEL = [
   "AEGIciParis011026.301126.png",
   "Electrolux011026.311226.png",
   "Life.301126.png",
-  "Proximus.301126.png"
+  "Proximus.301126.png",
+  "zDiestroyersLogo.png"
 ];
 // Diestroyers: district-data.js
 window.DIESTROYERS_DISTRICT = [
