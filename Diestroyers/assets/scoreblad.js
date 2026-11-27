@@ -55,6 +55,13 @@
   function section(title, html) {
     return `<section class="score-section"><h2>${escape(title)}</h2>${html}</section>`;
   }
+  function sellerLists(label, toRow, hasHistory) {
+    const current = data.sellers.filter(person => person.active).map(toRow);
+    const historical = data.sellers.filter(person => !person.active && hasHistory(person)).map(toRow);
+    return list(current,label) + (historical.length
+      ? section("Historische verkopers",list(historical,"Historische verkopers"))
+      : "");
+  }
   function targetLabel(result, def) {
     return result.target === null ? "Geen target" : "Target " + data.format(result.target,def);
   }
@@ -118,12 +125,12 @@
       ["kpis","KPI’s",resultLink({...base,weergave:"kpis"})],["verkopers","Verkopers",resultLink({...base,weergave:"verkopers"})]
     ],mode);
     if (mode === "verkopers") {
-      const sellers = data.sellers.map(person => {
+      const sellers = sellerLists("Verkopers",person => {
         const sales = data.month(person,"omzet",period).value;
-        return {label:person.name,meta:person.active ? "Omzet" : "Historiek",value:data.format(sales,data.byId.omzet),
+        return {label:person.name,meta:"Omzet",value:data.format(sales,data.byId.omzet),
           empty:sales === null,href:resultLink({...base,verkoper:person.id})};
-      });
-      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + list(sellers,"Verkopers");
+      },person => data.kpis.some(def => data.month(person,def.id,period).value !== null));
+      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + sellers;
     }
     return heading("Resultaten",`${data.store.name} · ${subtitle}`) + `<div class="score-filters">${switches}${selector}</div>` + kpiList(source,base,period);
   }
@@ -253,11 +260,12 @@
     ],mode);
     if (mode === "verkopers" && !entity) {
       return heading("NPS",data.monthLabel(period)) + `<div class="score-filters">${switches}</div>`
-        + list(data.sellers.map(person => {
+        + sellerLists("NPS per verkoper",person => {
           const survey = data.npsProfile(person)?.month?.[period];
-          return {label:person.name,value:survey?.cards > 0 ? data.format(survey.nps,data.byId.nps) : "Geen data",meta:person.active ? "NPS" : "Historiek",
+          return {label:person.name,value:survey?.cards > 0 ? data.format(survey.nps,data.byId.nps) : "Geen data",meta:"NPS",
             empty:!survey?.cards,href:npsLink({...base,verkoper:person.id})};
-        }),"NPS per verkoper");
+        },person => data.npsProfile(person)?.month?.[period]?.cards > 0 ||
+          (period === avvPeriod && Object.values(data.avvProfile(person)?.month || {}).some(metric => metric.responses > 0)));
     }
     return (entity ? back("Alle verkopers",npsLink({weergave:"verkopers",periode:period})) : "") + heading(entity ? entity.name : "NPS",entity ? data.monthLabel(period) : subtitle)
       + (entity ? "" : `<div class="score-filters">${switches}</div>`)

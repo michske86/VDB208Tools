@@ -41,7 +41,12 @@
   const sellerMap = new Map();
   const districtSource = w.DIESTROYERS_DISTRICT || [];
 
-  for (const row of [...rawSellers, ...(config.verkopers || [])]) {
+  const configuredSellers = Array.isArray(config.verkopers) ? config.verkopers : null;
+  for (const row of rawSellers) {
+    const key = rowId(row) || norm(rowName(row));
+    if (key && rowName(row)) sellerMap.set(key,{id:key, name:rowName(row), type:"Verkoper", active:!configuredSellers && active(row)});
+  }
+  for (const row of configuredSellers || []) {
     const key = rowId(row) || norm(rowName(row));
     if (key && rowName(row)) sellerMap.set(key,{id:key, name:rowName(row), type:"Verkoper", active:active(row)});
   }
