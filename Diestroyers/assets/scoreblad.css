@@ -76,6 +76,15 @@ a.score-row:hover { background: var(--soft); }
 .score-status { display: inline-block; padding: .25rem .55rem; border-radius: .25rem; background: var(--soft); color: var(--red); font-weight: 700; font-size: .83rem; }
 .score-status.good { color: var(--green); background: var(--green-bg); }
 .score-status.close { color: var(--gold); background: var(--gold-bg); }
+.score-result { display: inline-flex; align-items: center; gap: .3em; padding: .18em .34em; border-radius: .25rem; white-space: nowrap; }
+.score-result > [aria-hidden="true"] { font: 700 .68em/1 var(--body); }
+.score-result.good { color: var(--green); background: var(--green-bg); }
+.score-result.close { color: var(--gold); background: var(--gold-bg); }
+.score-result.bad { color: var(--red); background: var(--soft); }
+.score-color-guide { display: flex; flex-wrap: wrap; gap: .35rem; padding: 0; margin: .6rem 0; list-style: none; font-size: .76rem; font-weight: 600; }
+.score-color-guide .score-result { padding: .18rem .4rem; }
+.score-color-guide .score-result > [aria-hidden="true"] { font-size: .85em; }
+.score-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .score-comments { list-style: none; padding: 0; margin: 0; }
 .score-comments li { padding: .68rem .8rem; border: 1px solid var(--line); border-bottom: 0; background: var(--white); overflow-wrap: anywhere; }
 .score-comments li:last-child { border-bottom: 1px solid var(--line); }
