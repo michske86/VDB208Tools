@@ -11,7 +11,7 @@
   const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
   const tokenKey = "diestroyers.admin.github-token";
   const adminCookie = "diestroyers_admin_open";
-  const adminDigest = "a52829607eec2f49da8e2da72bb78bba710901dc65d66192ee140b68aad22322";
+  const adminDigest = "cfc296e3e9d28185380f4a1ecbb6531be86f830f3f224785e6f23f7653fdfd91";
   const months = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
   const kpis = [
     ["OmzetTarget","Omzet","€"],["LifeTarget","Life","stuks"],["InsuranceTargetPct","Insurance","%"],
