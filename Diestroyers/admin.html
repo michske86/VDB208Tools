@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/scoreblad.css">
+  <link rel="stylesheet" href="assets/scoreblad.css?v=4">
 </head>
 <body class="scoreblad">
   <div id="adminApp" inert>
@@ -52,7 +52,15 @@
       <section id="verkopers" class="admin-section">
         <h2>Verkopers</h2>
         <button class="score-button primary" type="button" id="addSeller">Verkoper toevoegen</button>
+        <h3>Actieve verkopers</h3>
         <div class="admin-records" id="sellerTable"></div>
+        <h3>Gedeactiveerde verkopers</h3>
+        <div class="admin-records" id="inactiveSellerTable"></div>
+        <section class="admin-archive" id="sellerArchive" hidden>
+          <h3>Historische verkopers</h3>
+          <p class="score-muted">Verkopers uit het gepubliceerde resultaatarchief.</p>
+          <ul class="score-list" id="archivedSellerTable"></ul>
+        </section>
       </section>
       <section id="targets" class="admin-section" hidden>
         <h2>Targets</h2>
@@ -135,6 +143,6 @@
   <script src="assets/dashboard-data.js"></script>
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/december-incentive.js?v=4"></script>
-  <script src="assets/admin.js?v=10"></script>
+  <script src="assets/admin.js?v=11"></script>
 </body>
 </html>

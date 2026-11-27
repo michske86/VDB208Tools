@@ -83,20 +83,51 @@
       ["Winkel","Winkelnaam"],["ShopNr","Winkelnummer"],["Regio","Regio"],["Actief","Status"]
     ]}
   };
+  function renderSellerArchive() {
+    const sellerId = row => norm(row.PersoneelsNr || row.personeelsNr);
+    const sellerName = row => row.Naam || row.naam;
+    const candidates = [
+      ...(window.DIESTROYERS_VERKOPERS || []),
+      ...(window.DIESTROYERS_RESULTATEN || []).filter(row => norm(row.EntiteitType || row.entiteitType)==="verkoper")
+    ];
+    const archived = new Map();
+    for (const row of candidates) {
+      const name = sellerName(row), id = sellerId(row);
+      if (!name || state.verkopers.some(seller => (id && sellerId(seller))
+        ? sellerId(seller)===id : norm(sellerName(seller))===norm(name))) continue;
+      const key = id || norm(name);
+      if (!archived.has(key)) archived.set(key,name);
+    }
+    $("sellerArchive").hidden=!archived.size;
+    $("archivedSellerTable").innerHTML=[...archived.values()].sort((a,b)=>a.localeCompare(b,"nl-BE"))
+      .map(name=>`<li class="score-row name-only"><span class="score-name">${escape(name)}</span></li>`).join("");
+  }
   function renderRecords(kind, selected = -1) {
-    const list = state[kind], definition = listDefinitions[kind], container = $(definition.id);
-    container.innerHTML = list.map((entry,index)=>{
+    const list = state[kind], definition = listDefinitions[kind];
+    const sections = kind==="verkopers"
+      ? [[$(definition.id),true,"Geen actieve verkopers."],[$("inactiveSellerTable"),false,"Geen gedeactiveerde verkopers in de configuratie."]]
+      : [[$(definition.id),null,"Geen winkels."]];
+    const renderRow = (entry,index) => {
       const fields = definition.labels.map(([key,label])=>key==="Actief"
         ? `<label class="score-field">${label}<select data-key="${key}"><option value="Ja"${active(entry)?" selected":""}>Actief</option><option value="Nee"${active(entry)?"":" selected"}>Inactief</option></select></label>`
         : `<label class="score-field">${label}<input data-key="${key}" value="${escape(entry[key] ?? entry[alias(key)])}"></label>`).join("");
       const action = kind==="district" ? "Winkel verwijderen" : active(entry) ? "Deactiveren" : "";
       const discard = sellerDrafts.has(entry) ? '<button type="button" class="score-button" data-discard>Nieuwe verkoper verwijderen</button>' : "";
-      return `<details class="admin-record"${index===selected?" open":""}><summary>${escape(entry[definition.name] || entry[alias(definition.name)] || "Nieuw")}${active(entry)?"":"<small>Inactief</small>"}</summary>
+      return `<details class="admin-record" data-record-index="${index}"${index===selected?" open":""}><summary>${escape(entry[definition.name] || entry[alias(definition.name)] || "Nieuw")}${active(entry)?"":"<small>Inactief</small>"}</summary>
         <div class="admin-editor"><div class="admin-grid">${fields}</div>${action?`<button type="button" class="score-button" data-remove>${action}</button>`:""}${discard}</div></details>`;
-    }).join("") || '<p class="score-empty">Geen records.</p>';
-    [...container.querySelectorAll("details")].forEach((panel,index)=>{
+    };
+    for (const [container,enabled,emptyMessage] of sections) {
+      container.innerHTML=list.map((entry,index)=>enabled===null || active(entry)===enabled ? renderRow(entry,index) : "").join("")
+        || `<p class="score-empty">${emptyMessage}</p>`;
+    }
+    sections.flatMap(([container])=>[...container.querySelectorAll("details")]).forEach(panel=>{
+      const index = Number(panel.dataset.recordIndex);
       const entry = list[index];
       const summary = panel.querySelector("summary");
+      const relocate = () => {
+        renderRecords(kind);
+        for (const [container] of sections) container.querySelector(`[data-record-index="${index}"] summary`)?.focus();
+      };
       const updateSummary = () => {
         summary.textContent = entry[definition.name] || entry[alias(definition.name)] || "Nieuw";
         if (!active(entry)) {
@@ -116,6 +147,7 @@
         }
         entry[key] = value;
         if (Object.hasOwn(entry,alias(key))) entry[alias(key)] = value;
+        if (kind==="verkopers" && key==="Actief") {relocate();return;}
         if (key===definition.name && value && previous) for (const target of state.targets) {
           if (norm(target.EntiteitType || target.entiteitType)===definition.type && norm(target.Naam || target.naam)===norm(previous)) target.Naam=value;
         }
@@ -124,12 +156,15 @@
             norm(target.Naam || target.naam)===norm(entry[definition.name] || entry[alias(definition.name)])) target.ShopNr=value;
         }
         updateSummary();
+        if (kind==="verkopers" && (key==="Naam" || key==="PersoneelsNr")) renderSellerArchive();
       };
       const remove = panel.querySelector("[data-remove]");
       if (remove) remove.onclick = () => {
         if (kind==="verkopers") {
           entry.Actief="Nee";
           if (Object.hasOwn(entry,"actief")) entry.actief="Nee";
+          relocate();
+          return;
         } else if (!confirm("Deze winkel uit de districtconfiguratie verwijderen?")) return;
         else list.splice(index,1);
         renderRecords(kind);
@@ -142,7 +177,8 @@
         renderRecords(kind);
       };
     });
-    if (selected>=0) container.querySelector("details[open] input")?.focus();
+    if (kind==="verkopers") renderSellerArchive();
+    if (selected>=0) for (const [container] of sections) container.querySelector("details[open] input")?.focus();
   }
 
   function entities() {

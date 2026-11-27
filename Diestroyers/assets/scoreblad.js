@@ -12,6 +12,8 @@
     ["information","Inlichtingen",90,95],["wait","Wachttijd",90,95],["friendly","Vriendelijkheid",90,95]
   ];
   const integer = new Intl.NumberFormat("nl-BE");
+  const axisNumber = new Intl.NumberFormat("nl-BE",{notation:"compact",maximumFractionDigits:1});
+  const axisMonth = new Intl.DateTimeFormat("nl-BE",{month:"short",timeZone:"UTC"});
   const dateFormat = new Intl.DateTimeFormat("nl-BE",{dateStyle:"medium",timeZone:"UTC"});
   const dateLabel = value => {
     const date = new Date(value);
@@ -49,8 +51,8 @@
   function row({label, meta, value, href, rank, own, empty, status}) {
     const body = `<span class="score-name">${rank !== undefined ? `<span class="score-rank">${rank ?? "—"}</span>` : ""}
       <span>${escape(label)}${meta ? `<small class="score-meta">${escape(meta)}</small>` : ""}</span></span>
-      <span class="score-value${empty ? " empty" : ""}">${resultStatus(value,status)}</span>`;
-    const cls = "score-row" + (own ? " own" : "");
+      ${value === undefined ? "" : `<span class="score-value${empty ? " empty" : ""}">${resultStatus(value,status)}</span>`}`;
+    const cls = "score-row" + (own ? " own" : "") + (value === undefined ? " name-only" : "");
     return href ? `<li><a class="${cls}" href="${escape(href)}">${body}</a></li>` : `<li class="${cls}">${body}</li>`;
   }
   function list(items, label) {
@@ -97,12 +99,78 @@
     return facts(items) + (score === null ? "" : `<p class="score-section"><span class="score-status ${statuses[score].tone}">${score === 1 ? "Binnen 10% van target" : statuses[score].label}</span></p>`);
   }
   function resultLink(values) { return url("resultaten",values); }
+  function trendChart(history, def, period) {
+    const months = history.filter(item => item.period <= period).slice(0,12).reverse();
+    const hasValue = value => Number.isFinite(value);
+    if (!months.some(item => hasValue(item.metric?.value))) return '<p class="score-empty">Geen maandresultaten om te tekenen.</p>';
+    const values = months.flatMap(item => [item.metric?.value,item.metric?.target]).filter(hasValue);
+    const min = Math.min(...values), max = Math.max(...values);
+    const pad = (max-min || Math.abs(max) || 1) * .12;
+    const bottom = min >= 0 ? Math.max(0,min-pad) : min-pad;
+    const top = max+pad;
+    const box = {left:81,right:420,top:16,bottom:151};
+    const x = index => months.length === 1 ? (box.right+box.left)/2 : box.left+(box.right-box.left)*index/(months.length-1);
+    const y = value => box.bottom-(value-bottom)/(top-bottom)*(box.bottom-box.top);
+    const targetLine = months.some(item => hasValue(item.metric?.target));
+    const line = key => months.map((item,index) => {
+      const value = item.metric?.[key];
+      if (!hasValue(value)) return "";
+      return (hasValue(months[index-1]?.metric?.[key]) ? "L" : "M")+x(index).toFixed(2)+" "+y(value).toFixed(2);
+    }).join(" ");
+    const ticks = [0,1,2,3].map(index => {
+      const value = bottom+(top-bottom)*index/3;
+      const label = axisNumber.format(value);
+      return `<line x1="${box.left}" x2="${box.right}" y1="${y(value)}" y2="${y(value)}"/>
+        <text x="${box.left-8}" y="${y(value)+5}" text-anchor="end">${escape(["bedrag","accessoires"].includes(def.type) ? "€ "+label : ["ratio","percentage"].includes(def.type) ? label+"%" : label)}</text>`;
+    }).join("");
+    const indices = [...new Set([0,Math.round((months.length-1)/3),Math.round((months.length-1)*2/3),months.length-1])];
+    const labels = indices.map(index => `<text x="${x(index)}" y="176" text-anchor="middle">${escape(axisMonth.format(new Date(months[index].period+"-01T00:00:00Z")))}</text>`).join("");
+    const dots = months.map((item,index) => {
+      const value = item.metric?.value;
+      if (!hasValue(value)) return "";
+      return `<circle class="${item.period === period ? "selected" : ""}" cx="${x(index)}" cy="${y(value)}" r="${item.period === period ? 5.5 : 3.4}">
+        <title>${escape(data.monthLabel(item.period)+" · "+data.format(value,def))}</title></circle>`;
+    }).join("");
+    return `<figure class="score-trend">
+      <svg viewBox="0 0 440 190" role="img" aria-label="${escape("Maandevolutie tot en met "+data.monthLabel(period)+". Exacte cijfers staan in de maandhistoriek.")}">
+        <g class="score-trend-grid">${ticks}${labels}</g>
+        ${targetLine ? `<path class="score-trend-target" d="${line("target")}"/>` : ""}
+        <path class="score-trend-value" d="${line("value")}"/>
+        <g class="score-trend-dots">${dots}</g>
+      </svg>
+      <figcaption><span class="score-trend-key">Resultaat</span>${targetLine ? '<span class="score-trend-key target">Target</span>' : ""}
+        <span>T.e.m. ${escape(data.monthLabel(period))}</span></figcaption>
+    </figure>`;
+  }
+  function sellerKpiResults(def, period, annual) {
+    const read = annual ? data.annual : data.month;
+    const store = read(data.store,def.id,period);
+    const people = data.sellers.map(person => ({person,result:read(person,def.id,period)}))
+      .filter(({person,result}) => person.active || result.value !== null)
+      .sort((a,b) => (b.result.value ?? -Infinity)-(a.result.value ?? -Infinity) || a.person.name.localeCompare(b.person.name,"nl-BE"));
+    return list(people.map(({person,result}) => {
+      const meta = person.active ? [targetLabel(result,def)] : ["Historische verkoper",targetLabel(result,def)];
+      if (result.count !== null) {
+        if (def.type === "ratio" && result.chances > 0) meta.push(`${integer.format(result.count)} stuks / ${integer.format(result.chances)} kansen`);
+        if (def.id === "nps") meta.push(`${integer.format(result.count)} enquêtes`);
+        if (def.id === "s") meta.push(`${integer.format(result.count)} stuks`);
+      }
+      if (["bedrag","accessoires","stuks"].includes(def.type) && result.value >= 0 && result.value !== null && store.value > 0) {
+        meta.push(data.format(result.value/store.value*100,ratioDef)+" van winkelresultaat");
+      }
+      if (annual && result.coverage < result.total && result.value !== null) meta.push(`${result.coverage}/${result.total} maanden`);
+      return {label:person.name,meta:meta.join(" · "),...scoreFields(result,def),
+        href:resultLink({weergave:"verkopers",verkoper:person.id,kpi:def.id,periode:period,termijn:annual?"jaar":null,van:"winkel"})};
+    }),annual ? "Verkopersresultaten YTD" : "Verkopersresultaten maand");
+  }
   function resultPage(q) {
     const entity = data.sellers.find(person => person.id === q.get("verkoper"));
     const mode = entity || q.get("weergave") === "verkopers" ? "verkopers" : "kpis";
     const period = data.periods.includes(q.get("periode")) ? q.get("periode") : data.latest;
     const def = data.kpis.find(item => item.id === q.get("kpi"));
-    const base = {weergave:mode,periode:period,verkoper:entity?.id,kpi:def?.id,detail:q.get("detail")};
+    const annualSeller = Boolean(entity && q.get("termijn") === "jaar");
+    const fromStore = Boolean(entity && q.get("van") === "winkel");
+    const base = {weergave:mode,periode:period,verkoper:entity?.id,kpi:def?.id,detail:q.get("detail"),termijn:annualSeller?"jaar":null,van:fromStore?"winkel":null};
     const source = entity || data.store;
     const subtitle = data.monthLabel(period);
     const periods = data.periods.length ? data.periods : [period];
@@ -121,7 +189,8 @@
       }
       const annual = data.annual(source,def.id,period);
       const history = [...periods].reverse().map(item => ({period:item,metric:data.month(source,def.id,item)}));
-      return back(entity ? source.name : "Alle KPI’s",resultLink({...base,kpi:null,detail:null}))
+      return (fromStore ? back("Winkelresultaat "+def.label,resultLink({weergave:"kpis",periode:period,kpi:def.id}))
+        : back(entity ? source.name : "Alle KPI’s",resultLink({...base,kpi:null,detail:null})))
         + heading(def.label,`${source.name} · ${subtitle}`) + `<div class="score-filters inline">${selector}</div>`
         + metricFacts(result,def)
         + (subdivisions.length ? section("Uitsplitsing",list(subdivisions.map(detail => ({
@@ -129,6 +198,11 @@
           })),"Uitsplitsing")) : "")
         + (def.id === "nps" ? section("Klantbeleving",list([{label:"NPS en commentaren",href:url("nps",{verkoper:entity?.id,periode:period,onderdeel:"nps"})}],"Klantbeleving")) : "")
         + section("Jaar t.e.m. " + subtitle,metricFacts(annual,def,"Jaarresultaat"))
+        + (entity ? section("Maandevolutie",trendChart(history,def,period))
+          : section("Verkopersresultaten",`<div class="score-compare">
+              <div><h3>${escape(subtitle)}</h3>${sellerKpiResults(def,period,false)}</div>
+              <div><h3>YTD t.e.m. ${escape(subtitle)}</h3>${sellerKpiResults(def,period,true)}</div>
+            </div>`))
         + section("Maandhistoriek",list(history.map(item => ({
             label:data.monthLabel(item.period), ...scoreFields(item.metric,def),
             meta:targetLabel(item.metric,def),href:resultLink({...base,periode:item.period,detail:null})
@@ -136,26 +210,28 @@
     }
 
     if (entity) {
-      return back("Alle verkopers",resultLink({...base,verkoper:null,kpi:null}))
-        + heading(entity.name,subtitle + (entity.active ? "" : " · Historiek"))
-        + `<div class="score-filters inline">${selector}</div>` + colorGuide() + kpiList(source,base,period);
+      const terms = segment("Periode verkopersresultaten",[
+        ["maand","Gekozen maand",resultLink({...base,termijn:null})],
+        ["jaar","YTD t.e.m. gekozen maand",resultLink({...base,termijn:"jaar"})]
+      ],annualSeller?"jaar":"maand");
+      return back("Alle verkopers",resultLink({weergave:mode,periode:period}))
+        + heading(entity.name,(annualSeller ? "YTD t.e.m. " : "") + subtitle + (entity.active ? "" : " · Historiek"))
+        + `<div class="score-filters">${terms}${selector}</div>` + colorGuide() + kpiList(source,base,period,annualSeller);
     }
     const switches = segment("Resultaten bekijken voor",[
       ["kpis","KPI’s",resultLink({...base,weergave:"kpis"})],["verkopers","Verkopers",resultLink({...base,weergave:"verkopers"})]
     ],mode);
     if (mode === "verkopers") {
-      const sellers = sellerLists("Verkopers",person => {
-        const sales = data.month(person,"omzet",period);
-        return {label:person.name,meta:"Omzet",...scoreFields(sales,data.byId.omzet),
-          href:resultLink({...base,verkoper:person.id})};
-      },person => data.kpis.some(def => data.month(person,def.id,period).value !== null));
-      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + colorGuide() + sellers;
+      const sellers = sellerLists("Verkopers",person => ({label:person.name,href:resultLink({...base,verkoper:person.id})}),
+        person => data.kpis.some(def => data.month(person,def.id,period).value !== null));
+      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + sellers;
     }
     return heading("Resultaten",`${data.store.name} · ${subtitle}`) + `<div class="score-filters">${switches}${selector}</div>` + colorGuide() + kpiList(source,base,period);
   }
-  function kpiList(entity,base,period) {
+  function kpiList(entity,base,period,annual = false) {
+    const read = annual ? data.annual : data.month;
     return list(data.kpis.map(def => {
-      const result = data.month(entity,def.id,period);
+      const result = read(entity,def.id,period);
       return {label:def.label,meta:targetLabel(result,def),...scoreFields(result,def),href:resultLink({...base,kpi:def.id})};
     }),"KPI’s");
   }
@@ -187,7 +263,7 @@
           + heading(def.label,`${entity.name} · ${subtitle}`)
           + metricFacts(drill.result,def,term === "jaar" ? "Jaarresultaat" : "Maandresultaat")
           + (related.length || !regional ? section("Resultaatdetails",list([{label:term === "jaar" ? "Maandcijfers en historiek" : "Uitsplitsing en historiek",
-            href:resultLink({weergave:"verkopers",verkoper:entity.id,kpi:def.id,periode:period})}],"Resultaatdetails")) : "");
+            href:resultLink({weergave:"verkopers",verkoper:entity.id,kpi:def.id,periode:period,termijn:term==="jaar"?"jaar":null})}],"Resultaatdetails")) : "");
       }
       return back("Ranglijst",rankLink(base)) + heading(entity.name,`${name} · ${subtitle}`)
         + facts([["Positie",chosen.rank ?? "Geen data"],["Score",format(chosen.value),group ? null : statuses[chosen.breakdown[0].points]],...(group ? [["KPI’s met score",chosen.available + " / " + chosen.total]] : [])])
