@@ -8,11 +8,14 @@
   const state = JSON.parse(JSON.stringify(base || {}));
   const monthly = window.DIESTROYERS_TV_INCENTIVES;
   const december = window.DIESTROYERS_DECEMBER;
+  const resultEdits = window.ScorebladResultEdits;
   const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
   const tokenKey = "diestroyers.admin.github-token";
   const adminCookie = "diestroyers_admin_open";
   const adminDigest = "cfc296e3e9d28185380f4a1ecbb6531be86f830f3f224785e6f23f7653fdfd91";
   const months = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
+  const periodFormat = /^\d{4}-(0[1-9]|1[0-2])$/;
+  const formatNumber = new Intl.NumberFormat("nl-BE",{maximumFractionDigits:2});
   const kpis = [
     ["OmzetTarget","Omzet","€"],["LifeTarget","Life","stuks"],["InsuranceTargetPct","Insurance","%"],
     ["AboTargetPct","Abonnementen","%"],["DSPTargetPct","DSP","%"],["SPGTargetPct","SPG","%"],
@@ -27,6 +30,8 @@
   const sellerDrafts = new WeakSet();
   let published = JSON.stringify(base);
   let remembered = readToken();
+  const chosenEntities = new Map();
+  let chosenKpi = "life";
 
   function showEntry() {
     const app = $("adminApp"), dialog = $("adminEntry");
@@ -183,9 +188,9 @@
 
   function entities() {
     const mode = $("targetMode").value;
-    if (mode==="winkel") return [{type:"Winkel", name:state.shop.naam, shopNr:state.shop.shopNr}];
-    if (mode==="district") return state.district.filter(active).map(row=>({type:"DistrictWinkel",name:row.Winkel,shopNr:String(row.ShopNr || "")}));
-    return state.verkopers.filter(active).map(row=>({type:"Verkoper",name:row.Naam,shopNr:String(row.ShopNr || state.shop.shopNr)}));
+    if (mode==="winkel") return [{type:"Winkel", name:state.shop.naam, shopNr:state.shop.shopNr,id:String(state.shop.shopNr)}];
+    if (mode==="district") return state.district.filter(active).map(row=>({type:"DistrictWinkel",name:row.Winkel||row.winkel,shopNr:String(row.ShopNr || row.shopNr || ""),id:String(row.ShopNr || row.shopNr || "")}));
+    return state.verkopers.filter(active).map(row=>({type:"Verkoper",name:row.Naam||row.naam,shopNr:String(row.ShopNr || row.shopNr || state.shop.shopNr),id:String(row.PersoneelsNr || row.personeelsNr || "")}));
   }
   function linkedStoreTargets(entity) {
     const shopNr = norm(state.shop.shopNr);
@@ -242,61 +247,249 @@
       }
     }
   }
-  function renderTargets() {
-    const picker = $("targetEntity"), last = picker.value, items = entities().filter(item=>item.name);
-    picker.innerHTML = items.map((item,index)=>`<option value="${index}|${escape(item.name)}">${escape(item.name)}</option>`).join("");
-    if ([...picker.options].some(option=>option.value===last)) picker.value=last;
-    const entity = items[picker.selectedIndex], year = $("targetYear"), editor = $("targetEditor");
-    if (!entity || !year.value || !year.checkValidity()) {
-      editor.innerHTML='<p class="score-empty">Kies een geldig jaar en een verkoper of winkel.</p>';
-      return;
-    }
-    const per = period(Number(year.value),Number($("targetMonth").value));
-    const [key,,unit] = kpis.find(([field])=>field===$("targetKpi").value);
-    const shared = linkedStoreTargets(entity);
-    const current = readTarget(entity,per,key);
-    editor.innerHTML = `<div class="admin-record admin-editor"><label class="score-field">Target · ${unit}
-      <input id="targetValue" type="number" step="any" min="0" inputmode="decimal" value="${escape(current)}" placeholder="Geen eigen target"></label>
-      <button class="score-button" type="button" id="removeTarget"${current===undefined?" disabled":""}>Target verwijderen</button>
-      ${shared?'<p class="score-muted">Dit target geldt voor zowel Eigen winkel als dezelfde winkel in Districtswinkels.</p>':""}
-      <p class="score-muted">Zonder eigen target geldt de beschikbare Excel-waarde of de standaard van de KPI.</p></div>`;
-    const input = $("targetValue"), remove = $("removeTarget");
-    input.oninput = () => {
-      if (!input.value || !input.checkValidity()) return;
-      setTarget(entity,per,key,input.valueAsNumber);
-      remove.disabled=false;
-    };
-    input.onblur = () => {
-      if (!input.value || !input.checkValidity()) input.value=readTarget(entity,per,key) ?? "";
-    };
-    remove.onclick = () => {
-      for (const item of shared || [entity]) {
-        const rows = targetRows(item,per,Boolean(shared));
-        for (const row of shared ? rows : rows.slice(0,1)) {
-          delete row[key];
-          delete row[alias(key)];
-          if (Object.keys(row).every(field=>targetIdentity.has(field))) state.targets.splice(state.targets.indexOf(row),1);
-        }
+  function removeTarget(entity,per,field) {
+    const shared=linkedStoreTargets(entity);
+    for (const item of shared || [entity]) {
+      const rows=targetRows(item,per,Boolean(shared));
+      for (const row of shared ? rows : rows.slice(0,1)) {
+        delete row[field];
+        delete row[alias(field)];
+        if (Object.keys(row).every(key=>targetIdentity.has(key))) state.targets.splice(state.targets.indexOf(row),1);
       }
-      renderTargets();
-      $("targetValue").focus();
+    }
+  }
+
+  function corrections() {
+    return Array.isArray(state.resultaatCorrecties) ? state.resultaatCorrecties : [];
+  }
+  function removeCorrection(entity,per,field) {
+    const rows=corrections(), row=resultEdits.lookup(rows,entity,per);
+    if (!row) return;
+    delete row.waarden[field];
+    if (row.verwacht) delete row.verwacht[field];
+    if (!Object.keys(row.waarden).length) rows.splice(rows.indexOf(row),1);
+    if (!rows.length) delete state.resultaatCorrecties;
+  }
+  function setCorrection(entity,per,field,value) {
+    if (value===resultEdits.imported(entity,per,field)) { removeCorrection(entity,per,field);return; }
+    const rows=corrections();
+    let row=resultEdits.lookup(rows,entity,per);
+    if (!row) {
+      row={...resultEdits.canonical(entity),periode:per,naam:entity.name,shopNr:entity.shopNr,waarden:{},verwacht:{}};
+      rows.push(row);
+      state.resultaatCorrecties=rows;
+    }
+    row.waarden[field]=value;
+    (row.verwacht ||= {})[field]=resultEdits.imported(entity,per,field);
+  }
+
+  function isResults() { return $("adminSection").value==="resultaten"; }
+  function catalog() {
+    return isResults() ? resultEdits.kpis : resultEdits.kpis.filter(kpi=>kpi.target);
+  }
+  function selectedEntities(items) {
+    if ($("editorLayout").value==="kpi" || !$("targetEntity").value) return items;
+    return items.filter(entity=>entity.id===$("targetEntity").value);
+  }
+  function targetField(kpi) {
+    const entry=kpis.find(([key])=>key===kpi.target);
+    return entry ? {key:kpi.target,label:"Target · "+entry[2],step:"any",min:0} : null;
+  }
+  function importedTarget(entity,per,field) {
+    const row=resultEdits.importedRow(entity,per);
+    const value=Number(row?.[field] ?? row?.[alias(field)]);
+    if (value>0) return {value,source:"Excel"};
+    if (entity.type==="DistrictWinkel" && String(entity.shopNr)===String(state.shop.shopNr)) {
+      const own={type:"Winkel",name:state.shop.naam,shopNr:state.shop.shopNr};
+      const fallback=Number(readTarget(own,per,field));
+      if (fallback>0) return {value:fallback,source:"Winkeltarget"};
+    }
+    return {value:null,source:""};
+  }
+  function cellData(entity,kpi,per) {
+    const target=targetField(kpi);
+    const set=target ? readTarget(entity,per,target.key) : undefined;
+    const fallback=target ? importedTarget(entity,per,target.key) : {value:null,source:""};
+    const targetValue=set ?? fallback.value;
+    const correction=resultEdits.lookup(corrections(),entity,per);
+    const resultFields=kpi.fields.map(field=>{
+      const imported=resultEdits.imported(entity,per,field.key);
+      const manual=correction?.waarden?.[field.key], expected=correction?.verwacht?.[field.key];
+      return {...field,original:imported,value:manual ?? imported,overridden:manual!==undefined,
+        conflict:manual!==undefined && imported!==manual && expected!==imported};
+    });
+    return {
+      entity,kpi,missingTarget:Boolean(target && !(Number(targetValue)>0)),
+      missingResult:resultFields.some(field=>field.value===null),
+      fields:isResults() ? resultFields : [{
+        ...target,original:fallback.value,source:fallback.source,value:targetValue,overridden:set!==undefined
+      }]
     };
   }
-  function copyTargets(previousYear) {
-    const year = $("targetYear");
-    if (!year.value || !year.reportValidity()) return;
-    if (!confirm(previousYear?"Targets van vorig jaar kopiëren?":"Het januari-target naar alle maanden kopiëren?")) return;
-    const fields = previousYear ? kpis.map(([key])=>key) : [$("targetKpi").value];
-    for (const entity of entities().filter(item=>item.name)) {
-      months.forEach((_,index)=>{
-        if (!previousYear && index===0) return;
-        const source = period(Number(year.value)-(previousYear?1:0),previousYear?index:0);
-        for (const key of fields) {
-          const value = readTarget(entity,source,key);
-          if (value!==undefined) setTarget(entity,period(Number(year.value),index),key,value);
-        }
-      });
+  function editorEntities() {
+    const items=entities().filter(item=>item.name && item.id);
+    if (!isResults() || $("targetMode").value!=="verkopers") return items;
+    const known=new Set(items.map(item=>item.id));
+    for (const row of [...state.verkopers,...(window.DIESTROYERS_RESULTATEN || []).filter(item=>norm(item.EntiteitType)==="verkoper")]) {
+      const id=String(row.PersoneelsNr || row.personeelsNr || "").trim(), name=row.Naam || row.naam;
+      if (!id || !name || known.has(id)) continue;
+      known.add(id);
+      items.push({type:"Verkoper",id,name,displayName:name+" · historiek",shopNr:String(row.ShopNr || row.shopNr || state.shop.shopNr)});
     }
+    return items;
+  }
+  function editorSelection() {
+    const items=editorEntities();
+    const definitions=catalog();
+    const selected=definitions.find(item=>item.id===$("targetKpi").value) || definitions[0];
+    return {
+      entities:selectedEntities(items),
+      definitions:$("editorLayout").value==="kpi" ? [selected].filter(Boolean) : definitions
+    };
+  }
+  function editorCount(cells) {
+    const results=cells.filter(item=>item.missingResult).length;
+    const targets=cells.filter(item=>item.missingTarget).length;
+    const total=cells.length;
+    $("editorCount").textContent=total ? `${total} KPI’s · ${targets} zonder target · ${results} met ontbrekend resultaat` : "";
+  }
+  function visibleInFilter(item) {
+    const filter=$("editorFilter").value;
+    return filter==="all" || (filter==="targets" && item.missingTarget) || (filter==="results" && item.missingResult);
+  }
+  function renderTargets() {
+    const items=editorEntities();
+    const scope=$("targetMode").value, picker=$("targetEntity"), byKpi=$("editorLayout").value==="kpi";
+    const mode=isResults(), definitions=catalog(), per=$("editorPeriod").value, editor=$("targetEditor");
+    const saved=chosenEntities.get(scope);
+    picker.innerHTML=(items.length>1?'<option value="">Alles in deze groep</option>':"")+
+      items.map(item=>`<option value="${escape(item.id)}">${escape(item.displayName || item.name)}</option>`).join("");
+    if (saved!==undefined && [...picker.options].some(option=>option.value===saved)) picker.value=saved;
+    else if (items.length) picker.value=items[0].id;
+    $("targetKpi").innerHTML=definitions.map(item=>`<option value="${item.id}">${item.label}</option>`).join("");
+    if (definitions.some(item=>item.id===chosenKpi)) $("targetKpi").value=chosenKpi;
+    $("editorKpiField").hidden=!byKpi;
+    $("editorEntityField").hidden=byKpi || items.length<2;
+    $("editorTitle").textContent=mode?"Resultaten aanpassen":"Targets";
+    $("targetCopy").hidden=mode;
+    const locked=mode && per>=resultEdits.closedMonth();
+    const regional=mode && scope==="district";
+    $("saveData").hidden=locked || regional;
+    $("editorSource").textContent=mode
+      ? locked ? "De lopende maand en toekomstige maanden zijn alleen-lezen. Kies een afgesloten maand om cijfers aan te passen."
+        : regional ? "Districtsresultaten komen uit de actieve maand. Voor de eigen winkel kun je historische resultaten invullen."
+        : "Opgeslagen correcties gaan bij de volgende Dagstart of website-update naar Excel. NPS blijft gebaseerd op de enquêtes."
+      : "Vul meerdere targets achter elkaar in. Eigen winkel en dezelfde winkel in Districtswinkels delen één target.";
+    $("editorPrev").disabled=$("editorNext").disabled=!periodFormat.test(per);
+    if (!periodFormat.test(per) || !items.length) {
+      editor.innerHTML='<p class="score-empty">Kies een geldige maand en een verkoper of winkel.</p>';
+      editorCount([]);
+      return;
+    }
+    const selection=editorSelection();
+    const cells=selection.entities.flatMap(entity=>selection.definitions.map(kpi=>cellData(entity,kpi,per)));
+    const cellIndexes=new Map(cells.map((cell,index)=>[cell,index]));
+    editorCount(cells);
+    const visible=cells.filter(visibleInFilter);
+    if (!visible.length) {
+      editor.innerHTML='<p class="score-empty">Geen resultaten voor deze filter.</p>';
+      return;
+    }
+    const showPerson=byKpi || selection.entities.length>1;
+    editor.innerHTML=visible.map(({entity,kpi,fields,missingTarget,missingResult},index)=>{
+      const readOnly=locked || regional || mode && kpi.id==="nps";
+      const fieldsHtml=fields.map(field=>{
+        const origin=fieldOrigin(field,mode);
+        const canReset=!readOnly && field.overridden && (!mode || field.value!==field.original);
+        return `<div class="admin-edit-field">
+          <label class="score-field">${escape(field.label)}
+            <input class="admin-edit-value" data-key="${field.key}" type="number" step="${field.step}"${field.min===undefined?"":` min="${field.min}"`}${field.max===undefined?"":` max="${field.max}"`}
+              inputmode="${field.step==="1"?"numeric":"decimal"}" enterkeyhint="next" value="${escape(field.value??"")}" placeholder="–"${readOnly?" readonly":""}></label>
+          <span class="score-muted" data-origin>${escape(origin)}</span>
+          <button class="score-button admin-edit-reset" type="button" data-reset="${field.key}"${canReset?"":" hidden"}>${mode?"Intrekken":"Wis"}</button>
+        </div>`;
+      }).join("");
+      return `<section class="admin-edit-row${mode?" results":""}" data-cell="${index}">
+        <div><h3>${escape(byKpi ? entity.name : kpi.label)}</h3>
+          ${showPerson&&!byKpi?`<span class="score-muted">${escape(entity.name)}</span>`:""}
+          ${(mode?missingResult:missingTarget)?'<span class="score-muted admin-missing">Ontbreekt</span>':""}
+        </div>
+        <div class="admin-edit-values">${fieldsHtml}</div>
+      </section>`;
+    }).join("");
+    const inputs=[...editor.querySelectorAll(".admin-edit-value:not([readonly])")];
+    for (const input of inputs) {
+      const row=input.closest("[data-cell]");
+      const previous=visible[Number(row.dataset.cell)];
+      const {entity,kpi}=previous;
+      const cellIndex=cellIndexes.get(previous);
+      const key=input.dataset.key, reset=input.closest(".admin-edit-field").querySelector("[data-reset]");
+      const origin=input.closest(".admin-edit-field").querySelector("[data-origin]");
+      function updateField() {
+        const cell=cellData(entity,kpi,per);
+        const data=cell.fields.find(field=>field.key===key);
+        origin.textContent=fieldOrigin(data,mode);
+        reset.hidden=!data.overridden || mode && data.value===data.original;
+        const observed=row.querySelector(".admin-missing");
+        if (observed) observed.hidden=!(mode?cell.missingResult:cell.missingTarget);
+        cells[cellIndex]=cell;
+        editorCount(cells);
+        return data.value ?? "";
+      }
+      input.oninput=()=>{
+        if (input.value==="" || !input.checkValidity()) return;
+        if (mode) {
+          if (!resultEdits.valid(entity.type,key,input.valueAsNumber)) return;
+          setCorrection(entity,per,key,input.valueAsNumber);
+        } else setTarget(entity,per,key,input.valueAsNumber);
+        updateField();
+      };
+      input.onblur=()=>{
+        if (input.value==="" || !input.checkValidity()) input.value=updateField();
+      };
+      input.onkeydown=event=>{
+        if (event.key!=="Enter") return;
+        event.preventDefault();
+        const next=inputs[inputs.indexOf(input)+1];
+        if (next) { next.focus();next.select(); }
+      };
+      reset.onclick=()=>{
+        if (mode) removeCorrection(entity,per,key);
+        else removeTarget(entity,per,key);
+        input.value=updateField();
+        input.focus();
+      };
+    }
+  }
+  function fieldOrigin(field, mode) {
+    if (!field.overridden) return field.value===null ? "Ontbreekt" : (field.source || "Excel");
+    if (mode && field.conflict) return "Bron gewijzigd · "+(field.original===null?"leeg":formatNumber.format(field.original));
+    if (mode) return field.value===field.original ? "Verwerkt in Excel"
+      : field.original===null ? "Wacht op Excel" : "Wacht op Excel · bron "+formatNumber.format(field.original);
+    return field.original===null ? "Eigen target" : "Eigen target · bron "+formatNumber.format(field.original);
+  }
+  function stepPeriod(offset) {
+    const input=$("editorPeriod");
+    if (!periodFormat.test(input.value)) return;
+    const [year,month]=input.value.split("-").map(Number);
+    const next=new Date(Date.UTC(year,month-1+offset,1));
+    input.value=period(next.getUTCFullYear(),next.getUTCMonth());
+    renderTargets();
+  }
+  function copyTargets(previousYear) {
+    const per=$("editorPeriod").value;
+    if (!periodFormat.test(per)) return;
+    const year=Number(per.slice(0,4));
+    if (!confirm(previousYear?"Targets voor deze verkopers of winkels en KPI’s van vorig jaar kopiëren?":"Targets uit januari voor deze verkopers of winkels en KPI’s naar alle maanden kopiëren?")) return;
+    const selection=editorSelection();
+    for (const entity of selection.entities) months.forEach((_,index)=>{
+      if (!previousYear && index===0) return;
+      const source=period(year-(previousYear?1:0),previousYear?index:0);
+      for (const kpi of selection.definitions) {
+        const value=readTarget(entity,source,kpi.target);
+        if (value!==undefined) setTarget(entity,period(year,index),kpi.target,value);
+      }
+    });
     renderTargets();
   }
 
@@ -403,6 +596,13 @@
       if (!monthly.validGoal(entry.goal)) errors.push(label+": vul een geheel doel tussen 1 en 500 in.");
       if (dateIssue) errors.push(label+": "+dateIssue);
     }
+    for (const row of corrections()) {
+      if (!periodFormat.test(row.periode) || row.periode>=resultEdits.closedMonth() || !row.id ||
+        Object.entries(row.waarden || {}).some(([key,value])=>!resultEdits.valid(row.type,key,value))) {
+        errors.push("Een resultaatcorrectie bevat een ongeldige waarde of periode. Controleer Resultaten aanpassen.");
+        break;
+      }
+    }
     if (state.decemberIncentive) errors.push(...december.issues(state.decemberIncentive));
     return errors;
   }
@@ -465,10 +665,12 @@
   function serialize(data) {
     return "window.DIESTROYERS_CONFIG_DATA = "+JSON.stringify(data,null,2)+";\n";
   }
-  async function save() {
-    const button = $("saveConfig"), output = $("saveStatus"), errors = validate();
+  async function save(event) {
+    const buttons=[$("saveConfig"),$("saveData")];
+    if (buttons.some(button=>button.disabled)) return;
+    const output=event?.currentTarget?.id==="saveData"?$("editorSaveStatus"):$("saveStatus"), errors=validate();
     if (errors.length) { status(output,errors); return; }
-    button.disabled=true;
+    buttons.forEach(button=>{button.disabled=true;});
     try {
       const token = remembered || await requestToken();
       if (!token) return;
@@ -489,11 +691,13 @@
       published=sent;
       submittedDrafts.forEach(person=>sellerDrafts.delete(person));
       renderRecords("verkopers");
+      if (["targets","resultaten"].includes($("adminSection").value)) renderTargets();
       rememberToken(token);
-      status(output,["Opgeslagen op GitHub. De wijziging wordt zichtbaar nadat GitHub Pages de configuratie heeft gepubliceerd."],true);
+      status(output,[isResults()?"Opgeslagen op GitHub. Na de volgende Dagstart of website-update zie je welke correcties in Excel verwerkt zijn."
+        :"Opgeslagen op GitHub. De wijziging wordt zichtbaar nadat GitHub Pages de configuratie heeft gepubliceerd."],true);
     } catch (error) {
       status(output,[error.message || "Opslaan op GitHub is mislukt."]);
-    } finally { button.disabled=false; }
+    } finally { buttons.forEach(button=>{button.disabled=false;}); }
   }
   function download() {
     const errors = validate();
@@ -507,8 +711,10 @@
 
   function showSection() {
     const current = $("adminSection").value;
-    for (const panel of document.querySelectorAll(".admin-section")) panel.hidden=panel.id!==current;
-    if (current==="targets") { updateShop(); renderTargets(); }
+    const editor=current==="targets" || current==="resultaten";
+    for (const panel of document.querySelectorAll(".admin-section")) panel.hidden=panel.id!==(editor?"targets":current);
+    $("saveConfig").hidden=editor;
+    if (editor) { updateShop(); renderTargets(); }
     if (current==="tv-incentives") { updateShop(); showIncentives(); }
     if (current==="validatie") validate();
   }
@@ -533,12 +739,22 @@
     };
     $("addTvIncentive").onclick=addIncentive;
     const date=new Date();
-    $("targetYear").value=String(date.getFullYear());
-    $("targetMonth").innerHTML=months.map((month,index)=>`<option value="${index}">${month}</option>`).join("");
-    $("targetMonth").value=String(date.getMonth());
-    $("targetKpi").innerHTML=kpis.map(([key,label])=>`<option value="${key}">${label}</option>`).join("");
-    $("targetKpi").value="LifeTarget";
-    for (const key of ["targetYear","targetMonth","targetKpi","targetMode","targetEntity"]) $(key).onchange=renderTargets;
+    const latest=(window.DIESTROYERS_RESULTATEN || [])
+      .filter(row=>norm(row.EntiteitType || row.entiteitType)==="winkel" && periodFormat.test(row.Periode))
+      .map(row=>row.Periode).sort().at(-1);
+    $("editorPeriod").value=latest || period(date.getFullYear(),date.getMonth());
+    for (const key of ["editorPeriod","targetMode","editorLayout","editorFilter"]) $(key).onchange=renderTargets;
+    $("targetEntity").onchange=()=>{
+      chosenEntities.set($("targetMode").value,$("targetEntity").value);
+      renderTargets();
+    };
+    $("targetKpi").onchange=()=>{
+      chosenKpi=$("targetKpi").value;
+      renderTargets();
+    };
+    $("editorPrev").onclick=()=>stepPeriod(-1);
+    $("editorNext").onclick=()=>stepPeriod(1);
+    $("saveData").onclick=save;
     $("copyPreviousYear").onclick=()=>copyTargets(true);
     $("copyJanuaryTargets").onclick=()=>copyTargets(false);
     $("saveConfig").onclick=save;

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/scoreblad.css?v=4">
+  <link rel="stylesheet" href="assets/scoreblad.css?v=5">
 </head>
 <body class="scoreblad">
   <div id="adminApp" inert>
@@ -33,6 +33,7 @@
           <option value="district">District</option>
           <option value="verkopers" selected>Verkopers</option>
           <option value="targets">Targets</option>
+          <option value="resultaten">Resultaten aanpassen</option>
           <option value="tv-incentives">Incentives</option>
           <option value="validatie">Validatie</option>
         </select>
@@ -62,19 +63,30 @@
           <ul class="score-list" id="archivedSellerTable"></ul>
         </section>
       </section>
-      <section id="targets" class="admin-section" hidden>
-        <h2>Targets</h2>
-        <div class="admin-grid">
-          <label class="score-field">Voor<select id="targetMode"><option value="verkopers">Verkopers</option><option value="district">Districtswinkels</option><option value="winkel">Eigen winkel</option></select></label>
-          <label class="score-field">Jaar<input id="targetYear" type="number" min="2020" max="2099" inputmode="numeric"></label>
-          <label class="score-field">Maand<select id="targetMonth"></select></label>
-          <label class="score-field">KPI<select id="targetKpi"></select></label>
-          <label class="score-field">Verkoper of winkel<select id="targetEntity"></select></label>
+      <section id="targets" class="admin-section" hidden aria-labelledby="editorTitle">
+        <h2 id="editorTitle">Targets</h2>
+        <div class="admin-period">
+          <button class="score-button" type="button" id="editorPrev">Vorige</button>
+          <label class="score-field">Maand<input id="editorPeriod" type="month" required></label>
+          <button class="score-button" type="button" id="editorNext">Volgende</button>
         </div>
+        <div class="admin-grid admin-editor-filters">
+          <label class="score-field">Voor<select id="targetMode"><option value="verkopers">Verkopers</option><option value="district">Districtswinkels</option><option value="winkel">Eigen winkel</option></select></label>
+          <label class="score-field">Weergave<select id="editorLayout"><option value="entity">Per verkoper of winkel</option><option value="kpi">Per KPI</option></select></label>
+          <label class="score-field" id="editorKpiField">KPI<select id="targetKpi"></select></label>
+          <label class="score-field" id="editorEntityField">Verkoper of winkel<select id="targetEntity"></select></label>
+          <label class="score-field">Tonen<select id="editorFilter"><option value="all">Alles</option><option value="targets">Ontbrekende targets</option><option value="results">Ontbrekende resultaten</option></select></label>
+        </div>
+        <div class="admin-editor-bar">
+          <p id="editorCount" class="score-muted" role="status"></p>
+          <button class="score-button primary" type="button" id="saveData">Wijzigingen opslaan</button>
+          <div id="editorSaveStatus" role="status"></div>
+        </div>
+        <p class="score-muted" id="editorSource"></p>
         <div id="targetEditor" class="admin-records"></div>
-        <details class="admin-record">
+        <details class="admin-record" id="targetCopy">
           <summary>Targets kopiëren</summary>
-          <div class="admin-editor"><p class="score-muted">De kopieeracties kunnen eerder ingevulde targets overschrijven.</p>
+          <div class="admin-editor"><p class="score-muted">Kopieert de KPI’s en personen of winkels uit je gekozen weergave. Ingevulde targets kunnen worden overschreven.</p>
           <div class="admin-actions">
             <button class="score-button" type="button" id="copyPreviousYear">Vorig jaar kopiëren</button>
             <button class="score-button" type="button" id="copyJanuaryTargets">Januari naar alle maanden</button>
@@ -141,8 +153,9 @@
   </dialog>
   <script src="assets/config-data.js"></script>
   <script src="assets/dashboard-data.js"></script>
+  <script src="assets/resultaat-correcties.js"></script>
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/december-incentive.js?v=4"></script>
-  <script src="assets/admin.js?v=11"></script>
+  <script src="assets/admin.js?v=12"></script>
 </body>
 </html>

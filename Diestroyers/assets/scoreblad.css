@@ -142,6 +142,24 @@ a.score-row:hover { background: var(--soft); }
 .score-dialog #adminEntryMessage:empty { display: none; }
 .score-dialog #adminEntryMessage { color: var(--red); }
 .score-admin button:disabled { opacity: .55; cursor: default; }
+.score-admin .admin-period { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: end; gap: .45rem; }
+.score-admin .admin-period input { width: 100%; min-width: 0; }
+.score-admin .admin-period button { padding-inline: .55rem; }
+.score-admin .admin-editor-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.score-admin .admin-editor-filters label,.score-admin .admin-editor-filters select { min-width: 0; }
+.score-admin .admin-editor-bar { position: sticky; z-index: 2; top: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .75rem; background: var(--paper); border-bottom: 1px solid var(--line); padding: .45rem 0; }
+.score-admin #editorCount { flex: 1 1 12rem; margin: 0; }
+.score-admin #editorSaveStatus:empty { display: none; }
+.score-admin #editorSaveStatus { width: 100%; }
+.score-admin .admin-edit-row { display: grid; align-items: start; grid-template-columns: minmax(0,1fr) minmax(8rem,45%); gap: .65rem; padding: .65rem; background: var(--white); border: 1px solid var(--line); border-radius: .38rem; }
+.score-admin .admin-edit-row.results { grid-template-columns: minmax(0,1fr); }
+.score-admin .admin-edit-row h3 { margin: 0; font-size: 1rem; }
+.score-admin .admin-edit-values { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(7rem,100%),1fr)); gap: .5rem; }
+.score-admin .admin-edit-field { min-width: 0; display: grid; align-content: start; gap: .3rem; }
+.score-admin .admin-edit-value { width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
+.score-admin .admin-edit-value[readonly] { color: var(--muted); }
+.score-admin .admin-edit-reset { justify-self: start; min-height: 2.6rem; padding: .2rem .6rem; }
+.score-admin .admin-missing { color: var(--red); display: block; margin-top: .2rem; }
 
 .score-export { max-width: 85rem; }
 .score-export-controls { max-width: 49rem; }
