@@ -3,26 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Exports | The Diestroyers</title>
+<meta name="theme-color" content="#faf8f3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/scoreblad-icon-192.png">
+<title>Exporteren | The Diestroyers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/scoreblad.css">
 <style>
-:root{--red:#e11919;--green:#2ecc71;--yellow:#f2c94c;--bad:#ff3434;--ink:#090909;--panel:#151515;--line:#303030}
-body{background:radial-gradient(circle at 15% 0,rgba(225,25,25,.22),transparent 28%),#050505;color:#fff}
-.export-shell{max-width:1560px;margin:0 auto;padding:28px 24px 60px}
-.export-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px;background:linear-gradient(180deg,#191919,#0b0b0b);border:1px solid rgba(255,255,255,.09);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.45);position:relative;overflow:hidden}
-.export-hero:before,.report-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--red);box-shadow:0 0 22px rgba(225,25,25,.75)}
-.export-title{font-size:48px;line-height:1;text-transform:uppercase;font-weight:900;margin:0}
-.export-sub{font-size:20px;color:#bbb;margin-top:8px;font-weight:700}
-.export-tabs{display:flex;gap:10px;flex-wrap:wrap}
-.export-tabs button,.action-btn{font:900 18px Rajdhani,Arial;border-radius:999px;padding:12px 20px;border:1px solid rgba(255,255,255,.15);background:#171717;color:#fff;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
-.export-tabs button.active,.action-btn.primary{background:linear-gradient(180deg,#c91515,#710808);border-color:#ff4949;box-shadow:0 0 20px rgba(225,25,25,.34)}
-.actionbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:18px 0;flex-wrap:wrap}
-.actions{display:flex;gap:10px;flex-wrap:wrap}
-.status-note{color:#aaa;font-size:16px;font-weight:700}
-.report-card{position:relative;background:#fff;color:#111;border-radius:20px;overflow:hidden;margin-top:14px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .report, .report *{box-sizing:border-box}
 .report{color:#111}
 .report p,.report div,.report span,.report td,.report th,.report strong{color:inherit}
@@ -60,7 +50,6 @@ body{background:radial-gradient(circle at 15% 0,rgba(225,25,25,.22),transparent 
 .loading-mask.show{display:flex}
 
 /* Professionele rapportfinetune */
-.report-card{border:1px solid rgba(255,255,255,.11)}
 .report{font-family:Arial,Helvetica,sans-serif;color:#161616;line-height:1.25}
 .report-header{
   min-height:88px;
@@ -140,38 +129,46 @@ body{background:radial-gradient(circle at 15% 0,rgba(225,25,25,.22),transparent 
 .report-table thead{display:table-header-group}
 .report-table tfoot{display:table-footer-group}
 
-@media(max-width:900px){.export-hero{align-items:flex-start;flex-direction:column}.summary-grid{grid-template-columns:1fr}.report-card{overflow:auto}.report{min-width:1120px}}
-@media print{header.topbar,.export-hero,.actionbar{display:none!important}.export-shell{padding:0}.report-card{box-shadow:none;border-radius:0;margin:0}.report{padding:10mm}}
+@media print{.score-header,.score-export-controls,.score-preview-title,.score-preview-hint{display:none!important}.score-main.score-export{width:100%;padding:0}.report{padding:10mm}}
 .compact-report{padding:8mm 9mm;min-height:0}.compact-report .report-header{padding:8px;margin-bottom:7px}.compact-report .report-logo{width:42px;height:42px}.compact-report .report-h1{font-size:23px}.compact-report .section-title{margin:6px 0;font-size:14px}.compact-table{border-radius:0;font-size:8px}.compact-table th{background:#fff;color:#e11919!important;border-bottom:2px solid #e11919;font-size:9px;padding:5px 3px}.compact-table th:first-child{width:23%;text-align:left}.compact-table td{padding:3px 4px;height:15px;border-bottom:1px solid #aaa;background:#fff!important}.compact-table .compact-detail td:first-child{padding-left:14px;font-weight:400}.compact-table .compact-main td{font-weight:800}.compact-table td.cell-ok{background:#b5d392!important}.compact-table td.cell-close{background:#ffdc70!important}.compact-table td.cell-bad{background:#ff6060!important;color:#111!important}.compact-table td small{display:block;font-size:6px;font-weight:400}.compact-report .report-footer{text-align:left;font-size:7px;line-height:1.3}.compact-page{break-inside:avoid}.compact-report .seller-page{padding-top:0}
 </style>
 </head>
-<body>
-<header class="topbar"><nav class="nav"></nav></header>
-<main class="export-shell">
-  <section class="export-hero">
-    <div>
-      <h1 class="export-title">Rapport Export</h1>
-      <div class="export-sub">Managementrapporten voor winkel- en verkopersresultaten</div>
+<body class="scoreblad">
+<header class="score-header">
+  <div class="score-brand"><a href="home.html">Diestroyers</a><span id="exportShop">Diest · 208</span></div>
+  <nav class="score-nav" aria-label="Hoofdnavigatie">
+    <a href="home.html">Home</a>
+    <a href="home.html#resultaten">Resultaten</a>
+    <a href="home.html#rankings">Rankings</a>
+    <a href="home.html#nps">NPS</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
+<main class="score-main score-export">
+  <section class="score-export-controls" aria-labelledby="exportTitle">
+    <div class="score-title">
+      <h1 id="exportTitle">Exporteren</h1>
+      <p>Winkel- en verkopersrapporten</p>
     </div>
-    <div class="export-tabs">
-      <button id="tabMtd" class="active">Month To Date</button>
-      <button id="tabYtd">YTD excl. huidige maand</button>
-      <button id="tabCompact">Compacte YTD</button>
+    <div class="score-segments export-modes" role="group" aria-label="Rapport kiezen">
+      <button type="button" id="tabMtd" aria-pressed="true">Actuele maand <small>MTD</small></button>
+      <button type="button" id="tabYtd" aria-pressed="false">Afgesloten maanden <small>YTD</small></button>
+      <button type="button" id="tabCompact" aria-pressed="false">Compacte YTD</button>
+    </div>
+    <p class="score-muted export-period" id="statusNote" role="status"></p>
+    <div class="export-downloads">
+      <button type="button" class="score-button primary" id="pdfBtn">Download PDF</button>
+      <button type="button" class="score-button" id="xlsxBtn">Download Excel</button>
+      <button type="button" class="score-button export-tv" id="tvPdfBtn">TV-slides 2–13 als PDF</button>
     </div>
   </section>
-
-  <div class="actionbar">
-    <div class="status-note" id="statusNote"></div>
-    <div class="actions">
-      <button class="action-btn primary" id="pdfBtn">Download PDF</button>
-      <button class="action-btn" id="xlsxBtn">Download Excel</button>
-      <button class="action-btn" id="tvPdfBtn">TV slides 2–13 PDF</button>
-    </div>
-  </div>
-
-  <section class="report-card"><div id="reportHost"></div></section>
+  <section class="score-export-preview" aria-labelledby="exportPreviewTitle">
+    <h2 class="score-preview-title" id="exportPreviewTitle">Rapportvoorbeeld</h2>
+    <p class="score-muted score-preview-hint">Veeg de tabellen opzij om alle kolommen te zien.</p>
+    <div id="reportHost"></div>
+  </section>
 </main>
-<div class="loading-mask" id="loadingMask">Export wordt opgebouwd…</div>
+<div class="loading-mask" id="loadingMask" role="status">Export wordt opgebouwd…</div>
 
 <script src="assets/dashboard-data.js"></script>
 
@@ -186,7 +183,6 @@ body{background:radial-gradient(circle at 15% 0,rgba(225,25,25,.22),transparent 
 <script src="assets/calculations.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/components.js"></script>
-<script src="assets/navigation.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
@@ -409,7 +405,20 @@ function addCompactWorkbook(wb){
  for(const p of params)coverage.addRow([p.label,...entities.map(e=>compactValue(e,p).coverage)]);
  styleSheet(coverage);coverage.autoFilter=undefined;
 } 
-function render(){document.getElementById('reportHost').innerHTML=mode==='mtd'?renderMTD():mode==='compact'?renderCompactYTD():renderYTD();document.getElementById('statusNote').textContent=mode==='mtd'?`MTD rapport · ${period}`:`${mode==='compact'?'Compacte YTD':'YTD rapport'} · ${ytdLabel}`}
+function render(){
+ const preview=document.getElementById('reportHost');
+ preview.innerHTML=mode==='mtd'?renderMTD():mode==='compact'?renderCompactYTD():renderYTD();
+ for(const table of preview.querySelectorAll('.report-table')){
+   const scroll=document.createElement('div');
+   scroll.className='export-table-scroll';
+   scroll.setAttribute('tabindex','0');
+   scroll.setAttribute('role','region');
+   scroll.setAttribute('aria-label',table.previousElementSibling?.textContent.trim()||'Rapporttabel');
+   table.before(scroll);
+   scroll.append(table);
+ }
+ document.getElementById('statusNote').textContent=mode==='mtd'?`Actuele maand · ${period}`:`${mode==='compact'?'Compacte YTD':'Jaaroverzicht'} · ${ytdLabel}`;
+}
 function filename(ext){return `Diestroyers_${shop.naam}_${mode.toUpperCase()}_${mode==='mtd'?period:year+'_excl_'+calendarPeriod}.${ext}`}
 function downloadBlob(blob,name){
  const url=URL.createObjectURL(blob);
@@ -591,13 +600,20 @@ async function downloadWorkbook(){
  }finally{mask(false)}
 }
 function mask(on){document.getElementById('loadingMask').classList.toggle('show',on)}
-function selectMode(next){mode=next;for(const [id,value] of [['tabMtd','mtd'],['tabYtd','ytd'],['tabCompact','compact']])document.getElementById(id).classList.toggle('active',mode===value);render();}
+function selectMode(next){
+ mode=next;
+ for(const [id,value] of [['tabMtd','mtd'],['tabYtd','ytd'],['tabCompact','compact']]){
+   document.getElementById(id).setAttribute('aria-pressed',String(mode===value));
+ }
+ render();
+}
 document.getElementById('tabMtd').onclick=()=>selectMode('mtd');
 document.getElementById('tabYtd').onclick=()=>selectMode('ytd');
 document.getElementById('tabCompact').onclick=()=>selectMode('compact');
 document.getElementById('pdfBtn').onclick=pdf;
 document.getElementById('xlsxBtn').onclick=downloadWorkbook;
 document.getElementById('tvPdfBtn').onclick=()=>{const win=window.open('tv.html?export=slides2to13&autostart=1','_blank');if(!win)showExportError(new Error('De browser blokkeerde het exportvenster. Sta pop-ups toe voor deze pagina.'));};
+document.getElementById('exportShop').textContent=`${shop.naam} · ${shop.shopNr}`;
 render();
 })();
 </script>

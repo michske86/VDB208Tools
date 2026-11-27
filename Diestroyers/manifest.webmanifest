@@ -1,0 +1,16 @@
+{
+  "id": "./home.html",
+  "name": "The Diestroyers Prestatieplatform",
+  "short_name": "Diestroyers",
+  "lang": "nl-BE",
+  "start_url": "./home.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#faf8f3",
+  "icons": [
+    {"src": "assets/scoreblad-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/scoreblad-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/scoreblad-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
