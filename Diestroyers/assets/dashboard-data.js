@@ -57,6 +57,7 @@ window.DIESTROYERS_AVV = {"generatedAt":"2026-11-26T09:24:34","latestPeriod":"20
 // Diestroyers: carousel-data.js
 window.DIESTROYERS_CAROUSEL = [
   "AEGIciParis011026.301126.png",
+  "BlackFriday.png",
   "Electrolux011026.311226.png",
   "LifeNovember2026.png",
   "ProximusNovember2026.png",
