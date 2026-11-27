@@ -1,22 +1,42 @@
-<!doctype html><html lang="nl"><head>
-<script src="assets/entry-prompt.js"></script>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Home | The Diestroyers</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/site.css">
-<style>
-.brand-tv-wrap{display:flex;align-items:center;gap:10px}
-.tv-menu-link{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.045);box-shadow:0 0 0 1px rgba(225,25,25,.12),0 0 14px rgba(225,25,25,.16);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.tv-menu-link:hover,.tv-menu-link:focus-visible{transform:translateY(-1px) scale(1.06);border-color:#e11919;box-shadow:0 0 18px rgba(225,25,25,.55);outline:none}
-.tv-menu-link svg{width:18px;height:18px}
-</style>
-<style>.menu{margin-left:auto!important}</style></head><body class="home-body" ><header class="topbar"><nav class="nav"><a class="brand" href="home.html">The <span>Diestroyers</span></a><button class="hamb">Menu</button><div class="menu"><a class="navitem" href="home.html">Home</a><a class="navitem" href="mission-control.html">Focus Analyse</a><div class="dropdown"><a class="dropbtn" href="verkopersresultaten.html">Resultaten</a><div class="submenu"><a href="diest.html">Diest</a><a href="verkopersresultaten.html">Alle verkopers</a></div></div><div class="dropdown"><a class="dropbtn" href="kpi.html?kpi=omzet">KPIs</a><div class="submenu"><a href="kpi.html?kpi=omzet">Omzet</a><a href="kpi.html?kpi=life">Life</a><a href="kpi.html?kpi=insurance">Insurance</a><a href="kpi.html?kpi=abonnementen">Abonnementen</a><a href="kpi.html?kpi=dsp">DSP</a><a href="kpi.html?kpi=spg">SPG</a><a href="kpi.html?kpi=srp">SRP</a><a href="kpi.html?kpi=accessoires">Accessoires</a><a href="kpi.html?kpi=nps">NPS</a><a href="kpi.html?kpi=buyway">BuyWay</a><a href="kpi.html?kpi=leaders">Leaders</a><a href="kpi.html?kpi=s">Laatste stuks - S</a><a href="kpi.html?kpi=link">Link</a></div></div><a class="navitem" href="district.html">District</a><a class="navitem" href="agenda.html">Agenda</a></div></nav></header><main class="page"></main><script src="assets/dashboard-data.js"></script><script src="assets/config-data.js"></script>
-<script src="assets/data-bridge.js"></script>
-
-<script src="assets/config.js"></script>
-<script src="assets/registry.js"></script>
-<script src="assets/site.js"></script>
-<script src="assets/calculations.js"></script>
-<script src="assets/components.js"></script>
-<script src="assets/coach-engine.js"></script>
-<script src="assets/simulation-engine.js"></script>
-<script src="assets/navigation.js"></script>
-<script src="assets/page-builder.js"></script>
-<script src="assets/app-renderers.js"></script><script src="assets/nps-ui.js"></script></body></html>
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Diestroyers | Prestatieplatform</title>
+  <script src="assets/entry-prompt.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/scoreblad.css">
+</head>
+<body class="scoreblad">
+  <header class="score-header">
+    <div class="score-brand"><a href="home.html">Diestroyers</a><span>Diest · 208</span></div>
+    <nav class="score-nav" aria-label="Hoofdnavigatie">
+      <a href="#home" aria-current="page">Home</a>
+      <a href="#resultaten">Resultaten</a>
+      <a href="#rankings">Rankings</a>
+      <a href="#nps">NPS</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+  <main id="score-main" class="score-main">
+    <section class="score-home">
+      <img src="assets/Logo_Diestroyers_Full.png" width="1024" height="1024" alt="The Diestroyers">
+      <h1>Prestatieplatform</h1>
+      <div class="score-actions">
+        <a class="score-button primary" href="tv.html">TV</a>
+        <a class="score-button" href="export.html">Exporteren</a>
+      </div>
+    </section>
+  </main>
+  <script src="assets/dashboard-data.js"></script>
+  <script src="assets/config-data.js"></script>
+  <script src="assets/registry.js"></script>
+  <script src="assets/config.js"></script>
+  <script src="assets/scoreblad-data.js"></script>
+  <script src="assets/data-bridge.js"></script>
+  <script src="assets/scoreblad.js"></script>
+</body>
+</html>

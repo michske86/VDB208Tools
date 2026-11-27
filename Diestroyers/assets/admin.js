@@ -1,571 +1,473 @@
-/* The Diestroyers Admin - Robuuste Targetplanner */
-(function(){
+/* Scoreblad-configuratiebeheer. Publiceert het bestaande config-data.js-formaat. */
+(() => {
   "use strict";
-
-  const base = window.DIESTROYERS_CONFIG_DATA || {
-    version:new Date().toISOString(),
-    source:"admin",
-    shop:{shopNr:"208",naam:"Diest"},
-    big7:["life","dsp","insurance","spg","srp","abonnementen","link"],
-    district:[],
-    verkopers:[],
-    targets:[]
-  };
-
-  let state = JSON.parse(JSON.stringify(base));
-  let targetMode = "verkopers";
-  let selectedKpi = "LifeTarget";
-
   const $ = id => document.getElementById(id);
-  const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-  const norm = v => String(v ?? "").trim().toLowerCase();
-  const months = ["Jan","Feb","Mrt","Apr","Mei","Jun","Jul","Aug","Sep","Okt","Nov","Dec"];
+  const norm = value => String(value ?? "").trim().toLowerCase();
+  const escape = value => String(value ?? "").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
+  const base = window.DIESTROYERS_CONFIG_DATA;
+  const state = JSON.parse(JSON.stringify(base || {}));
+  const monthly = window.DIESTROYERS_TV_INCENTIVES;
+  const december = window.DIESTROYERS_DECEMBER;
+  const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
+  const tokenKey = "diestroyers.admin.github-token";
+  const adminCookie = "diestroyers_admin_open";
+  const adminDigest = "a52829607eec2f49da8e2da72bb78bba710901dc65d66192ee140b68aad22322";
+  const months = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
   const kpis = [
-    {field:"OmzetTarget",label:"Omzet",unit:"€"},
-    {field:"LifeTarget",label:"Life",unit:"stuks"},
-    {field:"InsuranceTargetPct",label:"Insurance",unit:"%"},
-    {field:"AboTargetPct",label:"Abo",unit:"%"},
-    {field:"DSPTargetPct",label:"DSP",unit:"%"},
-    {field:"SPGTargetPct",label:"SPG",unit:"%"},
-    {field:"SRPTargetPct",label:"SRP",unit:"%"},
-    {field:"AccessoiresTargetPct",label:"Accessoires",unit:"%"},
-    {field:"LinkTargetPct",label:"Link",unit:"%"},
-    {field:"MonsterTarget",label:"Monster",unit:"€"},
-    {field:"NPSTarget",label:"NPS",unit:"score"}
+    ["OmzetTarget","Omzet","€"],["LifeTarget","Life","stuks"],["InsuranceTargetPct","Insurance","%"],
+    ["AboTargetPct","Abonnementen","%"],["DSPTargetPct","DSP","%"],["SPGTargetPct","SPG","%"],
+    ["SRPTargetPct","SRP","%"],["AccessoiresTargetPct","Accessoires","% van omzet"],["LinkTargetPct","Link","%"],
+    ["MonsterTarget","Monster","€"],["NPSTarget","NPS","score"]
   ];
+  const inactive = new Set(["nee","no","0","false","n","inactief"]);
+  const active = row => !inactive.has(norm(row.Actief ?? row.actief ?? "ja"));
+  const period = (year,index) => `${year}-${String(index+1).padStart(2,"0")}`;
+  const alias = field => field[0].toLowerCase()+field.slice(1);
+  const sellerDrafts = new WeakSet();
+  let published = JSON.stringify(base);
+  let remembered = readToken();
 
-  function numberValue(v){
-    if(v === null || v === undefined || v === "") return 0;
-    if(typeof v === "number") return Number.isFinite(v) ? v : 0;
-    let s=String(v).trim().replace(/\s/g,"").replace("%","");
-    if(s.includes(",") && s.includes(".")) s=s.replace(/\./g,"").replace(",",".");
-    else s=s.replace(",",".");
-    const n=Number(s);
-    return Number.isFinite(n)?n:0;
-  }
-
-  function active(v){
-    return !["nee","no","0","false","n","inactief"].includes(norm(v?.Actief ?? v?.actief ?? "ja"));
-  }
-  function activeSellers(){return state.verkopers.filter(v=>active(v)&&norm(v.Naam));}
-  function activeDistrict(){return state.district.filter(v=>active(v)&&(norm(v.Winkel)||norm(v.ShopNr)));}
-  function getYear(){return Number($("targetYear")?.value||new Date().getFullYear());}
-  function period(year,monthIndex){return `${year}-${String(monthIndex+1).padStart(2,"0")}`;}
-
-  function init(){
-    normalize();
-    migrateTargets();
-
-    bindTabs();
-    $("shopNr").value=state.shop.shopNr||"208";
-    $("shopName").value=state.shop.naam||"Diest";
-
-    const knownYears=[...new Set(state.targets.map(t=>Number(String(t.Periode||"").slice(0,4))).filter(Boolean))];
-    $("targetYear").value=knownYears.includes(new Date().getFullYear())?new Date().getFullYear():(knownYears.at(-1)||new Date().getFullYear());
-
-    renderDistrict();
-    renderSellers();
-    renderIncentives();
-    ensureYear(getYear());
-    renderTargetPlanner();
-    validate();
-
-    $("addDistrict").onclick=()=>{state.district.push({ShopNr:"",Winkel:"",Regio:"Regio",Actief:"JA"});renderDistrict();};
-    $("addSeller").onclick=()=>{state.verkopers.push({Naam:"",PersoneelsNr:"",Avatar:"",Actief:"Ja",ShopNr:state.shop.shopNr||"208",ImportAlias:""});renderSellers();};
-    $("addTvIncentive").onclick=addIncentive;
-    $("saveConfig").onclick=saveConfig;
-    $("downloadConfig").onclick=downloadConfig;
-    $("validateConfig").onclick=validate;
-    $("targetYear").onchange=()=>{ensureYear(getYear());renderTargetPlanner();};
-    $("copyPreviousYear").onclick=copyPreviousYear;
-    $("copyJanuaryTargets").onclick=copyJanuary;
-
-    document.querySelectorAll(".target-subtab").forEach(btn=>btn.onclick=()=>{
-      document.querySelectorAll(".target-subtab").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      targetMode=btn.dataset.targetMode;
-      renderTargetPlanner();
-    });
-  }
-
-  function normalize(){
-    state.shop=state.shop||{shopNr:"208",naam:"Diest"};
-    state.district=Array.isArray(state.district)?state.district:[];
-    state.verkopers=Array.isArray(state.verkopers)?state.verkopers:[];
-    state.targets=Array.isArray(state.targets)?state.targets:[];
-    state.tvIncentives=Array.isArray(state.tvIncentives)?state.tvIncentives:[];
-  }
-
-  function bindTabs(){
-    document.querySelectorAll(".admin-tab").forEach(btn=>btn.onclick=()=>{
-      document.querySelectorAll(".admin-tab").forEach(b=>b.classList.remove("active"));
-      document.querySelectorAll(".admin-section").forEach(s=>s.classList.remove("active"));
-      btn.classList.add("active");
-      $(btn.dataset.tab).classList.add("active");
-      if(btn.dataset.tab==="targets"){ensureYear(getYear());renderTargetPlanner();}
-      if(btn.dataset.tab==="tv-incentives"){updateSetup();renderIncentives();}
-      if(btn.dataset.tab==="validatie") validate();
-    });
-  }
-
-  function sellerCanonical(name,shopNr){
-    const v=state.verkopers.find(x=>norm(x.Naam)===norm(name));
-    return {name:v?.Naam||name,shopNr:String(v?.ShopNr||shopNr||state.shop.shopNr||"208")};
-  }
-  function districtCanonical(name,shopNr){
-    const d=state.district.find(x=>norm(x.ShopNr)===norm(shopNr) || norm(x.Winkel)===norm(name));
-    return {name:d?.Winkel||name||d?.ShopNr,shopNr:String(d?.ShopNr||shopNr||"")};
-  }
-  function canonicalTarget(t){
-    const out={...t};
-    out.Periode=String(out.Periode||out.periode||"").slice(0,7);
-    out.EntiteitType=String(out.EntiteitType||out.entiteitType||"");
-    out.Naam=String(out.Naam||out.naam||"");
-    out.ShopNr=String(out.ShopNr||out.shopNr||"");
-
-    if(norm(out.EntiteitType)==="verkoper"){
-      const c=sellerCanonical(out.Naam,out.ShopNr);
-      out.Naam=c.name; out.ShopNr=c.shopNr;
-    }else if(norm(out.EntiteitType)==="districtwinkel"){
-      const c=districtCanonical(out.Naam,out.ShopNr);
-      out.Naam=c.name; out.ShopNr=c.shopNr;
-    }else if(norm(out.EntiteitType)==="winkel"){
-      out.Naam=state.shop.naam||"Diest";
-      out.ShopNr=String(state.shop.shopNr||out.ShopNr||"208");
-    }
-
-    kpis.forEach(k=>out[k.field]=numberValue(out[k.field]));
-    return out;
-  }
-
-  function logicalKey(t){
-    return [String(t.Periode||""),norm(t.EntiteitType),norm(t.Naam)].join("|");
-  }
-  function exactKey(t){
-    return [String(t.Periode||""),norm(t.EntiteitType),norm(t.Naam),norm(t.ShopNr)].join("|");
-  }
-  function nonZeroScore(t){return kpis.reduce((s,k)=>s+(numberValue(t[k.field])!==0?1:0),0);}
-
-  function mergeTargetRows(a,b){
-    const preferred=nonZeroScore(b)>nonZeroScore(a)?{...b}:{...a};
-    const other=preferred===b?a:b;
-    kpis.forEach(k=>{
-      if(numberValue(preferred[k.field])===0 && numberValue(other[k.field])!==0) preferred[k.field]=numberValue(other[k.field]);
-    });
-    if(!preferred.ShopNr) preferred.ShopNr=other.ShopNr||"";
-    return preferred;
-  }
-
-  function migrateTargets(){
-    const activeNames=new Set(activeSellers().map(v=>norm(v.Naam)));
-    const merged=new Map();
-
-    state.targets.map(canonicalTarget).forEach(t=>{
-      if(!t.Periode || !t.EntiteitType || !t.Naam) return;
-      if(norm(t.EntiteitType)==="verkoper" && !activeNames.has(norm(t.Naam))) return;
-      const key=logicalKey(t);
-      merged.set(key,merged.has(key)?mergeTargetRows(merged.get(key),t):t);
-    });
-
-    state.targets=[...merged.values()];
-    state.targets.forEach(t=>{if(numberValue(t.NPSTarget)===0)t.NPSTarget=70;});
-
-    // Districttargets die nog volledig nul zijn krijgen de eigen winkeltargets als veilige startwaarde.
-    state.targets.forEach(t=>{
-      if(norm(t.EntiteitType)!=="districtwinkel" || nonZeroScore(t)>0) return;
-      const own=state.targets.find(x=>x.Periode===t.Periode && norm(x.EntiteitType)==="winkel");
-      if(own) kpis.forEach(k=>t[k.field]=numberValue(own[k.field]));
-    });
-  }
-
-  function entityList(){
-    if(targetMode==="district") return activeDistrict().map(d=>({type:"DistrictWinkel",name:d.Winkel||d.Naam||d.ShopNr,shopNr:String(d.ShopNr||"")}));
-    if(targetMode==="winkel") return [{type:"Winkel",name:state.shop.naam||"Diest",shopNr:String(state.shop.shopNr||"208")}];
-    return activeSellers().map(v=>({type:"Verkoper",name:v.Naam,shopNr:String(v.ShopNr||state.shop.shopNr||"208")}));
-  }
-
-  function findTarget(per,type,name,shopNr){
-    const candidates=state.targets.filter(t=>
-      String(t.Periode)===String(per) &&
-      norm(t.EntiteitType)===norm(type) &&
-      norm(t.Naam)===norm(name)
-    );
-    return candidates.sort((a,b)=>{
-      const ae=norm(a.ShopNr)===norm(shopNr)?1:0;
-      const be=norm(b.ShopNr)===norm(shopNr)?1:0;
-      return be-ae || nonZeroScore(b)-nonZeroScore(a);
-    })[0]||null;
-  }
-
-  function getTarget(per,type,name,shopNr){
-    let row=findTarget(per,type,name,shopNr);
-    if(!row){
-      row={Periode:per,EntiteitType:type,Naam:name,ShopNr:shopNr||""};
-      kpis.forEach(k=>row[k.field]=(k.field==="NPSTarget"?70:0));
-
-      if(norm(type)==="districtwinkel"){
-        const own=findTarget(per,"Winkel",state.shop.naam||"Diest",state.shop.shopNr||"208");
-        if(own) kpis.forEach(k=>row[k.field]=numberValue(own[k.field]));
-      }
-      state.targets.push(row);
-    }else{
-      row.Periode=per; row.EntiteitType=type; row.Naam=name;
-      row.ShopNr=shopNr||row.ShopNr||"";
-    }
-    return row;
-  }
-
-  function ensureYear(year){
-    const all=[
-      {type:"Winkel",name:state.shop.naam||"Diest",shopNr:String(state.shop.shopNr||"208")},
-      ...activeSellers().map(v=>({type:"Verkoper",name:v.Naam,shopNr:String(v.ShopNr||state.shop.shopNr||"208")})),
-      ...activeDistrict().map(d=>({type:"DistrictWinkel",name:d.Winkel||d.Naam||d.ShopNr,shopNr:String(d.ShopNr||"")}))
-    ];
-    all.forEach(e=>months.forEach((_,i)=>getTarget(period(year,i),e.type,e.name,e.shopNr)));
-  }
-
-  function renderTargetPlanner(){
-    const year=getYear();
-    ensureYear(year);
-
-    $("targetKpiTabs").innerHTML=kpis.map(k=>`<button class="target-kpi-tab ${k.field===selectedKpi?"active":""}" data-kpi="${k.field}">${esc(k.label)}</button>`).join("");
-    document.querySelectorAll(".target-kpi-tab").forEach(btn=>btn.onclick=()=>{selectedKpi=btn.dataset.kpi;renderTargetPlanner();});
-
-    const kpi=kpis.find(k=>k.field===selectedKpi)||kpis[0];
-    const entities=entityList();
-
-    $("targetNote").textContent=targetMode==="verkopers"
-      ?"Alle actieve verkopers staan automatisch in de rijen. Bestaande targets zijn vooraf ingevuld."
-      :targetMode==="district"
-        ?"Alle actieve districtwinkels staan automatisch in de rijen. Bestaande targets zijn vooraf ingevuld en kunnen per winkel verschillen."
-        :"De eigen winkel staat automatisch klaar met alle gekende maandtargets.";
-
-    $("targetSheetTitle").textContent=`${kpi.label} · ${targetMode==="verkopers"?"Verkopers":targetMode==="district"?"District winkels":"Eigen winkel"}`;
-    $("targetSheetSub").textContent=`${year} · eenheid: ${kpi.unit}`;
-
-    if(!entities.length){
-      $("targetMatrix").innerHTML=`<tbody><tr><td class="target-empty">Geen actieve ${targetMode==="verkopers"?"verkopers":"districtwinkels"} gevonden.</td></tr></tbody>`;
+  function showEntry() {
+    const app = $("adminApp"), dialog = $("adminEntry");
+    const unlock = () => { app.inert = false; if (dialog.open) dialog.close(); $("adminSection").focus(); };
+    if (document.cookie.split(";").some(item=>item.trim()===adminCookie+"=1")) {
+      unlock();
       return;
     }
-
-    const head=`<thead><tr><th>${targetMode==="verkopers"?"Verkoper":"Winkel"}</th>${months.map(m=>`<th>${m}</th>`).join("")}</tr></thead>`;
-    const body=entities.map(e=>{
-      const cells=months.map((_,i)=>{
-        const per=period(year,i);
-        const row=getTarget(per,e.type,e.name,e.shopNr);
-        return `<td><input type="number" step="0.1" data-per="${per}" data-type="${esc(e.type)}" data-name="${esc(e.name)}" data-shop="${esc(e.shopNr)}" data-field="${kpi.field}" value="${esc(numberValue(row[kpi.field]))}"></td>`;
-      }).join("");
-      return `<tr><td>${esc(e.name)}${e.shopNr?` <small>(${esc(e.shopNr)})</small>`:""}</td>${cells}</tr>`;
-    }).join("");
-
-    $("targetMatrix").innerHTML=head+`<tbody>${body}</tbody>`;
-    document.querySelectorAll("#targetMatrix input").forEach(inp=>inp.oninput=()=>{
-      const row=getTarget(inp.dataset.per,inp.dataset.type,inp.dataset.name,inp.dataset.shop);
-      row[inp.dataset.field]=inp.value;
-    });
-  }
-
-  function renderDistrict(){
-    const cols=["ShopNr","Winkel","Regio","Actief"];
-    $("districtTable").innerHTML=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}<th></th></tr></thead><tbody>${state.district.map((r,i)=>`<tr>${cols.map(c=>`<td><input data-kind="district" data-row="${i}" data-col="${c}" value="${esc(r[c]??"")}"></td>`).join("")}<td><button class="admin-btn secondary" data-del-district="${i}">X</button></td></tr>`).join("")}</tbody>`;
-    bindTable("district");
-    document.querySelectorAll("[data-del-district]").forEach(b=>b.onclick=()=>{state.district.splice(+b.dataset.delDistrict,1);migrateTargets();renderDistrict();renderTargetPlanner();});
-  }
-
-  function renderSellers(){
-    const cols=["Naam","PersoneelsNr","Avatar","Actief","ShopNr","ImportAlias"];
-    $("sellerTable").innerHTML=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}<th></th></tr></thead><tbody>${state.verkopers.map((r,i)=>`<tr>${cols.map(c=>`<td><input data-kind="verkopers" data-row="${i}" data-col="${c}" value="${esc(r[c]??"")}"></td>`).join("")}<td><button class="admin-btn secondary" data-del-seller="${i}">X</button></td></tr>`).join("")}</tbody>`;
-    bindTable("verkopers");
-    document.querySelectorAll("[data-del-seller]").forEach(b=>b.onclick=()=>{state.verkopers.splice(+b.dataset.delSeller,1);migrateTargets();renderSellers();renderTargetPlanner();});
-  }
-
-  function bindTable(kind){
-    document.querySelectorAll(`[data-kind="${kind}"]`).forEach(inp=>inp.onchange=()=>{
-      state[kind][+inp.dataset.row][inp.dataset.col]=inp.value;
-      migrateTargets();
-      renderTargetPlanner();
-    });
-  }
-
-  function copyJanuary(){
-    const year=getYear();
-    entityList().forEach(e=>{
-      const jan=getTarget(period(year,0),e.type,e.name,e.shopNr);
-      for(let i=1;i<12;i++) getTarget(period(year,i),e.type,e.name,e.shopNr)[selectedKpi]=numberValue(jan[selectedKpi]);
-    });
-    renderTargetPlanner();
-  }
-
-  function copyPreviousYear(){
-    const year=getYear();
-    entityList().forEach(e=>{
-      for(let i=0;i<12;i++){
-        const src=getTarget(period(year-1,i),e.type,e.name,e.shopNr);
-        const dst=getTarget(period(year,i),e.type,e.name,e.shopNr);
-        kpis.forEach(k=>dst[k.field]=numberValue(src[k.field]));
+    const form = $("adminEntryForm"), input = $("adminPassword"), message = $("adminEntryMessage");
+    const submit = form.querySelector("button");
+    dialog.addEventListener("cancel",event=>event.preventDefault());
+    form.addEventListener("submit",async event=>{
+      event.preventDefault();
+      if (submit.disabled) return;
+      submit.disabled = true;
+      try {
+        const bytes = await crypto.subtle.digest("SHA-256",new TextEncoder().encode(input.value));
+        const hash = Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,"0")).join("");
+        if (hash !== adminDigest) {
+          message.textContent = "Dat wachtwoord klopt niet.";
+          input.select();
+          return;
+        }
+        const path = location.pathname.slice(0,location.pathname.lastIndexOf("/")+1);
+        document.cookie = adminCookie+"=1; Path="+path+"; Max-Age=31536000; SameSite=Lax"+(location.protocol==="https:"?"; Secure":"");
+        input.value = "";
+        unlock();
+      } catch {
+        message.textContent = "Het wachtwoord kon niet worden gecontroleerd.";
+      } finally {
+        submit.disabled = false;
       }
     });
-    renderTargetPlanner();
+    dialog.showModal();
   }
 
-
-  function incentiveIssues(){
-    const tools=window.DIESTROYERS_TV_INCENTIVES;
-    const monthlyIssues=state.tvIncentives.flatMap((entry,index)=>{
-      const label=entry.name?.trim()||`Incentive ${index+1}`;
-      const dateIssue=tools.dateError(entry);
-      return [
-        !entry.name?.trim()&&`${label}: naam ontbreekt.`,
-        !tools.validGoal(entry.goal)&&`${label}: vul een geheel doel tussen 1 en 500 in.`,
-        dateIssue&&`${label}: ${dateIssue}`
-      ].filter(Boolean);
-    });
-    return [...monthlyIssues,...window.DIESTROYERS_DECEMBER.issues(state.decemberIncentive)];
+  function updateShop() {
+    const name = $("shopName").value.trim(), number = $("shopNr").value.trim();
+    if (name && number) {
+      for (const target of state.targets) if (norm(target.EntiteitType || target.entiteitType) === "winkel") {
+        target.Naam = name;
+        target.ShopNr = number;
+      }
+    }
+    state.shop = {...state.shop,naam:name,shopNr:number};
+    $("adminShop").textContent = [name,number].filter(Boolean).join(" · ");
   }
 
-  function renderIncentives(){
-    renderDecemberIncentive();
-    const tools=window.DIESTROYERS_TV_INCENTIVES;
-    const months=tools.monthlyCounts(window.DIESTROYERS_RESULTATEN||[],window.DIESTROYERS_HISTORIEK_MAAND||[],state.shop);
-    const report=[...months.keys()].sort().at(-1),table=$("tvIncentiveTable");
-    table.innerHTML='<thead><tr><th scope="col">Actief op TV</th><th scope="col">Naam</th><th scope="col">Startdatum</th><th scope="col">Einddatum</th><th scope="col">Doel</th><th scope="col">Winkelstand</th><th scope="col"></th></tr></thead><tbody>'+
-      state.tvIncentives.map((entry,index)=>`<tr>
-        <td><input data-field="active" type="checkbox" aria-label="Actief op TV, incentive ${index+1}" ${entry.active?'checked':''}></td>
-        <td><input data-field="name" type="text" maxlength="55" aria-label="Naam, incentive ${index+1}" value="${esc(entry.name)}"></td>
-        <td><input data-field="startDate" type="date" aria-label="Startdatum, incentive ${index+1}" value="${esc(entry.startDate)}"></td>
-        <td><input data-field="endDate" type="date" aria-label="Einddatum, incentive ${index+1}" value="${esc(entry.endDate)}"></td>
-        <td><input data-field="goal" type="number" min="1" max="500" step="1" aria-label="Doel in stuks, incentive ${index+1}" value="${esc(entry.goal||'')}"></td>
-        <td data-progress></td><td><button class="admin-btn secondary" type="button" data-remove>Verwijder</button></td>
-      </tr>`).join('')+'</tbody>';
-    Array.from(table.tBodies[0].rows).forEach((row,index)=>{
-      const entry=state.tvIncentives[index];
-      const update=()=>{
-        const output=row.querySelector('[data-progress]');
-        if(!tools.valid(entry)){output.textContent='Controleer de instellingen';return;}
-        const totals=tools.progress(entry,months,report);
-        output.textContent=totals.available
-          ? `${totals.life+totals.insurance} / ${entry.goal}${totals.missing?' · onvolledig':''}`
-          : 'Nog geen resultaten';
+  const listDefinitions = {
+    verkopers: {id:"sellerTable", name:"Naam", key:"PersoneelsNr", type:"verkoper", labels:[
+      ["Naam","Naam"],["PersoneelsNr","Personeelsnummer"],["ShopNr","Winkelnummer"],["Avatar","Avatarbestand"],["ImportAlias","Importalias"],["Actief","Status"]
+    ]},
+    district: {id:"districtTable", name:"Winkel", key:"ShopNr", type:"districtwinkel", labels:[
+      ["Winkel","Winkelnaam"],["ShopNr","Winkelnummer"],["Regio","Regio"],["Actief","Status"]
+    ]}
+  };
+  function renderRecords(kind, selected = -1) {
+    const list = state[kind], definition = listDefinitions[kind], container = $(definition.id);
+    container.innerHTML = list.map((entry,index)=>{
+      const fields = definition.labels.map(([key,label])=>key==="Actief"
+        ? `<label class="score-field">${label}<select data-key="${key}"><option value="Ja"${active(entry)?" selected":""}>Actief</option><option value="Nee"${active(entry)?"":" selected"}>Inactief</option></select></label>`
+        : `<label class="score-field">${label}<input data-key="${key}" value="${escape(entry[key] ?? entry[alias(key)])}"></label>`).join("");
+      const action = kind==="district" ? "Winkel verwijderen" : active(entry) ? "Deactiveren" : "";
+      const discard = sellerDrafts.has(entry) ? '<button type="button" class="score-button" data-discard>Nieuwe verkoper verwijderen</button>' : "";
+      return `<details class="admin-record"${index===selected?" open":""}><summary>${escape(entry[definition.name] || entry[alias(definition.name)] || "Nieuw")}${active(entry)?"":"<small>Inactief</small>"}</summary>
+        <div class="admin-editor"><div class="admin-grid">${fields}</div>${action?`<button type="button" class="score-button" data-remove>${action}</button>`:""}${discard}</div></details>`;
+    }).join("") || '<p class="score-empty">Geen records.</p>';
+    [...container.querySelectorAll("details")].forEach((panel,index)=>{
+      const entry = list[index];
+      const summary = panel.querySelector("summary");
+      const updateSummary = () => {
+        summary.textContent = entry[definition.name] || entry[alias(definition.name)] || "Nieuw";
+        if (!active(entry)) {
+          const status = document.createElement("small");
+          status.textContent = "Inactief";
+          summary.append(status);
+        }
       };
-      row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('input',()=>{
-        entry[input.dataset.field]=input.type==='checkbox'?input.checked:input.type==='number'?input.valueAsNumber:input.value;
-        update();
-      }));
-      row.querySelector('[data-remove]').onclick=()=>{state.tvIncentives.splice(index,1);renderIncentives();};
-      update();
+      for (const field of panel.querySelectorAll("[data-key]")) field.onchange = () => {
+        const key = field.dataset.key;
+        const previous = entry[key] ?? entry[alias(key)];
+        const value = field.value.trim();
+        if (key===definition.name && value && list.some(other=>other!==entry && norm(other[key] ?? other[alias(key)])===norm(value))) {
+          field.value=previous ?? "";
+          status($("saveStatus"),["Deze naam komt al voor. Kies een unieke naam."]);
+          return;
+        }
+        entry[key] = value;
+        if (Object.hasOwn(entry,alias(key))) entry[alias(key)] = value;
+        if (key===definition.name && value && previous) for (const target of state.targets) {
+          if (norm(target.EntiteitType || target.entiteitType)===definition.type && norm(target.Naam || target.naam)===norm(previous)) target.Naam=value;
+        }
+        if (key==="ShopNr" && value && previous) for (const target of state.targets) {
+          if (norm(target.EntiteitType || target.entiteitType)===definition.type &&
+            norm(target.Naam || target.naam)===norm(entry[definition.name] || entry[alias(definition.name)])) target.ShopNr=value;
+        }
+        updateSummary();
+      };
+      const remove = panel.querySelector("[data-remove]");
+      if (remove) remove.onclick = () => {
+        if (kind==="verkopers") {
+          entry.Actief="Nee";
+          if (Object.hasOwn(entry,"actief")) entry.actief="Nee";
+        } else if (!confirm("Deze winkel uit de districtconfiguratie verwijderen?")) return;
+        else list.splice(index,1);
+        renderRecords(kind);
+      };
+      const discard = panel.querySelector("[data-discard]");
+      if (discard) discard.onclick = () => {
+        list.splice(index,1);
+        if (entry.Naam) state.targets = state.targets.filter(target => norm(target.EntiteitType || target.entiteitType)!=="verkoper" ||
+          norm(target.Naam || target.naam)!==norm(entry.Naam));
+        renderRecords(kind);
+      };
     });
+    if (selected>=0) container.querySelector("details[open] input")?.focus();
   }
 
-  function renderDecemberIncentive(){
-    const tools=window.DIESTROYERS_DECEMBER;
-    const rule=state.decemberIncentive ||= tools.defaults();
-    delete rule.revealTime;
-    delete rule.wallTarget;
-    const fields={decemberActive:'active',decemberStart:'startDate',decemberEnd:'endDate'};
-    const button=$('decemberOpenAll');
-    let stagedDate;
-    const update=()=>{
-      const issues=tools.issues(rule);
-      const result=issues.length?null:tools.snapshot(rule,[],null);
-      button.disabled=!(rule.active && result?.pending);
-      $('decemberStatus').textContent=issues.join(' ') ||
-        (stagedDate && result?.today?.date===stagedDate ? 'Klik op Wijzigingen opslaan om het deurtje op alle schermen te openen.' :
-         result?.today ? 'Het deurtje van vandaag is geopend in deze configuratie.' : '');
+  function entities() {
+    const mode = $("targetMode").value;
+    if (mode==="winkel") return [{type:"Winkel", name:state.shop.naam, shopNr:state.shop.shopNr}];
+    if (mode==="district") return state.district.filter(active).map(row=>({type:"DistrictWinkel",name:row.Winkel,shopNr:String(row.ShopNr || "")}));
+    return state.verkopers.filter(active).map(row=>({type:"Verkoper",name:row.Naam,shopNr:String(row.ShopNr || state.shop.shopNr)}));
+  }
+  function targetRow(entity,per) {
+    return state.targets.find(row=>row.Periode===per && norm(row.EntiteitType || row.entiteitType)===norm(entity.type) &&
+      norm(row.Naam || row.naam)===norm(entity.name) && (!(row.ShopNr || row.shopNr) || String(row.ShopNr || row.shopNr)===String(entity.shopNr)));
+  }
+  function valueFor(row,field) {
+    return row?.[field] ?? row?.[alias(field)];
+  }
+  function setTarget(entity,per,field,value) {
+    let row = targetRow(entity,per);
+    if (!row) {
+      row = {Periode:per, EntiteitType:entity.type, Naam:entity.name, ShopNr:entity.shopNr};
+      state.targets.push(row);
+    }
+    row[field] = value;
+    if (Object.hasOwn(row,alias(field))) row[alias(field)] = value;
+  }
+  function renderTargets() {
+    const picker = $("targetEntity"), last = picker.value, items = entities().filter(item=>item.name);
+    picker.innerHTML = items.map((item,index)=>`<option value="${index}|${escape(item.name)}">${escape(item.name)}</option>`).join("");
+    if ([...picker.options].some(option=>option.value===last)) picker.value=last;
+    const entity = items[picker.selectedIndex], year = $("targetYear"), editor = $("targetEditor");
+    if (!entity || !year.value || !year.checkValidity()) {
+      editor.innerHTML='<p class="score-empty">Kies een geldig jaar en een verkoper of winkel.</p>';
+      return;
+    }
+    const per = period(Number(year.value),Number($("targetMonth").value));
+    const [key,,unit] = kpis.find(([field])=>field===$("targetKpi").value);
+    const current = valueFor(targetRow(entity,per),key);
+    editor.innerHTML = `<div class="admin-record admin-editor"><label class="score-field">Target · ${unit}
+      <input id="targetValue" type="number" step="any" min="0" inputmode="decimal" value="${escape(current)}" placeholder="Geen eigen target"></label>
+      <button class="score-button" type="button" id="removeTarget"${current===undefined?" disabled":""}>Target verwijderen</button>
+      <p class="score-muted">Zonder eigen target geldt de beschikbare Excel-waarde of de standaard van de KPI.</p></div>`;
+    const input = $("targetValue"), remove = $("removeTarget");
+    input.oninput = () => {
+      if (!input.value || !input.checkValidity()) return;
+      setTarget(entity,per,key,input.valueAsNumber);
+      remove.disabled=false;
     };
-    button.onclick=()=>{
-      const day=tools.snapshot(rule,[],null).pending;
-      if(!rule.active || !day) return;
-      stagedDate=day.date;
-      rule.openedDates=[...(Array.isArray(rule.openedDates)?rule.openedDates:[]),stagedDate];
+    input.onblur = () => {
+      if (!input.value || !input.checkValidity()) input.value=valueFor(targetRow(entity,per),key) ?? "";
+    };
+    remove.onclick = () => {
+      const row = targetRow(entity,per);
+      if (!row) return;
+      delete row[key];
+      delete row[alias(key)];
+      const defaultKeys = new Set(["Periode","periode","EntiteitType","entiteitType","Naam","naam","ShopNr","shopNr"]);
+      if (Object.keys(row).every(field=>defaultKeys.has(field))) state.targets.splice(state.targets.indexOf(row),1);
+      renderTargets();
+      $("targetValue").focus();
+    };
+  }
+  function copyTargets(previousYear) {
+    const year = $("targetYear");
+    if (!year.value || !year.reportValidity()) return;
+    if (!confirm(previousYear?"Targets van vorig jaar kopiëren?":"Het januari-target naar alle maanden kopiëren?")) return;
+    const fields = previousYear ? kpis.map(([key])=>key) : [$("targetKpi").value];
+    for (const entity of entities().filter(item=>item.name)) {
+      months.forEach((_,index)=>{
+        if (!previousYear && index===0) return;
+        const source = targetRow(entity,period(Number(year.value)-(previousYear?1:0),previousYear?index:0));
+        for (const key of fields) {
+          const value = valueFor(source,key);
+          if (value!==undefined && value!==null && value!=="") setTarget(entity,period(Number(year.value),index),key,value);
+        }
+      });
+    }
+    renderTargets();
+  }
+
+  function showIncentives(selected = -1) {
+    const container = $("tvIncentiveTable");
+    const totals = monthly.monthlyCounts(window.DIESTROYERS_RESULTATEN || [],window.DIESTROYERS_HISTORIEK_MAAND || [],state.shop);
+    const report = [...totals.keys()].sort().at(-1);
+    container.innerHTML = state.tvIncentives.map((entry,index)=>`<details class="admin-record"${index===selected?" open":""}>
+      <summary>${escape(entry.name || "Nieuwe incentive")}</summary>
+      <div class="admin-editor">
+        <label class="admin-checkbox"><input data-field="active" type="checkbox"${entry.active?" checked":""}> Actief op TV</label>
+        <div class="admin-grid">
+          <label class="score-field">Naam<input data-field="name" maxlength="55" value="${escape(entry.name)}"></label>
+          <label class="score-field">Startdatum<input data-field="startDate" type="date" value="${escape(entry.startDate)}"></label>
+          <label class="score-field">Einddatum<input data-field="endDate" type="date" value="${escape(entry.endDate)}"></label>
+          <label class="score-field">Doel in stuks<input data-field="goal" type="number" min="1" max="500" step="1" value="${escape(entry.goal)}"></label>
+        </div>
+        <p class="score-muted" data-progress></p>
+        <button class="score-button" data-remove type="button">Incentive verwijderen</button>
+      </div></details>`).join("") || '<p class="score-empty">Geen incentives ingesteld.</p>';
+    [...container.querySelectorAll("details")].forEach((panel,index)=>{
+      const entry = state.tvIncentives[index], progress = panel.querySelector("[data-progress]");
+      function update() {
+        if (!monthly.valid(entry)) { progress.textContent="Controleer de instellingen."; return; }
+        const counts = monthly.progress(entry,totals,report);
+        progress.textContent = counts.available ? `Winkelstand: ${counts.life+counts.insurance} / ${entry.goal}${counts.missing?" · onvolledig":""}` : "Nog geen resultaten.";
+      }
+      for (const input of panel.querySelectorAll("[data-field]")) input.oninput=()=>{
+        entry[input.dataset.field]=input.type==="checkbox"?input.checked:input.type==="number"?input.valueAsNumber:input.value;
+        panel.querySelector("summary").textContent=entry.name || "Nieuwe incentive";
+        update();
+      };
+      panel.querySelector("[data-remove]").onclick=()=>{
+        if (!confirm("Deze incentive verwijderen?")) return;
+        state.tvIncentives.splice(index,1);
+        showIncentives();
+      };
+      update();
+    });
+    if (selected>=0) container.querySelector("details[open] input[data-field=name]")?.focus();
+  }
+  function addIncentive() {
+    const date = new Date(), year = date.getFullYear(), month = date.getMonth();
+    const start = period(year,month);
+    state.tvIncentives.push({name:"Incentive "+months[month],active:false,startDate:start+"-01",endDate:start+"-"+new Date(year,month+1,0).getDate(),goal:110});
+    showIncentives(state.tvIncentives.length-1);
+  }
+
+  function bindDecember() {
+    const fields = {decemberActive:"active",decemberStart:"startDate",decemberEnd:"endDate"};
+    const button = $("decemberOpenAll");
+    let rule = state.decemberIncentive || december.defaults(), staged;
+    const update = () => {
+      const issues = december.issues(rule);
+      const result = issues.length ? null : december.snapshot(rule,[],null);
+      button.disabled = !(rule.active && result?.pending);
+      $("decemberStatus").textContent = issues.join(" ") ||
+        (staged && result?.today?.date===staged ? "Sla de wijzigingen op om het deurtje op alle schermen te openen." :
+          result?.today ? "Het deurtje van vandaag is geopend in deze configuratie." : "");
+    };
+    button.onclick = () => {
+      const pending = december.snapshot(rule,[],null).pending;
+      if (!rule.active || !pending) return;
+      staged = pending.date;
+      state.decemberIncentive = rule;
+      rule.openedDates = [...(Array.isArray(rule.openedDates)?rule.openedDates:[]),staged];
       update();
     };
-    Object.entries(fields).forEach(([id,key])=>{
-      const input=$(id);
-      if(input.type==='checkbox') input.checked=rule[key]===true;
-      else input.value=rule[key]??'';
+    for (const [id,key] of Object.entries(fields)) {
+      const input = $(id);
+      if (input.type==="checkbox") input.checked=rule[key]===true;
+      else input.value=rule[key] ?? "";
       input.oninput=()=>{
-        rule[key]=input.type==='checkbox'?input.checked:input.type==='number'?input.valueAsNumber:input.value;
+        state.decemberIncentive=rule;
+        rule[key]=input.type==="checkbox"?input.checked:input.value;
         update();
       };
-    });
+    }
     update();
   }
 
-  function addIncentive(){
-    const today=new Date(),year=today.getFullYear(),month=today.getMonth()+1;
-    const prefix=`${year}-${String(month).padStart(2,'0')}`;
-    const last=new Date(year,month,0).getDate();
-    state.tvIncentives.push({name:'Incentive '+months[month-1],active:false,startDate:prefix+'-01',endDate:prefix+'-'+last,goal:110});
-    renderIncentives();
+  function issues() {
+    updateShop();
+    const errors = [];
+    if (!base) errors.push("De bestaande configuratie is niet geladen.");
+    if (!state.shop.shopNr || !state.shop.naam) errors.push("Vul de winkelnaam en het winkelnummer in.");
+    for (const [kind,definition] of Object.entries(listDefinitions)) {
+      const keys = new Set(), names = new Set();
+      for (const entry of state[kind]) {
+        const name = norm(entry[definition.name] ?? entry[alias(definition.name)]);
+        const key = norm(entry[definition.key] ?? entry[alias(definition.key)]);
+        const label = entry[definition.name] || entry[definition.key] || kind;
+        if (!name || !key) errors.push(label+": vul naam en nummer in.");
+        if (key && keys.has(key)) errors.push(label+": dit nummer komt meermaals voor.");
+        if (name && names.has(name)) errors.push(label+": deze naam komt meermaals voor.");
+        if (key) keys.add(key);
+        if (name) names.add(name);
+      }
+    }
+    for (const [index,entry] of state.tvIncentives.entries()) {
+      const label = entry.name?.trim() || "Incentive "+(index+1);
+      const dateIssue = monthly.dateError(entry);
+      if (!entry.name?.trim()) errors.push(label+": naam ontbreekt.");
+      if (!monthly.validGoal(entry.goal)) errors.push(label+": vul een geheel doel tussen 1 en 500 in.");
+      if (dateIssue) errors.push(label+": "+dateIssue);
+    }
+    if (state.decemberIncentive) errors.push(...december.issues(state.decemberIncentive));
+    return errors;
+  }
+  function status(element,messages,ok=false) {
+    element.innerHTML = `<div class="${ok?"admin-ok":"admin-warning"}">${messages.map(escape).join("<br>")}</div>`;
+  }
+  function validate() {
+    const errors = issues();
+    status($("validationOutput"),errors.length?errors:["Geen blokkerende fouten gevonden."],!errors.length);
+    return errors;
   }
 
-  function updateSetup(){state.shop={shopNr:$("shopNr").value.trim(),naam:$("shopName").value.trim()};}
-
-  function clean(){
-    updateSetup();
-    migrateTargets();
-    ensureYear(getYear());
-    migrateTargets();
-    state.targets=state.targets.map(canonicalTarget).sort((a,b)=>
-      String(a.Periode).localeCompare(String(b.Periode)) ||
-      String(a.EntiteitType).localeCompare(String(b.EntiteitType)) ||
-      String(a.Naam).localeCompare(String(b.Naam))
-    );
-    state.version=new Date().toISOString();
-    state.source="admin";
-    return state;
-  }
-
-  function validate(){
-    updateSetup();
-    const issues=incentiveIssues();
-    if(!state.shop.shopNr) issues.push("Winkelnummer ontbreekt.");
-    if(!state.shop.naam) issues.push("Winkelnaam ontbreekt.");
-
-    const shopIds=new Set();
-    state.district.forEach((d,i)=>{
-      if(!d.ShopNr) issues.push(`District rij ${i+1}: winkelnummer ontbreekt.`);
-      if(!d.Winkel) issues.push(`District rij ${i+1}: winkelnaam ontbreekt.`);
-      if(d.ShopNr&&shopIds.has(norm(d.ShopNr))) issues.push(`Dubbel districtwinkelnummer: ${d.ShopNr}`);
-      if(d.ShopNr) shopIds.add(norm(d.ShopNr));
-    });
-
-    const people=new Set();
-    state.verkopers.forEach((v,i)=>{
-      if(!v.Naam) issues.push(`Verkoper rij ${i+1}: naam ontbreekt.`);
-      if(!v.PersoneelsNr) issues.push(`Verkoper ${v.Naam||i+1}: personeelsnummer ontbreekt.`);
-      if(v.PersoneelsNr&&people.has(norm(v.PersoneelsNr))) issues.push(`Dubbel personeelsnummer: ${v.PersoneelsNr}`);
-      if(v.PersoneelsNr) people.add(norm(v.PersoneelsNr));
-    });
-
-    const keys=new Set();
-    cleanPreview().forEach(t=>{
-      const key=exactKey(t);
-      if(keys.has(key)) issues.push(`Dubbele targetrij: ${t.Periode} · ${t.EntiteitType} · ${t.Naam}`);
-      keys.add(key);
-    });
-
-    $("validationOutput").innerHTML=issues.length
-      ?`<div class="admin-warning">${issues.map(esc).join("<br>")}</div>`
-      :`<div class="admin-ok">Geen blokkerende fouten gevonden.</div>`;
-    return !issues.length;
-  }
-
-  function cleanPreview(){
-    const saved=state.targets;
-    migrateTargets();
-    const result=state.targets.map(canonicalTarget);
-    state.targets=saved;
-    return result;
-  }
-
-  function content(){return "window.DIESTROYERS_CONFIG_DATA = "+JSON.stringify(clean(),null,2)+";\n";}
-
-
-  const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
-  const tokenKey = "diestroyers.admin.github-token";
-  let savedConfig = JSON.stringify(base);
-  let githubToken = readGithubToken();
-
-  function readGithubToken(){
-    try{return sessionStorage.getItem(tokenKey)||"";}catch{return "";}
-  }
-
-  function rememberGithubToken(token){
-    githubToken=token;
-    try{
-      if(token) sessionStorage.setItem(tokenKey,token);
+  function readToken() { try { return sessionStorage.getItem(tokenKey)||""; } catch { return ""; } }
+  function rememberToken(value) {
+    remembered=value;
+    try {
+      if (value) sessionStorage.setItem(tokenKey,value);
       else sessionStorage.removeItem(tokenKey);
-    }catch{/* Saving still works when browser storage is unavailable. */}
+    } catch { /* Opslaan blijft mogelijk zonder browseropslag. */ }
   }
-
-  function requestGithubToken(){
-    const dialog=$("githubSaveDialog"),form=dialog.querySelector("form"),field=$("githubSaveToken");
+  function requestToken() {
+    const dialog = $("githubSaveDialog"), field = $("githubSaveToken");
+    dialog.querySelector("form").reset();
+    dialog.returnValue="";
     return new Promise(resolve=>{
-      form.reset();
-      dialog.returnValue="";
-      dialog.showModal();
       dialog.addEventListener("close",()=>{
         const token=dialog.returnValue==="publish"?field.value.trim():"";
         field.value="";
         resolve(token);
       },{once:true});
+      dialog.showModal();
     });
   }
-
-  function parsePublishedConfig(file){
-    if(file.encoding!=="base64"||!file.sha) throw new Error("GitHub gaf geen leesbare configuratie terug.");
-    const bytes=Uint8Array.from(atob(file.content.replace(/\s/g,"")),char=>char.charCodeAt(0));
-    const source=new TextDecoder().decode(bytes);
-    const match=source.match(/^\s*window\.DIESTROYERS_CONFIG_DATA\s*=\s*([\s\S]+);\s*$/);
-    if(!match) throw new Error("De configuratie op GitHub heeft een ongeldige indeling.");
+  function parseConfig(file) {
+    if (file.encoding!=="base64" || !file.sha) throw new Error("GitHub gaf geen leesbare configuratie terug.");
+    const bytes = Uint8Array.from(atob(file.content.replace(/\s/g,"")),char=>char.charCodeAt(0));
+    const source = new TextDecoder().decode(bytes);
+    const match = source.match(/^\s*window\.DIESTROYERS_CONFIG_DATA\s*=\s*([\s\S]+);\s*$/);
+    if (!match) throw new Error("De configuratie op GitHub heeft een ongeldige indeling.");
     return JSON.stringify(JSON.parse(match[1]));
   }
-
-  function base64(text){
-    const bytes=new TextEncoder().encode(text);
-    let binary="";
-    for(const byte of bytes) binary+=String.fromCharCode(byte);
-    return btoa(binary);
+  function base64(text) {
+    let bytes="";
+    for (const byte of new TextEncoder().encode(text)) bytes+=String.fromCharCode(byte);
+    return btoa(bytes);
   }
-
-  function checkGithubResponse(response){
-    if(response.ok) return;
-    if([401,403,404].includes(response.status)){
-      rememberGithubToken("");
-      throw new Error("GitHub weigert toegang. Controleer of je token schrijfrechten heeft voor Contents in VDB208Tools.");
+  function checkResponse(response) {
+    if (response.ok) return;
+    if ([401,403,404].includes(response.status)) {
+      rememberToken("");
+      throw new Error("GitHub weigert toegang. Controleer de schrijfrechten van je token voor Contents.");
     }
-    if(response.status===409||response.status===422) throw new Error("GitHub accepteerde de wijziging niet. Download je wijzigingen als reservekopie en herlaad Admin voordat je opnieuw opslaat.");
+    if ([409,422].includes(response.status)) throw new Error("GitHub accepteerde de wijziging niet. Download je versie en herlaad Admin.");
     throw new Error("GitHub kon de configuratie niet opslaan (HTTP "+response.status+").");
   }
-
-  async function saveConfig(){
-    validate();
-    if(incentiveIssues().length){showIncentiveError();return;}
-    const button=$("saveConfig"),status=$("saveStatus");
-    if(button.disabled) return;
+  function snapshot() {
+    return {...state,version:new Date().toISOString(),source:"admin"};
+  }
+  function serialize(data) {
+    return "window.DIESTROYERS_CONFIG_DATA = "+JSON.stringify(data,null,2)+";\n";
+  }
+  async function save() {
+    const button = $("saveConfig"), output = $("saveStatus"), errors = validate();
+    if (errors.length) { status(output,errors); return; }
     button.disabled=true;
-    try{
-      const token=githubToken||await requestGithubToken();
-      if(!token) return;
-      status.textContent="Configuratie wordt opgeslagen op GitHub…";
+    try {
+      const token = remembered || await requestToken();
+      if (!token) return;
+      output.textContent="Configuratie wordt opgeslagen op GitHub…";
       const headers={Authorization:"Bearer "+token,Accept:"application/vnd.github+json"};
       const current=await fetch(configEndpoint+"?ref=main",{headers,cache:"no-store"});
-      checkGithubResponse(current);
+      checkResponse(current);
       const file=await current.json();
-      if(parsePublishedConfig(file)!==savedConfig){
-        throw new Error("De configuratie op GitHub is intussen gewijzigd. Download je wijzigingen als reservekopie en herlaad Admin.");
-      }
-
-      const text=content(),snapshot=JSON.stringify(state);
-      const response=await fetch(configEndpoint,{
-        method:"PUT",
-        headers:{...headers,"Content-Type":"application/json"},
-        body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(text)})
-      });
-      checkGithubResponse(response);
-      savedConfig=snapshot;
-      rememberGithubToken(token);
-      status.innerHTML='<div class="admin-ok">Opgeslagen op GitHub. De TV neemt de wijziging over zodra GitHub Pages de nieuwe configuratie heeft gepubliceerd.</div>';
-    }catch(error){
-      status.innerHTML='<div class="admin-warning">'+esc(error.message||"Opslaan op GitHub is mislukt.")+'</div>';
-    }finally{
-      button.disabled=false;
-    }
+      if (parseConfig(file)!==published) throw new Error("De configuratie is intussen gewijzigd. Download je versie en herlaad Admin.");
+      const pendingErrors = validate();
+      if (pendingErrors.length) { status(output,pendingErrors); return; }
+      const saved=snapshot();
+      const submittedDrafts=state.verkopers.filter(person=>sellerDrafts.has(person));
+      const sent=JSON.stringify(saved);
+      const response=await fetch(configEndpoint,{method:"PUT",headers:{...headers,"Content-Type":"application/json"},
+        body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(serialize(saved))})});
+      checkResponse(response);
+      published=sent;
+      submittedDrafts.forEach(person=>sellerDrafts.delete(person));
+      renderRecords("verkopers");
+      rememberToken(token);
+      status(output,["Opgeslagen op GitHub. De wijziging wordt zichtbaar nadat GitHub Pages de configuratie heeft gepubliceerd."],true);
+    } catch (error) {
+      status(output,[error.message || "Opslaan op GitHub is mislukt."]);
+    } finally { button.disabled=false; }
+  }
+  function download() {
+    const errors = validate();
+    if (errors.length) { status($("saveStatus"),errors); return; }
+    const link = document.createElement("a");
+    link.href=URL.createObjectURL(new Blob([serialize(snapshot())],{type:"text/javascript;charset=utf-8"}));
+    link.download="config-data.js";
+    link.click();
+    setTimeout(()=>URL.revokeObjectURL(link.href),1000);
   }
 
-  function showIncentiveError(){
-    $("saveStatus").innerHTML=`<div class="admin-warning">${incentiveIssues().map(esc).join("<br>")}</div>`;
+  function showSection() {
+    const current = $("adminSection").value;
+    for (const panel of document.querySelectorAll(".admin-section")) panel.hidden=panel.id!==current;
+    if (current==="targets") { updateShop(); renderTargets(); }
+    if (current==="tv-incentives") { updateShop(); showIncentives(); }
+    if (current==="validatie") validate();
   }
-
-  function downloadConfig(){
-    if(incentiveIssues().length){showIncentiveError();return;}
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([content()],{type:"text/javascript;charset=utf-8"}));
-    a.download="config-data.js";
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  function init() {
+    state.shop ??= {shopNr:"208",naam:"Diest"};
+    for (const key of ["district","verkopers","targets","tvIncentives"]) if (!Array.isArray(state[key])) state[key]=[];
+    $("shopNr").value=state.shop.shopNr || "";
+    $("shopName").value=state.shop.naam || "";
+    $("adminShop").textContent=[state.shop.naam,state.shop.shopNr].filter(Boolean).join(" · ");
+    $("shopNr").onchange=updateShop;
+    $("shopName").onchange=updateShop;
+    $("adminSection").onchange=showSection;
+    $("addSeller").onclick=()=>{
+      const person={Naam:"",PersoneelsNr:"",ShopNr:state.shop.shopNr,Avatar:"",Actief:"Ja",ImportAlias:""};
+      sellerDrafts.add(person);
+      state.verkopers.push(person);
+      renderRecords("verkopers",state.verkopers.length-1);
+    };
+    $("addDistrict").onclick=()=>{
+      state.district.push({ShopNr:"",Winkel:"",Regio:"Regio",Actief:"Ja"});
+      renderRecords("district",state.district.length-1);
+    };
+    $("addTvIncentive").onclick=addIncentive;
+    const date=new Date();
+    $("targetYear").value=String(date.getFullYear());
+    $("targetMonth").innerHTML=months.map((month,index)=>`<option value="${index}">${month}</option>`).join("");
+    $("targetMonth").value=String(date.getMonth());
+    $("targetKpi").innerHTML=kpis.map(([key,label])=>`<option value="${key}">${label}</option>`).join("");
+    $("targetKpi").value="LifeTarget";
+    for (const key of ["targetYear","targetMonth","targetKpi","targetMode","targetEntity"]) $(key).onchange=renderTargets;
+    $("copyPreviousYear").onclick=()=>copyTargets(true);
+    $("copyJanuaryTargets").onclick=()=>copyTargets(false);
+    $("saveConfig").onclick=save;
+    $("downloadConfig").onclick=download;
+    $("validateConfig").onclick=()=>{ $("adminSection").value="validatie"; showSection(); };
+    renderRecords("verkopers");
+    renderRecords("district");
+    bindDecember();
+    showSection();
+    showEntry();
   }
-
-  document.addEventListener("DOMContentLoaded",init);
+  document.addEventListener("DOMContentLoaded",init,{once:true});
 })();
