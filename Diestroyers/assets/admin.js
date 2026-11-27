@@ -23,6 +23,7 @@
   const active = row => !inactive.has(norm(row.Actief ?? row.actief ?? "ja"));
   const period = (year,index) => `${year}-${String(index+1).padStart(2,"0")}`;
   const alias = field => field[0].toLowerCase()+field.slice(1);
+  const targetIdentity = new Set(["Periode","periode","EntiteitType","entiteitType","Naam","naam","ShopNr","shopNr"]);
   const sellerDrafts = new WeakSet();
   let published = JSON.stringify(base);
   let remembered = readToken();
@@ -150,21 +151,60 @@
     if (mode==="district") return state.district.filter(active).map(row=>({type:"DistrictWinkel",name:row.Winkel,shopNr:String(row.ShopNr || "")}));
     return state.verkopers.filter(active).map(row=>({type:"Verkoper",name:row.Naam,shopNr:String(row.ShopNr || state.shop.shopNr)}));
   }
-  function targetRow(entity,per) {
-    return state.targets.find(row=>row.Periode===per && norm(row.EntiteitType || row.entiteitType)===norm(entity.type) &&
-      norm(row.Naam || row.naam)===norm(entity.name) && (!(row.ShopNr || row.shopNr) || String(row.ShopNr || row.shopNr)===String(entity.shopNr)));
+  function linkedStoreTargets(entity) {
+    const shopNr = norm(state.shop.shopNr);
+    if (!shopNr || norm(entity.shopNr)!==shopNr || !["Winkel","DistrictWinkel"].includes(entity.type)) return null;
+    const district = state.district.find(row=>norm(row.ShopNr || row.shopNr)===shopNr);
+    if (!district) return null;
+    return [{type:"Winkel",name:state.shop.naam,shopNr:state.shop.shopNr},
+      {type:"DistrictWinkel",name:district.Winkel || district.Naam,shopNr:district.ShopNr || district.shopNr}];
+  }
+  function targetRows(entity,per,matchNumber = false) {
+    return state.targets.filter(row=>{
+      if ((row.Periode || row.periode)!==per || norm(row.EntiteitType || row.entiteitType)!==norm(entity.type)) return false;
+      const number = norm(row.ShopNr || row.shopNr);
+      if (matchNumber && number) return number===norm(entity.shopNr);
+      return norm(row.Naam || row.naam)===norm(entity.name) && (!number || number===norm(entity.shopNr));
+    });
   }
   function valueFor(row,field) {
     return row?.[field] ?? row?.[alias(field)];
   }
-  function setTarget(entity,per,field,value) {
-    let row = targetRow(entity,per);
-    if (!row) {
-      row = {Periode:per, EntiteitType:entity.type, Naam:entity.name, ShopNr:entity.shopNr};
-      state.targets.push(row);
+  function readTarget(entity,per,field) {
+    const shared = linkedStoreTargets(entity);
+    for (const item of shared || [entity]) {
+      const rows = targetRows(item,per,Boolean(shared));
+      for (const row of shared ? rows : rows.slice(0,1)) {
+        const value = valueFor(row,field);
+        if (value!==undefined && value!==null && value!=="") return value;
+      }
     }
-    row[field] = value;
-    if (Object.hasOwn(row,alias(field))) row[alias(field)] = value;
+  }
+  function setTarget(entity,per,field,value) {
+    const shared = linkedStoreTargets(entity);
+    for (const item of shared || [entity]) {
+      let rows = targetRows(item,per,Boolean(shared));
+      if (!shared) rows = rows.slice(0,1);
+      if (!rows.length) {
+        rows = [{Periode:per, EntiteitType:item.type, Naam:item.name, ShopNr:item.shopNr}];
+        state.targets.push(...rows);
+      }
+      for (const row of rows) {
+        row[field] = value;
+        if (Object.hasOwn(row,alias(field))) row[alias(field)] = value;
+      }
+    }
+  }
+  function synchronizeStoreTargets() {
+    const own = {type:"Winkel",name:state.shop.naam,shopNr:state.shop.shopNr};
+    if (!linkedStoreTargets(own)) return;
+    const periods = new Set(state.targets.map(row=>row.Periode || row.periode).filter(Boolean));
+    for (const per of periods) {
+      for (const [field] of kpis) {
+        const value = readTarget(own,per,field);
+        if (value!==undefined) setTarget(own,per,field,value);
+      }
+    }
   }
   function renderTargets() {
     const picker = $("targetEntity"), last = picker.value, items = entities().filter(item=>item.name);
@@ -177,10 +217,12 @@
     }
     const per = period(Number(year.value),Number($("targetMonth").value));
     const [key,,unit] = kpis.find(([field])=>field===$("targetKpi").value);
-    const current = valueFor(targetRow(entity,per),key);
+    const shared = linkedStoreTargets(entity);
+    const current = readTarget(entity,per,key);
     editor.innerHTML = `<div class="admin-record admin-editor"><label class="score-field">Target · ${unit}
       <input id="targetValue" type="number" step="any" min="0" inputmode="decimal" value="${escape(current)}" placeholder="Geen eigen target"></label>
       <button class="score-button" type="button" id="removeTarget"${current===undefined?" disabled":""}>Target verwijderen</button>
+      ${shared?'<p class="score-muted">Dit target geldt voor zowel Eigen winkel als dezelfde winkel in Districtswinkels.</p>':""}
       <p class="score-muted">Zonder eigen target geldt de beschikbare Excel-waarde of de standaard van de KPI.</p></div>`;
     const input = $("targetValue"), remove = $("removeTarget");
     input.oninput = () => {
@@ -189,15 +231,17 @@
       remove.disabled=false;
     };
     input.onblur = () => {
-      if (!input.value || !input.checkValidity()) input.value=valueFor(targetRow(entity,per),key) ?? "";
+      if (!input.value || !input.checkValidity()) input.value=readTarget(entity,per,key) ?? "";
     };
     remove.onclick = () => {
-      const row = targetRow(entity,per);
-      if (!row) return;
-      delete row[key];
-      delete row[alias(key)];
-      const defaultKeys = new Set(["Periode","periode","EntiteitType","entiteitType","Naam","naam","ShopNr","shopNr"]);
-      if (Object.keys(row).every(field=>defaultKeys.has(field))) state.targets.splice(state.targets.indexOf(row),1);
+      for (const item of shared || [entity]) {
+        const rows = targetRows(item,per,Boolean(shared));
+        for (const row of shared ? rows : rows.slice(0,1)) {
+          delete row[key];
+          delete row[alias(key)];
+          if (Object.keys(row).every(field=>targetIdentity.has(field))) state.targets.splice(state.targets.indexOf(row),1);
+        }
+      }
       renderTargets();
       $("targetValue").focus();
     };
@@ -210,10 +254,10 @@
     for (const entity of entities().filter(item=>item.name)) {
       months.forEach((_,index)=>{
         if (!previousYear && index===0) return;
-        const source = targetRow(entity,period(Number(year.value)-(previousYear?1:0),previousYear?index:0));
+        const source = period(Number(year.value)-(previousYear?1:0),previousYear?index:0);
         for (const key of fields) {
-          const value = valueFor(source,key);
-          if (value!==undefined && value!==null && value!=="") setTarget(entity,period(Number(year.value),index),key,value);
+          const value = readTarget(entity,source,key);
+          if (value!==undefined) setTarget(entity,period(Number(year.value),index),key,value);
         }
       });
     }
@@ -379,6 +423,7 @@
     throw new Error("GitHub kon de configuratie niet opslaan (HTTP "+response.status+").");
   }
   function snapshot() {
+    synchronizeStoreTargets();
     return {...state,version:new Date().toISOString(),source:"admin"};
   }
   function serialize(data) {
