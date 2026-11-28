@@ -182,10 +182,9 @@
         <span>T.e.m. ${escape(data.monthLabel(period))}</span></figcaption>
     </figure>`;
   }
-  function trendSection(history,def,period,secondary=def.type==="ratio"?["chances","Kansen"]:null,labels={}) {
+  function trendSection(history,def,period,secondary=def.type==="ratio"?["chances","Kansen"]:null) {
     const months=history.filter(item=>item.period<=period).slice(0,12);
-    const title=labels.title || "Maandevolutie";
-    if (!months.length) return section(title,'<p class="score-empty">Geen gegevens voor deze grafiek.</p>');
+    if (!months.length) return section("Maandevolutie",'<p class="score-empty">Geen gegevens voor deze maandgrafiek.</p>');
     const volume=secondary ? history.map(item=>({...item,metric:{value:item.metric?.[secondary[0]]??null}})) : [];
     const readings=months.map(({period:month,metric})=>{
       const fields=[["Resultaat",data.format(metric?.value,def)],["Target",data.format(metric?.target,def)]];
@@ -193,10 +192,10 @@
       if (secondary) fields.push([secondary[1],countValue(metric?.[secondary[0]])]);
       return `<div data-chart-reading="${month}"${month!==period?" hidden":""}><strong>${escape(data.monthLabel(month))}</strong>${facts(fields)}</div>`;
     }).join("");
-    return section(title,`<div class="score-chart" data-chart>
+    return section("Maandevolutie",`<div class="score-chart" data-chart>
       <div class="score-chart-readout" aria-live="polite">${readings}</div>
       ${months.some(item=>Number.isFinite(item.metric?.value))?'<p class="score-muted score-chart-hint">Kies een maand in de grafiek.</p>':""}
-      ${trendChart(history,def,period,labels.legend)}
+      ${trendChart(history,def,period)}
       ${volume.some(item=>item.metric.value!==null)?trendChart(volume,{type:"stuks"},period,secondary[1]):""}</div>`);
   }
   function countValue(value) {
@@ -607,22 +606,19 @@
         <span class="score-muted">Pagina ${current} van ${pageCount}</span>
         ${current < pageCount ? `<a class="score-button" href="${escape(commentUrl(current+1))}">Volgende</a>` : ""}</div>` : "";
       const {value,status} = scoreFields(result,data.byId.nps);
-      const history = periods.filter(month=>month<=period && (!viewYear || month.slice(0,4)===period.slice(0,4)))
-        .filter(month=>profile?.[bucket]?.[month]?.cards>0 || month===period).sort().reverse().slice(0,12)
-        .map(month=>({period:month,metric:surveyResult(source,month,profile?.[bucket]?.[month],term)}));
-      const trendTitle = viewYear ? "Cumulatieve YTD-evolutie" : "Evolutie per maand";
+      const history = viewYear ? [] : periods.filter(month=>month<=period && (profile?.month?.[month]?.cards>0 || month===period))
+        .sort().reverse().slice(0,12).map(month=>({period:month,metric:surveyResult(source,month,profile?.month?.[month])}));
       return back("Overzicht klantbeleving",npsLink(overview)) + heading("NPS en klantfeedback",subtitle)
         + filters(reactionBase,true)
         + `<div class="score-nps-summary">${facts([["NPS",value,status],
             ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",countValue(result.count??0)]])}
             ${sampleNote(result.count)}
             ${surveyDistribution(survey,category?.key,filterUrl)}</div>`
-        + `<details class="score-nps-trend"><summary>${trendTitle}</summary>
-          ${trendSection(history,data.byId.nps,period,["count",viewYear?"Enquêtes YTD":"Enquêtes"],
-            {title:viewYear?"Stand per peilmaand":"Scores per maand",legend:viewYear?"NPS YTD":"NPS"})}
-          ${list(history.map(({period:month,metric})=>({label:(viewYear?"T.e.m. ":"")+data.monthLabel(month),
+        + (viewYear ? "" : `<details class="score-nps-trend"><summary>Evolutie per maand</summary>
+          ${trendSection(history,data.byId.nps,period,["count","Enquêtes"])}
+          ${list(history.map(({period:month,metric})=>({label:data.monthLabel(month),
             ...scoreFields(metric,data.byId.nps),meta:surveySample(metric.count??0,"enquêtes"),
-            href:npsLink({...reactionBase,periode:month})})),viewYear?"YTD-historiek":"NPS-maandhistoriek")}</details>`
+            href:npsLink({...reactionBase,periode:month})})),"NPS-maandhistoriek")}</details>`)
         + `<section class="score-section" id="nps-comments">
             <h2 tabindex="-1">Klantcommentaren · ${category?escape(category.label)+" · ":""}${visible.length}</h2>
             ${commentFilters(category?.key??null,filterUrl)}${commentList}${paging}</section>`;
