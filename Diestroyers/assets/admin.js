@@ -105,10 +105,11 @@
       if (!name || state.verkopers.some(seller => (id && sellerId(seller))
         ? sellerId(seller)===id : norm(sellerName(seller))===norm(name))) continue;
       const key = id || norm(name);
-      if (!archived.has(key)) archived.set(key,name);
+      if (!archived.has(key)) archived.set(key,{id,name});
     }
-    $("sellerArchive").hidden=!archived.size;
-    $("archivedSellerTable").innerHTML=[...archived.values()].sort((a,b)=>a.localeCompare(b,"nl-BE"))
+    const visible=[...archived.values()].filter(resultEdits.hasSellerHistory).map(person=>person.name);
+    $("sellerArchive").hidden=!visible.length;
+    $("archivedSellerTable").innerHTML=visible.sort((a,b)=>a.localeCompare(b,"nl-BE"))
       .map(name=>`<li class="score-row name-only"><span class="score-name">${escape(name)}</span></li>`).join("");
   }
   function renderRecords(kind, selected = -1) {
@@ -341,10 +342,12 @@
     const items=entities(mode).filter(item=>item.name && item.id);
     if (!withHistory || mode!=="verkopers") return items;
     const known=new Set(items.map(item=>item.id));
+    const configured=new Set(state.verkopers.map(row=>String(row.PersoneelsNr || row.personeelsNr || "").trim()));
     for (const row of [...state.verkopers,...(window.DIESTROYERS_RESULTATEN || []).filter(item=>norm(item.EntiteitType)==="verkoper")]) {
       const id=String(row.PersoneelsNr || row.personeelsNr || "").trim(), name=row.Naam || row.naam;
       if (!id || !name || known.has(id)) continue;
       known.add(id);
+      if (!configured.has(id) && !resultEdits.hasSellerHistory({id,name})) continue;
       items.push({type:"Verkoper",id,name,displayName:name+" · historiek",shopNr:String(row.ShopNr || row.shopNr || state.shop.shopNr)});
     }
     return items;

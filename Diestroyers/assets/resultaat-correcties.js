@@ -100,10 +100,22 @@
     return backup===0 && entity.type==="Verkoper" && !hasActivity(row) && !get(detail,"Kansen") && norm(detail.Bron)!=="admin" ? null : backup;
   }
 
+  function hasSellerHistory(person) {
+    const entity={...person,type:"Verkoper"};
+    const nps=initialNps.sellers?.[person.id];
+    const avv=w.DIESTROYERS_AVV?.sellers?.[person.id];
+    if (Object.values(nps?.month || {}).some(month=>month.cards>0) ||
+      Object.values(avv?.ytd || {}).some(metric=>metric.responses>0)) return true;
+    const rows=[...(w.DIESTROYERS_RESULTATEN || []),...(w.DIESTROYERS_HISTORIEK_MAAND || []),...(w.DIESTROYERS_KPI_DETAIL || [])];
+    const periods=new Set(rows.map(rawPeriod).filter(period=>validPeriod.test(period)));
+    return [...periods].some(period=>kpis.some(kpi=>kpi.id!=="nps" &&
+      kpi.fields.some(field=>imported(entity,period,field.key)!==null)));
+  }
+
   function closedMonth(nowDate = new Date()) {
     const localDate = new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Brussels",year:"numeric",month:"2-digit"}).formatToParts(nowDate);
     return localDate.find(part=>part.type==="year").value+"-"+localDate.find(part=>part.type==="month").value;
   }
 
-  w.ScorebladResultEdits={kpis,valid,canonical,lookup,imported,importedRow,closedMonth};
+  w.ScorebladResultEdits={kpis,valid,canonical,lookup,imported,importedRow,hasSellerHistory,closedMonth};
 })();

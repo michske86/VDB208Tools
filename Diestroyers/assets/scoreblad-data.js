@@ -56,6 +56,7 @@
       sellerMap.set(key,{id:key,name:rowName(row),type:"Verkoper",active:false});
     }
   }
+  const sellers=[...sellerMap.values()].sort((a,b) => Number(b.active)-Number(a.active) || a.name.localeCompare(b.name,"nl-BE"));
 
   function entityKey(row) {
     return type(row) === "verkoper" ? "seller:" + (rowId(row) || norm(rowName(row))) : "store:" + id(row.ShopNr || row.shopNr || shopId);
@@ -72,6 +73,11 @@
       if (!detailIndex.has(key)) detailIndex.set(key,new Map());
       detailIndex.get(key).set(norm(row.SubKPI),row);
     }
+    const visible=sellers.filter(person=>person.active ||
+      Object.values(npsProfile(person)?.month || {}).some(row=>row.cards>0) ||
+      Object.values(avvProfile(person)?.ytd || {}).some(row=>row.responses>0) ||
+      periods.some(period=>kpis.some(kpi=>month(person,kpi.id,period).value!==null)));
+    sellers.splice(0,sellers.length,...visible);
   }
 
   function region() {
@@ -233,7 +239,7 @@
 
   w.addEventListener("DOMContentLoaded",createIndexes,{once:true});
   w.ScorebladData = {
-    config,kpis,store,sellers:[...sellerMap.values()].sort((a,b) => Number(b.active)-Number(a.active) || a.name.localeCompare(b.name,"nl-BE")),
+    config,kpis,store,sellers,
     periods,latest,month,annual,components,compare,points,format,region,regionPeriod,nps,avv,npsProfile,avvProfile,
     monthLabel:period => periodPattern.test(period || "") ? monthName.format(new Date(period+"-01T00:00:00Z")) : "Geen periode",
     byId:registry.kpiById
