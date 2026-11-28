@@ -482,10 +482,21 @@
     return {value:survey?.cards > 0 ? survey.nps ?? null : null,target:data.month(entity,"nps",period).target,count:survey?.cards??null};
   }
   const surveyTypes=[
-    {key:"promoters",label:"Promotoren",type:"Promotor"},
-    {key:"passives",label:"Neutralen",type:"Neutraal"},
-    {key:"detractors",label:"Detractoren",type:"Detractor"}
+    {key:"promoters",label:"Promotoren",type:"Promotor",tone:"good"},
+    {key:"passives",label:"Neutralen",type:"Neutraal",tone:"close"},
+    {key:"detractors",label:"Detractoren",type:"Detractor",tone:"bad"}
   ];
+  function surveyComment(comment,showSeller) {
+    const category=surveyTypes.find(item=>item.type===comment.type);
+    const name=category?.type || "Type onbekend";
+    const score=comment.score;
+    const meta=[dateLabel(comment.dateIso || comment.date),showSeller?comment.sellerName:null].filter(Boolean).join(" · ");
+    return `<li><div class="score-comment-head">
+      <span class="score-result score-comment-badge${category?" "+category.tone:""}">${escape(name)}
+        ${Number.isFinite(score)?`<strong>${escape(score)}/10</strong>`:""}</span>
+      ${meta?`<span class="score-muted score-comment-meta">${escape(meta)}</span>`:""}</div>
+      <p>${escape(comment.comment)}</p></li>`;
+  }
   function surveyDistribution(survey,selected,link) {
     const categories=surveyTypes.map(group=>({...group,count:survey?.[group.key]??0}));
     const count=categories.reduce((sum,item)=>sum+item.count,0);
@@ -534,9 +545,8 @@
       const commentUrl = page => npsLink({...reactionBase,termijn:viewYear ? "jaar" : "maand",reacties:page});
       const filterUrl=reactietype=>npsLink({...reactionBase,termijn:viewYear?"jaar":"maand",reactietype,reacties:1});
       const commentList = visible.length
-        ? `<ul class="score-comments">${visible.slice((current-1)*commentSize,current*commentSize).map(comment => `<li>
-          <span class="score-muted">${escape([dateLabel(comment.dateIso || comment.date),comment.score,comment.type,entity ? null : comment.sellerName].filter(x => x !== null && x !== undefined && x !== "").join(" · "))}</span>
-          <p>${escape(comment.comment)}</p></li>`).join("")}</ul>` : '<p class="score-empty">Geen commentaren in deze periode.</p>';
+        ? `<ul class="score-comments">${visible.slice((current-1)*commentSize,current*commentSize)
+          .map(comment=>surveyComment(comment,!entity)).join("")}</ul>` : '<p class="score-empty">Geen commentaren in deze periode.</p>';
       const paging = pageCount > 1 ? `<div class="score-pager">
         ${current > 1 ? `<a class="score-button" href="${escape(commentUrl(current-1))}">Vorige</a>` : ""}
         <span class="score-muted">Pagina ${current} van ${pageCount}</span>

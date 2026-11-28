@@ -231,7 +231,11 @@ a.score-row.with-visual::after { grid-area: 1 / 3 / 3 / 4; }
 .score-comments { list-style: none; padding: 0; margin: 0; }
 .score-comments li { padding: .68rem .8rem; border: 1px solid var(--line); border-bottom: 0; background: var(--white); overflow-wrap: anywhere; }
 .score-comments li:last-child { border-bottom: 1px solid var(--line); }
-.score-comments p { margin-top: .22rem; white-space: pre-line; }
+.score-comment-head { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.score-comment-badge { gap: .45rem; padding: .23rem .48rem; font-size: .78rem; font-weight: 700; line-height: 1.2; }
+.score-comment-badge strong { border-inline-start: 1px solid currentColor; padding-inline-start: .42rem; font-variant-numeric: tabular-nums; }
+.score-comment-meta { font-size: .77rem; }
+.score-comments p { margin-top: .45rem; white-space: pre-line; }
 .score-empty { border-block: 1px solid var(--line); padding: 1rem .75rem; color: var(--muted); background: var(--white); }
 .score-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .45rem; margin: .65rem 0; }
 @media (min-width: 48rem) {
