@@ -11,6 +11,7 @@
   --green-bg: #e7f2e8;
   --gold: #77491a;
   --gold-bg: #f9efd9;
+  --score-gutter: clamp(.75rem, 3vw, 1.7rem);
   --headline: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --body: "DM Sans", system-ui, sans-serif;
 }
@@ -25,16 +26,61 @@ body.scoreblad { margin: 0; background: var(--paper); color: var(--ink); font: 4
 .scoreblad h1 { font: 800 clamp(2.65rem, 8vw, 4.25rem)/.98 var(--headline); letter-spacing: -.015em; }
 .scoreblad h2 { font: 700 1.75rem/1.1 var(--headline); }
 .scoreblad h3 { font: 700 1.3rem/1.1 var(--headline); }
-.score-header { border-bottom: 1px solid var(--line); background: var(--paper); }
-.score-brand, .score-nav, .score-main { width: min(100%, 62rem); margin-inline: auto; }
-.score-brand { display: flex; justify-content: space-between; align-items: center; padding: .8rem clamp(.75rem, 3vw, 1.7rem); min-height: 3.65rem; }
+.score-header { padding-bottom: .65rem; border-bottom: 1px solid var(--line); background: var(--paper); }
+.score-brand, .score-main { width: min(100%, 62rem); margin-inline: auto; }
+.score-brand { display: flex; justify-content: space-between; align-items: center; padding: .8rem var(--score-gutter); min-height: 3.65rem; }
 .score-brand a { font: 800 1.52rem/.9 var(--headline); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; }
 .score-brand span { font-size: .82rem; color: var(--muted); }
-.score-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding-inline: clamp(.3rem, 2.4vw, 1.4rem); }
-.score-nav a { display: grid; place-items: center; min-height: 2.85rem; border-bottom: 3px solid transparent; font-weight: 700; font-size: clamp(.75rem, 3vw, .98rem); text-decoration: none; color: var(--muted); }
-.score-nav a:hover { background: var(--white); }
-.score-nav a[aria-current="page"] { border-color: var(--red); color: var(--red); }
-.score-main { padding: clamp(1.1rem, 4vw, 2.1rem) clamp(.75rem, 3vw, 1.7rem) 3rem; }
+.score-nav {
+  width: calc(min(100%, 62rem) - var(--score-gutter) - var(--score-gutter));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .125rem;
+  padding: .1875rem;
+  background: #f0ede7;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+}
+.score-nav a {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 2.75rem;
+  min-width: 0;
+  padding: .45rem 0 .6rem;
+  border-radius: .43rem;
+  color: var(--muted);
+  font: 700 clamp(.65rem, 2.75vw, .92rem)/1.15 var(--body);
+  text-align: center;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.score-nav a:focus-visible { outline-offset: -2px; }
+.score-nav a[aria-current="page"] {
+  background: var(--white);
+  color: var(--red);
+  box-shadow: 0 1px 3px #2020271a;
+}
+.score-nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset-block-end: .3rem;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  width: 1.05rem;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+@media (hover: hover) {
+  .score-nav a:not([aria-current]):hover { background: #e8e3db; color: var(--ink); }
+}
+@media (max-width: 22.5rem) {
+  .score-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .score-nav a { font-size: .81rem; }
+}
+.score-main { padding: clamp(1.1rem, 4vw, 2.1rem) var(--score-gutter) 3rem; }
 .score-main h1:focus { outline: 0; }
 .score-home { max-width: 35rem; margin: 0 auto; display: grid; justify-items: center; align-content: center; min-height: min(37rem, 72svh); text-align: center; }
 .score-home img { width: min(65vw, 16rem); height: auto; }
@@ -119,7 +165,6 @@ a.score-row:hover { background: var(--soft); }
 .score-quality-list .score-list { margin: 0; }
 .score-quality-list .score-empty { padding: .65rem; }
 .score-quality-list button.score-row { width: 100%; text-align: left; border: 0; background: var(--white); font: inherit; color: inherit; cursor: pointer; }
-.score-nav a { font-size: clamp(.71rem,2.65vw,.98rem); }
 .score-comments { list-style: none; padding: 0; margin: 0; }
 .score-comments li { padding: .68rem .8rem; border: 1px solid var(--line); border-bottom: 0; background: var(--white); overflow-wrap: anywhere; }
 .score-comments li:last-child { border-bottom: 1px solid var(--line); }
