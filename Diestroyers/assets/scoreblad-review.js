@@ -107,6 +107,9 @@
         (b.result.value??-Infinity)-(a.result.value??-Infinity) || a.person.name.localeCompare(b.person.name,"nl-BE"));
   }
   function personal(ctx) {
+    const strengthPeriods=ctx.term==="jaar"
+      ? data.periods.filter(period=>period.slice(0,4)===ctx.period.slice(0,4) && period<=ctx.period)
+      : monthsThrough(ctx.period,6);
     const rows=overview(ctx).map(row=>{
       const history=previousResults(ctx.person,row.def,ctx).filter(item=>
         available(item.value) && available(item.target) &&
@@ -119,8 +122,15 @@
       const improvement=reference!==null && row.result.value!==null ? reference-row.result.value : null;
       return {...row,measured,hits,months:history.length,improvement};
     });
-    const strengths=rows.filter(row=>row.measured && row.missing===0 && row.hits>=2 && row.hits>=row.months*.5)
-      .sort((a,b)=>b.hits-a.hits).slice(0,3);
+    const strengths=rows.map(row=>{
+      const measured=strengthPeriods.map(period=>data.month(ctx.person,row.def.id,period)).filter(item=>
+        available(item.value) && available(item.target) &&
+        (row.def.type!=="ratio" || (item.chances>0 && available(item.count))) &&
+        (row.def.id!=="nps" || item.count>=minimumChances));
+      return {...row,months:measured.length,hits:measured.filter(item=>item.value>=item.target).length,
+        totalChances:measured.reduce((sum,item)=>sum+(item.chances??0),0)};
+    }).filter(row=>row.hits>=2 && row.hits>=row.months*.5)
+      .sort((a,b)=>b.hits/b.months-a.hits/a.months || b.hits-a.hits);
     const focus=rows.filter(row=>row.measured && row.missing>0)
       .sort((a,b)=>Number(b.months>=2 && b.improvement>0)-Number(a.months>=2 && a.improvement>0) ||
         Number(b.def.type==="ratio")-Number(a.def.type==="ratio") ||
@@ -194,8 +204,9 @@
       if (source==="analyse" && ctx.person) {
         const {strengths,focus}=personal(ctx);
         for (const [title,rows] of [["Sterktes",strengths],["Focus",focus]]) {
-          if (rows.length) add(title,["KPI","Eenheid",...resultHeads,"Eerdere maanden op target","Eerdere maanden gemeten"],
-            rows.map(({def,result,hits,months})=>[def.label,metricUnit(def),...stats(result),hits,months]));
+          if (rows.length) add(title,["KPI","Eenheid",...resultHeads,...(title==="Sterktes"?["Meetbare maanden op target","Meetbare maanden","Kansen in die maanden"]:["Eerdere maanden op target","Eerdere maanden gemeten"])],
+            rows.map(({def,result,hits,months,totalChances})=>[def.label,metricUnit(def),...stats(result),hits,months,
+              ...(title==="Sterktes"?[def.type==="ratio"?totalChances:null]:[])]));
         }
       }
       add("Overzicht",["KPI","Eenheid",...resultHeads,...(source==="analyse"?["Vergelijking","Verschil","Tekort","Eenheid tekort"]:[])],

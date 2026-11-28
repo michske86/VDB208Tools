@@ -242,7 +242,8 @@
       meta:row.comparison.label,value:review.deltaLabel(row.comparison.value,row.def,true),href:rowLink(row)})),label);
     const personal=person?review.personal(ctx):null;
     const focus=personal?section("Sterktes",personal.strengths.length?listTo(personal.strengths,"Sterktes",
-      row=>`${row.hits} van ${row.months} eerdere meetbare maanden op target`):'<p class="score-empty">Nog geen terugkerende sterkte zichtbaar.</p>')+
+      row=>`${row.hits} van ${row.months} meetbare maanden op target`+
+        (row.def.type==="ratio"?` · ${integer.format(row.totalChances)} kansen`:"")):'<p class="score-empty">Nog geen terugkerende sterkte zichtbaar.</p>')+
       section("Persoonlijke focus",personal.focus.length?listTo(personal.focus,"Persoonlijke focus",row=>
         targetGap(row)+(row.def.type==="ratio"?` · ${row.result.chances} kansen`:"")):'<p class="score-empty">Geen duidelijke focus op basis van resultaten en meetvolume.</p>')+
       `<p class="score-muted">Focus gebruikt beschikbare targets en eerdere resultaten. Voor ratio’s en NPS gebruiken we minstens ${review.minimumChances} kansen of enquêtes.</p>`:"";
