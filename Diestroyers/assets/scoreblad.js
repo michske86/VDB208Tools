@@ -3,6 +3,7 @@
   "use strict";
   const data = window.ScorebladData;
   const review = window.ScorebladReview;
+  const customer = window.ScorebladKlantbeleving;
   const root = document.getElementById("score-main");
   const home = root.innerHTML;
   const nav = document.querySelector(".score-nav");
@@ -504,13 +505,14 @@
   function surveyDistribution(survey,selected,link) {
     const categories=surveyTypes.map(group=>({...group,count:survey?.[group.key]??0}));
     const count=categories.reduce((sum,item)=>sum+item.count,0);
-    const control=item=>`href="${escape(link(item.key))}" aria-label="${escape(item.label+" · "+countValue(item.count))}"
+    const volume=item=>survey?.cards>0 ? `${countValue(item.count)} van ${countValue(survey.cards)}` : countValue(item.count);
+    const control=item=>`href="${escape(link(item.key))}" aria-label="${escape(item.label+" · "+volume(item))}"
       ${item.key===selected?' aria-current="true"':""}`;
     return `<div class="score-nps-distribution">
       ${count?`<div class="score-nps-bar" role="group" aria-label="Verdeling van de enquêtes">${categories.filter(item=>item.count>0).map(item=>
         `<a class="${item.key}" style="--portion:${item.count}" ${control(item)}></a>`).join("")}</div>`:""}
       <div class="score-nps-legend" role="group" aria-label="Filter klantcommentaren">${categories.map(item=>
-        `<a class="${item.key}" ${control(item)}><span>${item.label}</span><strong>${countValue(item.count)}</strong></a>`).join("")}</div></div>`;
+        `<a class="${item.key}" ${control(item)}><span>${item.label}</span><strong>${volume(item)}</strong></a>`).join("")}</div></div>`;
   }
   function commentFilters(selected,link) {
     const options=[{key:null,type:"Alle",label:"Alle reacties"},...surveyTypes];
@@ -541,6 +543,130 @@
           <a href="${escape(npsLink({...base,periode:latest}))}">Bekijk ${escape(data.monthLabel(latest))}</a></p>`
       : '<p class="score-empty">Er zijn nog geen cijfers voor klantbeleving gepubliceerd.</p>';
   }
+  function customerReading(reading,key) {
+    if (!reading) return "Cijfers ontbreken";
+    const isNps = key==="nps";
+    return data.format(reading.value,isNps?data.byId.nps:ratioDef)+" · "+surveySample(reading.count,isNps?"enquêtes":"antwoorden");
+  }
+  function customerChange(current,previous,key) {
+    const value = current.value-previous.value;
+    const unit = key==="nps" ? "pt" : "pp";
+    return (value>0 ? "+" : "")+preciseNumber.format(value)+" "+unit;
+  }
+  function closedComparison(source,key,period,viewYear) {
+    if (viewYear) return "";
+    const previous = customer.previousClosed(period);
+    if (!previous) return "";
+    const current = customer.snapshot(source,key,period);
+    const before = customer.snapshot(source,key,previous);
+    return section("Vorige afgesloten maand",`<p class="score-nps-note">${escape(data.monthLabel(previous))} ·
+      ${escape(before ? customerReading(before,key) : "Geen cijfers beschikbaar")}</p>
+      ${current && before ? `<p class="score-muted">Verschil: ${escape(customerChange(current,before,key))}.
+        ${period>=review.activeMonth()?"De gekozen maand loopt nog. ":""}${Math.min(current.count,before.count)<review.minimumChances?"Kleine steekproef in minstens één periode.":""}</p>` : ""}`);
+  }
+  function themeOptions(comments) {
+    return customer.themes.map(theme=>({...theme,comments:comments.filter(comment=>customer.matches(comment,theme))}))
+      .sort((a,b)=>b.comments.length-a.comments.length);
+  }
+  function themeGroups(groups,link,showSeller) {
+    const rows = groups.filter(group=>group.comments.length).map(group=>({
+      label:group.label,value:countValue(group.comments.length),href:link(null,group.key),
+      examples:["Promotor","Neutraal","Detractor"].map(type=>group.comments.find(comment=>comment.type===type)).filter(Boolean),
+      visual:`<span class="score-theme-types">${surveyTypes.map(type=>{
+        const count = group.comments.filter(comment=>comment.type===type.type).length;
+        return count ? `<a class="score-result ${type.tone}" href="${escape(link(type.key,group.key))}">${countValue(count)} ${escape(type.label.toLowerCase())}</a>` : "";
+      }).join("")}</span>`
+    }));
+    return section("Thema’s in klantfeedback",rows.length
+      ? `<p class="score-muted score-nps-note">Automatisch op trefwoorden. Eén reactie kan bij meerdere thema’s staan.</p>
+        <ul class="score-theme-list">${rows.map(item=>`<li><a class="score-theme-title" href="${escape(item.href)}">
+          <strong>${escape(item.label)}</strong><span>${item.value} reacties ›</span></a>${item.visual}
+          ${item.examples.length ? `<details><summary>Voorbeelden lezen</summary><ul class="score-comments">
+            ${item.examples.map(comment=>surveyComment(comment,showSeller)).join("")}</ul></details>` : ""}</li>`).join("")}</ul>`
+      : '<p class="score-empty">Geen reacties bij de huidige thema’s gevonden.</p>');
+  }
+  function personalCustomerSignals(source,period,bucket,npsTarget,comments,base,feedbackLink) {
+    const definitions = [{key:"nps",label:"NPS",target:npsTarget},...metrics.map(([key,label,,target])=>({key,label,target}))];
+    const signals = customer.personalSignals(source,definitions,period,bucket);
+    return section("Jouw coaching",`<div class="score-coaching-cards">
+      ${[[signals.strength,true],[signals.focus,false]].map(([signal,positive])=>{
+        const title = positive?"Sterkte om vast te houden":"Aandachtspunt om te oefenen";
+        if (!signal) return `<article><h3>${title}</h3><p class="score-muted">Geen passend signaal met minstens ${review.minimumChances} antwoorden.</p></article>`;
+        const theme = customer.themes.find(item=>item.key===customer.metricThemes[signal.key]);
+        const type = comment=>positive ? comment.type==="Promotor" : ["Neutraal","Detractor"].includes(comment.type);
+        const quote = comments.filter(comment=>type(comment) && (theme ? customer.matches(comment,theme) : true))
+          .sort((a,b)=>String(b.dateIso).localeCompare(String(a.dateIso)))[0];
+        return `<article><h3>${title}</h3><a class="score-coaching-metric" href="${escape(npsLink({...base,onderdeel:signal.key}))}">${escape(signal.label)} ›</a>
+          <p>${escape(customerReading(signal.current,signal.key))} · Target ${escape(data.format(signal.target,signal.key==="nps"?data.byId.nps:ratioDef))}</p>
+          ${signal.previous.length ? `<p class="score-muted">Eigen eerdere ${bucket==="ytd"?"YTD-stand":"score"} ·
+            ${bucket==="ytd"?"t.e.m. ":""}${escape(data.monthLabel(signal.previous[0].month))} ·
+            ${escape(customerReading(signal.previous[0].reading,signal.key))}</p>` : '<p class="score-muted">Geen eigen eerdere score met voldoende antwoorden beschikbaar.</p>'}
+          ${quote ? `<ul class="score-comments">${surveyComment(quote,false)}</ul>
+            <a href="${escape(feedbackLink(null,theme?.key))}">Lees de klantfeedback</a>` : ""}
+        </article>`;
+      }).join("")}</div>`);
+  }
+  const agreementMetrics = [["nps","NPS"],...metrics.map(([key,label])=>[key,label])];
+  const coachingScope = source => source.type==="Verkoper" ? source.id : "winkel";
+  function agreementsPage(source,period,selected,base) {
+    const scope = coachingScope(source);
+    const records = customer.readAgreements();
+    const activeMonth = review.activeMonth();
+    const baseline = customer.isMonth(period) && period<=activeMonth ? period : activeMonth;
+    const due = customer.shiftMonth(activeMonth,1);
+    const key = agreementMetrics.some(([key])=>key===selected) ? selected : "nps";
+    const prefill = key==="wait" ? "We spreken wachtende klanten meteen aan en geven een realistische inschatting." : "";
+    return back("Overzicht klantbeleving",npsLink({...base,onderdeel:null}))
+      + heading("Coachingsafspraken",source.name)
+      + '<p class="score-muted score-nps-note">Afspraken worden in deze browser bewaard. Formuleer welk gedrag je wil oefenen en volg het op na afloop van de evaluatiemaand.</p>'
+      + (records===null ? '<p class="score-empty">Opslag in deze browser is niet beschikbaar.</p>' : `
+        <section class="score-section"><h2>Nieuwe afspraak</h2>
+          <form class="score-coaching-form" data-coaching-scope="${escape(scope)}">
+            <input type="hidden" name="baseline" value="${escape(baseline)}">
+            <div class="score-nps-filters score-filters">
+              <label class="score-field">Meting<select name="metric">${agreementMetrics.map(([id,label])=>
+                `<option value="${id}"${id===key?" selected":""}>${escape(label)}</option>`).join("")}</select></label>
+              <label class="score-field">Evaluatiemaand<input name="due" type="month" required min="${customer.shiftMonth(baseline,1)}" value="${due}"></label>
+            </div>
+            <p class="score-muted">Nulmeting · ${escape(data.monthLabel(baseline))}${baseline===activeMonth?" (lopende maandstand bij opslaan)":""}</p>
+            <label class="score-field">Wat gaan we oefenen?<textarea name="action" rows="3" maxlength="500" required>${escape(prefill)}</textarea></label>
+            <p class="score-muted" data-coaching-message role="status"></p>
+            <button class="score-button primary">Afspraak bewaren</button>
+          </form>
+        </section>
+        ${[false,true].map(done=>section(done?"Opgevolgd":"Open afspraken",
+          records.filter(record=>record.scope===scope && Boolean(record.completed)===done).map(record=>{
+            const {metric} = record;
+            const label = agreementMetrics.find(([key])=>key===metric)?.[1] || metric;
+            const closed = record.due<activeMonth;
+            const published = closed ? customer.snapshot(source,metric,record.due) : null;
+            const evaluation = done ? record.completed.reading : published;
+            const change = evaluation && record.start ? customerChange(evaluation,record.start,metric) : "";
+            const delta = change ? ` · verschil ${escape(change)}` : "";
+            return `<details class="score-agreement"><summary><strong>${escape(label)}</strong> · ${escape(data.monthLabel(record.due))}
+                ${!done && closed?" · te evalueren":""}</summary>
+              <form class="score-coaching-form" data-coaching-scope="${escape(scope)}" data-agreement="${escape(record.id)}">
+                <label class="score-field">Afspraak<textarea name="action" rows="2" maxlength="500" required${done?" readonly":""}>${escape(record.action)}</textarea></label>
+                <dl class="score-coaching-measurements">
+                  <div><dt>Nulmeting · ${escape(data.monthLabel(record.baseline))}</dt><dd>${escape(customerReading(record.start,metric))}</dd></div>
+                  <div><dt>Evaluatie · ${escape(data.monthLabel(record.due))}</dt><dd>${escape(closed || done ?
+                    customerReading(evaluation,metric) : "Beschikbaar zodra de maand is afgesloten")}${done && record.completed.manual?" · handmatig":""}${delta}</dd></div>
+                </dl>
+                ${!done && closed && !published ? `<fieldset class="score-coaching-manual"><legend>Eventueel invullen uit een eigen bevestigd maandrapport</legend>
+                  <label class="score-field">Score<input name="manualScore" type="number" inputmode="decimal" min="${metric==="nps"?-100:0}" max="100" step="0.01"></label>
+                  <label class="score-field">Aantal antwoorden<input name="manualCount" type="number" inputmode="numeric" min="1" step="1"></label>
+                </fieldset>` : ""}
+                <label class="score-field">Wat zagen of hoorden we?<textarea name="note" rows="3" maxlength="800"${done?" readonly":""}>${escape(record.note)}</textarea></label>
+                <p class="score-muted" data-coaching-message role="status"></p>
+                <div class="score-actions">
+                  ${done ? '<button class="score-button" name="submit" value="reopen">Heropen</button>'
+                    : '<button class="score-button" name="submit" value="save">Bewaar notities</button>'
+                    + (closed?'<button class="score-button primary" name="submit" value="finish">Markeer als opgevolgd</button>':"")}
+                </div>
+              </form></details>`;
+          }).join("") || `<p class="score-empty">${done?"Nog geen opgevolgde afspraken.":"Nog geen open afspraken."}</p>`)).join("")}
+      `);
+  }
   function npsPage(q) {
     const entity = data.sellers.find(person => person.id === q.get("verkoper"));
     const mode = entity || q.get("weergave") === "verkopers" ? "verkopers" : "winkel";
@@ -552,9 +678,11 @@
     const period = periods.includes(q.get("periode")) ? q.get("periode") : latest;
     const activeMetric = metrics.find(([key]) => key === q.get("onderdeel"));
     const chosenMetric = q.get("onderdeel") === "nps" ? "nps" : null;
+    const tracking = q.get("onderdeel")==="afspraken";
     const term = q.get("termijn") === "jaar" ? "jaar" : "maand";
     const viewYear = term === "jaar";
-    const base = {weergave:mode,verkoper:entity?.id,periode:period,termijn:term,onderdeel:activeMetric?.[0] || chosenMetric};
+    const base = {weergave:mode,verkoper:entity?.id,periode:period,termijn:term,onderdeel:tracking?"afspraken":activeMetric?.[0] || chosenMetric};
+    if (tracking) return agreementsPage(source,period,q.get("meting"),base);
     const overview = {...base,onderdeel:null};
     const comparing = mode === "verkopers" && !entity && !base.onderdeel;
     const compareMetric = metrics.find(([key])=>key===q.get("meting"));
@@ -581,8 +709,10 @@
         ],term)}
       </div>`;
     const comments = ((entity ? profile?.comments : data.nps.comments) || []).filter(comment=>
-      period && (viewYear ? comment.period?.startsWith(period.slice(0,4)) && comment.period<=period : comment.period===period));
-    const feedbackLink = type => npsLink({...base,onderdeel:"nps",reactietype:type,reacties:1});
+      comment.comment?.trim() && period && (viewYear ? comment.period?.startsWith(period.slice(0,4)) && comment.period<=period : comment.period===period))
+      .sort((a,b)=>String(b.dateIso).localeCompare(String(a.dateIso)));
+    const feedbackLink = (type,theme) => npsLink({...base,onderdeel:"nps",reactietype:type,thema:theme,reacties:1});
+    const agreementsLink = key => npsLink({...base,onderdeel:"afspraken",meting:key});
     const result = surveyResult(source,period,survey,term);
     const npsGap = result.target!==null && result.value!==null ? result.target-result.value : null;
     const sampleNote = count => count>0 && count<review.minimumChances ?
@@ -590,9 +720,9 @@
 
     if (chosenMetric === "nps") {
       const category=surveyTypes.find(item=>item.key===q.get("reactietype"));
-      const reactionBase={...base,reactietype:category?.key};
-      const visible = comments.filter(comment=>!category || comment.type===category.type)
-        .sort((a,b) => String(b.dateIso).localeCompare(String(a.dateIso)));
+      const theme=customer.themes.find(item=>item.key===q.get("thema"));
+      const reactionBase={...base,reactietype:category?.key,thema:theme?.key};
+      const visible = comments.filter(comment=>(!category || comment.type===category.type) && (!theme || customer.matches(comment,theme)));
       const commentSize = 15;
       const pageCount = Math.max(1,Math.ceil(visible.length/commentSize));
       const current = Math.max(1,Math.min(pageCount,Math.floor(Number(q.get("reacties")) || 1)));
@@ -614,6 +744,7 @@
             ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",countValue(result.count??0)]])}
             ${sampleNote(result.count)}
             ${surveyDistribution(survey,category?.key,filterUrl)}</div>`
+        + closedComparison(source,"nps",period,viewYear)
         + (viewYear ? "" : `<details class="score-nps-trend"><summary>Evolutie per maand</summary>
           ${trendSection(history,data.byId.nps,period,["count","Enquêtes"])}
           ${list(history.map(({period:month,metric})=>({label:data.monthLabel(month),
@@ -621,7 +752,10 @@
             href:npsLink({...reactionBase,periode:month})})),"NPS-maandhistoriek")}</details>`)
         + `<section class="score-section" id="nps-comments">
             <h2 tabindex="-1">Klantcommentaren · ${category?escape(category.label)+" · ":""}${visible.length}</h2>
-            ${commentFilters(category?.key??null,filterUrl)}${commentList}${paging}</section>`;
+            ${commentFilters(category?.key??null,filterUrl)}
+            ${picker("Thema",[[null,"Alle thema’s",npsLink({...reactionBase,thema:null,reacties:1})],
+              ...customer.themes.map(item=>[item.key,item.label,npsLink({...reactionBase,thema:item.key,reacties:1})])],theme?.key??null)}
+            ${commentList}${paging}</section>`;
     }
 
     if (comparing) {
@@ -653,11 +787,14 @@
         + (hasExperience ? facts([["Score",value,status],["Target",data.format(target,ratioDef)],
             ["Antwoorden",countValue(measurement.count)],
             ["Afstand tot target",surveyGap(measurement.gap,"pp") || null]]) + sampleNote(measurement.count)
+          + closedComparison(source,key,period,viewYear)
           + (measurement.gap>0 && measurement.count>=review.minimumChances
             ? section("Coachingsvraag",`<p class="score-nps-coaching">${escape(prompt)}</p>`) : "")
           : experienceUnavailable(avvPeriod,base))
         + section("Verder kijken",list([
           ...(hasExperience && !entity ? [{label:"Vergelijk verkopers op deze meting",href:compare(key)}] : []),
+          {label:"Maak een coachingsafspraak",href:agreementsLink(key)},
+          {label:"Bekijk feedback over dit thema",href:feedbackLink(null,customer.metricThemes[key])},
           {label:"Lees klantcommentaren",meta:"Alle onderwerpen in deze periode",href:feedbackLink(null)}
         ],"Verder kijken"));
     }
@@ -670,6 +807,7 @@
       ? '<p class="score-muted score-nps-note">Metingen onder target met minstens '+review.minimumChances+' antwoorden staan bovenaan, met de grootste afstand eerst.</p>'
       : "";
     return heading("Klantbeleving",subtitle) + filters(base,true)
+      + (entity ? personalCustomerSignals(source,period,bucket,result.target,comments,base,feedbackLink) : "")
       + section("NPS",list([{label:"Bekijk NPS en verdeling",meta:[surveyGap(npsGap,"punten"),surveySample(result.count??0,"enquêtes")].filter(Boolean).join(" · "),
         ...scoreFields(result,data.byId.nps),href:npsLink({...base,onderdeel:"nps"})}],"NPS"))
       + `<section class="score-section" aria-labelledby="score-experience-heading">
@@ -679,7 +817,11 @@
       + section("Klantfeedback",list([{label:"Alle klantcommentaren",value:countValue(comments.length),href:feedbackLink(null)},
         ...surveyTypes.map(item=>({label:item.label,value:countValue(comments.filter(comment=>comment.type===item.type).length),
           href:feedbackLink(item.key)}))],"Geschreven klantfeedback"))
-      + (entity ? "" : section("Team",list([{label:"Vergelijk verkopers",meta:"Kies NPS of een meting klantbeleving",href:compare(null)}],"Team")));
+      + themeGroups(themeOptions(comments),feedbackLink,!entity)
+      + section("Opvolging",list([
+        {label:"Coachingsafspraken",meta:"Leg een actie vast en evalueer na de gekozen maand",href:agreementsLink(null)},
+        ...(!entity ? [{label:"Vergelijk verkopers",meta:"Kies NPS of een meting klantbeleving",href:compare(null)}] : [])
+      ],"Opvolging"));
   }
 
   const views = {home:() => home,analyse:analysisPage,resultaten:resultPage,rankings:rankingPage,nps:npsPage};
@@ -765,6 +907,81 @@
   });
   root.addEventListener("change",event => {
     if (event.target.matches("select[data-score-select]")) location.hash = event.target.value;
+  });
+  root.addEventListener("submit",event=>{
+    const form = event.target;
+    if (!form.matches("[data-coaching-scope]")) return;
+    event.preventDefault();
+    const message = form.querySelector("[data-coaching-message]");
+    const input = new FormData(form);
+    const scope = form.dataset.coachingScope;
+    const source = scope==="winkel" ? data.store : data.sellers.find(person=>person.id===scope);
+    if (!source) return;
+    const records = customer.readAgreements();
+    if (!records) {
+      message.textContent = "Opslaan in deze browser is niet beschikbaar.";
+      return;
+    }
+    const id = form.dataset.agreement;
+    const record = records.find(item=>item.scope===scope && item.id===id);
+    const action = input.get("action").trim();
+    const activeMonth = review.activeMonth();
+    if (!action) {
+      message.textContent = "Beschrijf eerst welke actie je wil oefenen.";
+      return;
+    }
+    let update;
+    if (!id) {
+      const metric = input.get("metric"), baseline = input.get("baseline"), due = input.get("due");
+      if (!agreementMetrics.some(([key])=>key===metric) || !customer.isMonth(baseline) ||
+          !customer.isMonth(due) || baseline>activeMonth || due<=baseline) {
+        message.textContent = "Kies een evaluatiemaand na de nulmeting.";
+        return;
+      }
+      update = {id:crypto.randomUUID(),scope,metric,baseline,due,action,start:customer.snapshot(source,metric,baseline),note:""};
+    } else {
+      if (!record) {
+        message.textContent = "Deze afspraak is niet meer beschikbaar.";
+        return;
+      }
+      const kind = event.submitter?.value;
+      const note = (input.get("note")||"").trim();
+      update = {...record,action,note};
+      if (kind==="reopen") delete update.completed;
+      if (kind==="finish") {
+        if (record.due>=activeMonth) {
+          message.textContent = "Evalueer zodra de gekozen maand is afgesloten.";
+          return;
+        }
+        let reading = customer.snapshot(source,record.metric,record.due);
+        let manual = false;
+        const score = input.get("manualScore"), count = input.get("manualCount");
+        if (!reading && (score || count)) {
+          const value = Number(score), volume = Number(count);
+          if (!score || !count || !Number.isFinite(value) || value<(record.metric==="nps"?-100:0) ||
+              value>100 || !Number.isSafeInteger(volume) || volume<1) {
+            message.textContent = "Vul een geldige score én het aantal antwoorden in.";
+            return;
+          }
+          reading = {value,count:volume};
+          manual = true;
+        }
+        if (!reading && !note) {
+          message.textContent = "Leg een observatie vast als er geen cijfers beschikbaar zijn.";
+          return;
+        }
+        update.completed = {reading,manual};
+      }
+    }
+    if (!customer.writeAgreement(update)) {
+      message.textContent = "De afspraak kon niet worden opgeslagen in deze browser.";
+      return;
+    }
+    render();
+    const saved = root.querySelector(`[data-agreement="${CSS.escape(update.id)}"]`);
+    saved.closest("details").open = true;
+    saved.closest("details").querySelector("summary").focus();
+    saved.querySelector("[data-coaching-message]").textContent = "Afspraak bewaard.";
   });
   window.addEventListener("hashchange",() => render(true));
   window.addEventListener("DOMContentLoaded",() => {

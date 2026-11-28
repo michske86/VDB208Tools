@@ -220,6 +220,31 @@ a.score-row.with-visual::after { grid-area: 1 / 3 / 3 / 4; }
 .score-nps-trend summary { padding: .65rem .8rem; cursor: pointer; font-weight: 700; background: var(--white); border: 1px solid var(--line); border-radius: .35rem; }
 .score-nps-trend .score-list { margin-top: .65rem; }
 #nps-comments h2, #score-experience-heading { scroll-margin-top: 1rem; }
+.score-coaching-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(17rem,100%),1fr)); gap: .65rem; }
+.score-coaching-cards article, .score-theme-list > li, .score-agreement, .score-coaching-form { min-width: 0; background: var(--white); border: 1px solid var(--line); border-radius: .35rem; }
+.score-coaching-cards article, .score-theme-list > li, .score-coaching-form { display: grid; align-content: start; gap: .55rem; padding: .75rem; }
+.score-coaching-cards article > p { overflow-wrap: anywhere; }
+.score-coaching-metric { font-weight: 700; }
+.score-theme-list { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.score-theme-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem .65rem; text-decoration: none; min-height: 2.75rem; }
+.score-theme-title span, .score-theme-types a { font-size: .8rem; }
+.score-theme-types { display: flex; gap: .35rem; flex-wrap: wrap; }
+.score-theme-types a { min-height: 2rem; }
+.score-theme-list summary, .score-agreement > summary { cursor: pointer; }
+.score-theme-list details[open] > summary { margin-bottom: .5rem; }
+#nps-comments .score-field { margin-bottom: .55rem; }
+.score-agreement + .score-agreement { margin-top: .45rem; }
+.score-agreement > summary { padding: .75rem; }
+.score-agreement .score-coaching-form { border: 0; border-top: 1px solid var(--line); }
+.score-coaching-form :is(textarea,input,select) { width: 100%; min-width: 0; max-width: 100%; padding: .6rem; font: inherit; color: var(--ink); background: var(--white); border: 1px solid var(--line); border-radius: .35rem; }
+.score-coaching-form textarea { resize: vertical; }
+.score-coaching-form > button { justify-self: start; }
+.score-coaching-form .score-filters { margin-bottom: 0; }
+.score-coaching-form [data-coaching-message]:empty { display: none; }
+.score-coaching-measurements { display: grid; gap: .6rem; margin: 0; }
+.score-coaching-measurements dt { font-weight: 700; }
+.score-coaching-measurements dd { margin: 0; }
+.score-coaching-manual { display: grid; gap: .45rem; min-width: 0; border: 1px solid var(--line); }
 .score-nps-distribution { display: grid; gap: .5rem; margin-top: .6rem; padding: .62rem; background: var(--white); border: 1px solid var(--line); border-radius: .38rem; }
 .score-nps-bar { display: flex; height: 1.35rem; border-radius: .34rem; }
 .score-nps-bar a { flex: var(--portion) 1 0; }
