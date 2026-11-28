@@ -202,6 +202,13 @@
     const scale = rules.points;
     return completion >= scale.greenThreshold ? scale.green : completion >= scale.yellowThreshold ? scale.yellow : scale.red;
   }
+  function resultState(result,def) {
+    if (!result) return "Ontbrekend cijfer";
+    if (def.type==="ratio" && result.chances===0) return "Geen geregistreerde kansen";
+    if (def.id==="nps" && result.count===0) return "Geen enquêtes";
+    if (result.value===null || result.value===undefined) return "Ontbrekend cijfer";
+    return result.value===0 ? "Gemeten nul" : "Gemeten";
+  }
 
   function compare({scope, term, metric, period}) {
     const regional = scope === "regio";
@@ -240,7 +247,7 @@
   w.addEventListener("DOMContentLoaded",createIndexes,{once:true});
   w.ScorebladData = {
     config,kpis,store,sellers,
-    periods,latest,month,annual,components,compare,points,format,region,regionPeriod,nps,avv,npsProfile,avvProfile,
+    periods,latest,month,annual,components,compare,points,resultState,format,region,regionPeriod,nps,avv,npsProfile,avvProfile,
     monthLabel:period => periodPattern.test(period || "") ? monthName.format(new Date(period+"-01T00:00:00Z")) : "Geen periode",
     byId:registry.kpiById
   };

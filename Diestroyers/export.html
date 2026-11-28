@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/scoreblad.css?v=8">
+<link rel="stylesheet" href="assets/scoreblad.css?v=15">
 <style>
 .report, .report *{box-sizing:border-box}
 .report{color:#111}
@@ -185,8 +185,8 @@
 <script src="assets/archief.js?v=1" data-load-archive></script>
 <script src="assets/config.js"></script>
 <script src="assets/registry.js"></script>
-<script src="assets/scoreblad-data.js?v=5"></script>
-<script src="assets/scoreblad-review.js?v=4"></script>
+<script src="assets/scoreblad-data.js?v=6"></script>
+<script src="assets/scoreblad-review.js?v=5"></script>
 <script src="assets/calculations.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/components.js"></script>
@@ -241,15 +241,19 @@ function scoreTarget(key,entity,period,annual=false){
 }
 function pct(stuks,kansen){return window.Diestroyers.calculations.servicePercentage(stuks,kansen)}
 function metric(r,k){
- if(!r)return {display:'—',sub:'',status:'empty',raw:null,target:null,stuks:0,kansen:0};
- let raw,target,sub='';
- target=scoreTarget(k.key,exportEntity(r),s(r.Periode||r.periode))?.target??null;
- if(k.kind==='count'){raw=n(r[k.value]);sub=target===null?'Geen target':`Target ${num.format(target)}`;}
- else if(k.kind==='ratio'){const st=n(r[k.stuks]),ka=n(r[k.kansen]);raw=pct(st,ka);sub=`${num.format(st)} / ${num.format(ka)} · ${target===null?'Geen target':'T '+num.format(target)+'%'}`;}
- else {raw=n(r[k.value]);sub=target===null?'Geen target':`Target ${num.format(target)}%`;}
- const ratio=target>0?raw/target:0;
- return {display:k.kind==='count'?num.format(raw):num.format(raw)+'%',sub,status:target===null?'':ratio>=1?'ok':ratio>=.9?'close':'bad',raw,target,
-  stuks:k.kind==='ratio'?n(r[k.stuks]):raw,kansen:k.kind==='ratio'?n(r[k.kansen]):0};
+ return reading(r?scoreTarget(k.key,exportEntity(r),s(r.Periode||r.periode)):null,k);
+}
+function reading(result,k){
+ const def=window.Diestroyers.registry.kpiByKey[k.key];
+ const raw=result?.value??null,target=result?.target??null,stuks=result?.count??null,kansen=result?.chances??null;
+ const status=window.ScorebladData.resultState(result,def);
+ const fmt=value=>value===null?'—':num.format(value);
+ const composition=k.kind==='ratio'?`${fmt(stuks)} stuks · ${fmt(kansen)} kansen`:'';
+ const label=target===null?'Ontbrekend target':'Target '+fmt(target)+(k.kind==='count'?'':'%');
+ const score=target>0 && raw!==null ? raw/target : null;
+ return {display:raw===null?'—':fmt(raw)+(k.kind==='count'?'':'%'),
+  sub:[status==='Gemeten'?null:status,composition,label].filter(Boolean).join(' · '),
+  status:raw===null?'empty':score===null?'':score>=1?'ok':score>=.9?'close':'bad',raw,target,stuks,kansen};
 }
 function aggregate(records, entity=exportEntity(records.find(Boolean))){
  const out={Omzet:0};
@@ -269,7 +273,9 @@ function aggregate(records, entity=exportEntity(records.find(Boolean))){
   if(k.kind==='ratio')x.raw=pct(x.stuks,x.kansen);
   if(k.kind==='pct'&&records.filter(Boolean).length)x.raw=x.raw/records.filter(Boolean).length;
   if(entity?.type!=='DistrictWinkel' && entity && closedMonths.length){
-   x.target=scoreTarget(k.key,entity,monthPeriod(closedMonths.length-1),true)?.target??null;
+   const result=scoreTarget(k.key,entity,monthPeriod(closedMonths.length-1),true);
+   Object.assign(x,reading(result,k),{has:result?.value!=null,targetMonths:result?.targetCoverage??0});
+   return;
   }else if(k.kind!=='count'&&x.targetMonths)x.target/=x.targetMonths;
   const ratio=x.target?x.raw/x.target:0;x.status=!x.has?'empty':!x.target?'':ratio>=1?'ok':ratio>=.9?'close':'bad';
   x.display=!x.has?'—':(k.kind==='count'?num.format(x.raw):num.format(x.raw)+'%');
@@ -280,7 +286,9 @@ function aggregate(records, entity=exportEntity(records.find(Boolean))){
 }
 function cls(x){return 'cell-'+(x?.status||'empty')}
 function kpiCell(x){return `<td class="${cls(x)}"><span class="kpi-main">${esc(x.display)}</span><span class="kpi-sub">${esc(x.sub)}</span></td>`}
-function header(title,subtitle){return `<div class="report-header"><div class="report-brand"><div class="report-logo"><img src="assets/diest.png" alt="Diestroyers"></div><div><div class="report-h1">${esc(title)}</div><div style="font-size:12px;color:#666;font-weight:800">${esc(subtitle)}</div></div></div><div class="report-meta"><strong>${esc(shop.naam)} · Shop ${esc(shop.shopNr)}</strong><br>Export: ${new Date().toLocaleString('nl-BE')}</div></div>`}
+const omzetPeildatum=window.ScorebladReview.importStatus.omzetTot || null;
+const omzetBron='Omzetbron t.e.m. '+(omzetPeildatum||'onbekend');
+function header(title,subtitle){return `<div class="report-header"><div class="report-brand"><div class="report-logo"><img src="assets/diest.png" alt="Diestroyers"></div><div><div class="report-h1">${esc(title)}</div><div style="font-size:12px;color:#666;font-weight:800">${esc(subtitle)}</div></div></div><div class="report-meta"><strong>${esc(shop.naam)} · Shop ${esc(shop.shopNr)}</strong><br>${esc(omzetBron)}<br>Export: ${new Date().toLocaleString('nl-BE')}</div></div>`}
 function tableHead(first,includeOmzet=true){return `<thead><tr><th>${first}</th>${includeOmzet?'<th>Omzet</th>':''}${KPI.map(k=>`<th>${k.label}</th>`).join('')}</tr></thead>`}
 function renderMTD(){
  const store=rowFor('Winkel','',period);
@@ -318,6 +326,7 @@ function renderYTD(){
  return `<div class="report" id="activeReport">${header('Year To Date',ytdLabel)}
  <div class="section-title">Winkel per maand</div><table class="report-table"><thead><tr><th>Maand</th><th>Omzet</th><th>Klanten</th><th>Concretisatie</th>${KPI.map(k=>`<th>${k.label}</th>`).join('')}</tr></thead><tbody>${storeRows}${ytdStore}</tbody></table>
  <div class="section-title">Verkopers YTD totaal</div><table class="report-table">${tableHead('Personeelsnr. / Verkoper')}<tbody>${sellerTotalRows}</tbody></table>${sellerPages}
+ ${renderCoverage()}
  <div class="report-footer">The Diestroyers · Groen = target behaald · Geel = binnen 10% · Rood = meer dan 10% onder target</div></div>`;
 }
 const detailRows=window.DIESTROYERS_KPI_DETAIL||[];
@@ -334,6 +343,17 @@ function compactEntities(){
   if(active(r.Actief??r.actief??'JA')&&s(r.ShopNr||r.shopNr))stores.set(s(r.ShopNr||r.shopNr),{id:s(r.ShopNr||r.shopNr),name:s(r.Winkel||r.Naam||r.naam),type:'Winkel'});
  }
  return {stores:[...stores.values()],people:sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b))).map(v=>({id:sellerId(v),name:sellerName(v),type:'Verkoper'}))};
+}
+function renderCoverage(){
+ const {people}=compactEntities(), entities=[window.ScorebladData.store,...people];
+ const peil=monthPeriod(closedMonths.length-1);
+ return `<section class="seller-page"><div class="section-title">YTD-dekking per KPI</div>
+ <p class="report-footer">Maanden met resultaat / maanden met target. Periode telt ${closedMonths.length} afgesloten maanden.</p>
+ <table class="report-table"><thead><tr><th>KPI</th>${entities.map(e=>`<th>${esc(e.name)}</th>`).join('')}</tr></thead>
+ <tbody>${window.ScorebladData.kpis.map(def=>`<tr><td>${esc(def.label)}</td>${entities.map(e=>{
+   const row=window.ScorebladData.annual(e,def.id,peil);
+   return `<td>${row.coverage} / ${row.targetCoverage}</td>`;
+ }).join('')}</tr>`).join('')}</tbody></table></section>`;
 }
 function mainRecords(e){return e.type==='Verkoper'?ytdRecords('Verkoper',e.id):e.id===s(shop.shopNr)?ytdRecords('Winkel',''):districtRows.filter(r=>entityMatch({...r,EntiteitType:'Winkel'},e)&&inYtd(r));}
 function detailRecords(e,kpi,sub=''){
@@ -376,7 +396,14 @@ function compactMetric(e,kpi,sub='',kind='ratio'){
   else value=null;
  }
  const status=value===null?'empty':target>0?(value/target>=1?'ok':value/target>=.9?'close':'bad'):'';
- return {value,stuks,kansen,target,status,mean,coverage:count(source),records:source};
+ const coverage=!sub && score && kpi!=='S' ? score.coverage :
+   (kind==='ratio' && kpi!=='Link' && kpi!=='Accessoires'
+     ? count(source.filter(row=>n(row.Kansen??row[def?.kansen])>0)) : count(source));
+ const targetKey=def?.target||({Omzet:'OmzetTarget',Accessoires:'AccessoiresTargetPct',BuyWay:'BuyWayTargetPct',Leaders:'LeadersTargetPct'})[kpi];
+ const targetRows=details.filter(row=>n(row.TargetPct)>0||n(row.Target)>0);
+ if(!sub && targetKey)targetRows.push(...rec.filter(row=>n(row[targetKey])>0));
+ const targetCoverage=!sub && score ? score.targetCoverage : count(targetRows);
+ return {value,stuks,kansen,target,status,mean,coverage,targetCoverage,records:source};
 }
 function compactParameters(){
  const out=[{label:'Zakencijfer',key:'Omzet',kind:'money'}];
@@ -394,8 +421,8 @@ function compactValue(e,p){
  const m=compactMetric(e,p.key,p.sub||'',p.kind);
  let value=p.field?m[p.field]:m.value;
  if(p.field==='accessoiresEuro')value=m.records.length?m.records.reduce((a,r)=>a+n(r.Accessoires??r.Waarde),0):null;
- if(m.coverage===0)value=null;
- return {value:value??null,status:!p.field?m.status:'',coverage:m.coverage,kind:p.kind,display:value===null||value===undefined?'—':p.kind==='money'?money.format(value):p.kind==='ratio'?new Intl.NumberFormat('nl-BE',{maximumFractionDigits:2}).format(value)+'%':num.format(value)};
+ if(m.coverage===0&&!p.field)value=null;
+ return {value:value??null,status:!p.field?m.status:'',coverage:m.coverage,targetCoverage:m.targetCoverage,kind:p.kind,display:value===null||value===undefined?'—':p.kind==='money'?money.format(value):p.kind==='ratio'?new Intl.NumberFormat('nl-BE',{maximumFractionDigits:2}).format(value)+'%':num.format(value)};
 }
 function compactMatrices(){
  const groups=compactEntities(),parameters=compactParameters(),out=[];
@@ -406,10 +433,10 @@ function compactMatrices(){
  for(let start=0;start<entities.length;start+=7){const cols=entities.slice(start,start+7);out.push({label:'Winkels en huidige verkopers'+(entities.length>7?` (${Math.floor(start/7)+1})`:''),cols,parameters,values:parameters.map(p=>cols.map(e=>compactValue(e,p)))});}
  return out;
 }
-const compactNote='Dekking (x/y): beschikbare / afgeronde maanden. — = niet beschikbaar of geen kansen. Percentages = som stuks / som kansen. Life wordt in stuks getoond: Life-kansen ontbreken. † Link = gemiddelde beschikbare maandpercentages; de kansen voor een gewogen YTD ontbreken. Dekking staat per cel indien niet alle afgeronde maanden aanwezig zijn. Districtwinkels zonder afgesloten maandgegevens worden niet opgenomen.';
+const compactNote='Dekking bij hoofdcijfers: maanden met resultaat / maanden met target, op '+closedMonths.length+' afgesloten maanden. — = niet beschikbaar of geen kansen. Percentages = som stuks / som kansen. Life staat in stuks. † Link = gemiddelde beschikbare maandpercentages. Districtwinkels zonder afgesloten maandgegevens worden niet opgenomen.';
 function renderCompactYTD(){
  const matrices=compactMatrices();
- return `<div class="report compact-report" id="activeReport">${matrices.map((m,i)=>`<section class="compact-page ${i?'seller-page':''}">${header('Compacte YTD',ytdLabel)}<div class="section-title">${esc(m.label)}</div><table class="report-table compact-table"><thead><tr><th>Parameter</th>${m.cols.map(e=>`<th>${esc(e.id)}<br>${esc(e.name)}</th>`).join('')}</tr></thead><tbody>${m.parameters.map((p,ri)=>`<tr class="${p.field||p.indent?'compact-detail':'compact-main'}"><td class="left">${esc(p.label)}</td>${m.values[ri].map(x=>`<td class="${x.status?'cell-'+x.status:''}">${esc(x.display)}${x.coverage&&x.coverage<closedMonths.length?`<small>${x.coverage}/${closedMonths.length} mnd</small>`:''}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="report-footer">${esc(compactNote)}</div></section>`).join('')}</div>`;
+ return `<div class="report compact-report" id="activeReport">${matrices.map((m,i)=>`<section class="compact-page ${i?'seller-page':''}">${header('Compacte YTD',ytdLabel)}<div class="section-title">${esc(m.label)}</div><table class="report-table compact-table"><thead><tr><th>Parameter</th>${m.cols.map(e=>`<th>${esc(e.id)}<br>${esc(e.name)}</th>`).join('')}</tr></thead><tbody>${m.parameters.map((p,ri)=>`<tr class="${p.field||p.indent?'compact-detail':'compact-main'}"><td class="left">${esc(p.label)}</td>${m.values[ri].map(x=>`<td class="${x.status?'cell-'+x.status:''}">${esc(x.display)}${!p.field?`<small>${x.coverage}/${x.targetCoverage} mnd</small>`:''}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="report-footer">${esc(compactNote)}</div></section>`).join('')}</div>`;
 }
 function addCompactWorkbook(wb){
  for(const [i,m]of compactMatrices().entries()){
@@ -425,9 +452,11 @@ function addCompactWorkbook(wb){
  const matrices=compactMatrices();
  const entities=matrices.flatMap(m=>m.cols),params=compactParameters();
  const coverage=wb.addWorksheet('Dekking YTD');
- coverage.addRow([`Beschikbare maanden van ${closedMonths.length} afgeronde maanden · ${ytdLabel}`]);coverage.mergeCells(1,1,1,entities.length+1);
+ coverage.addRow([`Maanden met resultaat / maanden met target, op ${closedMonths.length} afgesloten maanden · ${ytdLabel}`]);coverage.mergeCells(1,1,1,entities.length+1);
  coverage.addRow(['Parameter',...entities.map(e=>`${e.id} · ${e.name}`)]);
- for(const p of params)coverage.addRow([p.label,...entities.map(e=>compactValue(e,p).coverage)]);
+ for(const p of params.filter(p=>!p.field))coverage.addRow([p.label,...entities.map(e=>{
+  const value=compactValue(e,p);return `${value.coverage} / ${value.targetCoverage}`;
+ })]);
  styleSheet(coverage);coverage.autoFilter=undefined;
 } 
 function viewText(value){
@@ -479,7 +508,7 @@ function viewChart(chart){
  return canvas;
 }
 function renderView(){
- return `<article class="export-view-report"><header><h3>${esc(viewReport.title)}</h3><p>${esc(viewReport.period)}</p></header>
+ return `<article class="export-view-report"><header><h3>${esc(viewReport.title)}</h3><p>${esc(viewReport.period)} · ${esc(omzetBron)}</p></header>
  <div id="exportViewCharts"></div>
  ${viewReport.tables.map(table=>`<section><div class="section-title">${esc(table.title)}</div>
  <table class="report-table"><thead><tr>${table.headers.map(header=>`<th scope="col">${esc(header)}</th>`).join('')}</tr></thead>
@@ -498,7 +527,7 @@ function renderSelection(){
   ['Periode',mode==='mtd'?formatPeriod(period):ytdLabel],
   ['Termijn',mode==='mtd'?'MTD':mode==='compact'?'Compacte YTD':'Afgesloten maanden · YTD']
  ];
- document.getElementById('exportSelection').innerHTML=cells.map(([key,value])=>`<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join('');
+ document.getElementById('exportSelection').innerHTML=[...cells,['Omzetbron t.e.m.',omzetPeildatum||'Onbekend']].map(([key,value])=>`<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join('');
 }
 function render(){
  renderSelection();
@@ -560,7 +589,7 @@ async function compactPdf(){
   matrices.forEach((m,pi)=>{
    if(pi)doc.addPage('a4','landscape');
    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(20,20,20);doc.text('Compacte YTD',10,12);
-   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(text(ytdLabel),10,18);
+   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(text(ytdLabel+' · '+omzetBron),10,18);
    doc.setFontSize(7);doc.text('The Diestroyers · '+text(m.label),287,12,{align:'right'});
    const widths=[47,...m.cols.map(()=>230/m.cols.length)],xs=[10];for(let i=0;i<widths.length;i++)xs.push(xs.at(-1)+widths[i]);
    let y=23;doc.setFont('helvetica','bold');doc.setTextColor(210,25,25);doc.text('Parameter',11,y+6);
@@ -572,8 +601,8 @@ async function compactPdf(){
      const x=xs[ci+1],w=widths[ci+1];
      const fills={ok:[181,211,146],close:[255,220,112],bad:[255,96,96],empty:[244,244,244]};
      if(fills[cell.status]){doc.setFillColor(...fills[cell.status]);doc.rect(x,y,w,height,'F');}
-     doc.setTextColor(20,20,20);doc.setFontSize(cell.coverage&&cell.coverage<closedMonths.length?6.5:7);
-     const coverage=cell.coverage&&cell.coverage<closedMonths.length?` (${cell.coverage}/${closedMonths.length})`:'';
+     doc.setTextColor(20,20,20);doc.setFontSize(p.field?7:6.5);
+     const coverage=p.field?'':` (${cell.coverage}/${cell.targetCoverage})`;
      doc.text(text(cell.display)+coverage,x+w/2,y+2.7,{align:'center'});
     });
     y+=height;doc.setDrawColor(170,170,170);doc.setLineWidth(.15);doc.line(10,y,287,y);
@@ -593,7 +622,7 @@ function viewPdf(){
   if(!first)doc.addPage();
   doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(16);
   doc.text(text(viewReport.title),10,12);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(text(viewReport.period),10,18);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(text(viewReport.period+' · '+omzetBron),10,18);
   y=24;
  }
  page(true);
@@ -665,7 +694,7 @@ async function pdf(){
    mask(false);
  }
 }
-function excelCell(metric){return metric?.display==='—'?'—':`${metric.display}${metric.sub?' | '+metric.sub:''}`}
+function excelCell(metric){return `${metric?.display||'—'}${metric?.sub?' | '+metric.sub:''}`}
 function styleSheet(ws,title){
  ws.views=[{state:'frozen',ySplit:2,xSplit:1}];
  ws.properties.defaultRowHeight=20;
@@ -768,6 +797,23 @@ async function downloadWorkbook(){
    const vm=wb.addWorksheet('Verkopers per maand');vm.addRow([`The Diestroyers · ${shop.naam} · Verkopers per maand ${ytdLabel}`]);vm.mergeCells(1,1,1,11);vm.addRow(['Personeelsnr.','Verkoper','Maand','Omzet',...KPI.map(k=>k.label)]);
    sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b))).forEach(v=>closedMonths.forEach((m,i)=>{const r=rowFor('Verkoper',sellerId(v),monthPeriod(i));vm.addRow([sellerId(v),sellerName(v),m,r?n(r.Omzet):'—',...KPI.map(k=>excelCell(metric(r,k)))])}));styleSheet(vm);vm.getColumn(4).numFmt='€ #,##0';
   }
+  if(mode==='ytd' && closedMonths.length){
+   const coverage=wb.addWorksheet('YTD-dekking per KPI');
+   const entities=[window.ScorebladData.store,...compactEntities().people];
+   coverage.addRow([`Maanden resultaat / maanden target, op ${closedMonths.length} afgesloten maanden`]);
+   coverage.mergeCells(1,1,1,entities.length+1);
+   coverage.addRow(['KPI',...entities.map(e=>e.name)]);
+   for(const def of window.ScorebladData.kpis)coverage.addRow([def.label,...entities.map(e=>{
+    const result=window.ScorebladData.annual(e,def.id,monthPeriod(closedMonths.length-1));
+    return `${result.coverage} / ${result.targetCoverage}`;
+   })]);
+   styleSheet(coverage);
+  }
+  const sources=wb.addWorksheet('Bron en peildatum');
+  sources.addRow(['Gegevensbron','Peildatum']);
+  sources.addRow(['Omzet',omzetPeildatum||'Onbekend']);
+  sources.addRow(['Periode',mode==='view'?viewReport.period:mode==='mtd'?period:ytdLabel]);
+  sources.columns.forEach(column=>column.width=34);
   finishWorkbookStyling(wb);
   if(mode==='compact')wb.eachSheet(ws=>{ws.eachRow((row,ri)=>{if(ri>2){row.height=ri>=ws.rowCount-1?46:18;row.eachCell((cell,ci)=>{cell.alignment={vertical:'middle',horizontal:ci===1?'left':'center',wrapText:true};cell.font={...(cell.font||{}),size:9};});}});});
   const buffer=await withTimeout(wb.xlsx.writeBuffer(),90000,'De Excel-export');

@@ -331,13 +331,26 @@
       return {...field,original:imported,value:manual ?? imported,overridden:manual!==undefined,archived:isArchived(per),
         conflict:manual!==undefined && imported!==manual && expected!==imported};
     });
+    const chances=resultFields.find(field=>field.key.endsWith("Kansen"));
+    const npsResponses=resultFields.find(field=>field.key==="NPSResponses");
+    const noChances=chances?.value===0;
+    const noSurveys=npsResponses?.value===0;
+    const missingFields=resultFields.filter(field=>field.value===null && !(field.key==="NPS" && noSurveys));
+    const measuredZero=resultFields[0]?.value===0 && (!chances || chances.value>0) && (!npsResponses || npsResponses.value>0);
+    const missingTarget=Boolean(target && !(Number(targetValue)>0));
     return {
-      entity,kpi,missingTarget:Boolean(target && !(Number(targetValue)>0)),
-      missingResult:resultFields.some(field=>field.value===null),
+      entity,kpi,missingTarget,missingResult:missingFields.length>0,noChances,noSurveys,measuredZero,missingFields,
       fields:showResults ? resultFields : [{
         ...target,original:fallback.value,source:fallback.source,value:targetValue,overridden:set!==undefined
       }]
     };
+  }
+  function statusText(cell) {
+    return [
+      cell.missingTarget?"Ontbrekend target":null,
+      cell.missingResult?"Ontbrekend cijfer":null,cell.noChances?"Geen geregistreerde kansen":null,
+      cell.noSurveys?"Geen enquêtes":null,cell.measuredZero?"Gemeten nul":null
+    ].filter(Boolean).join(" · ");
   }
   function editorEntities(mode=$("targetMode").value,withHistory=isResults()) {
     const items=entities(mode).filter(item=>item.name && item.id);
@@ -365,12 +378,15 @@
   function editorCount(cells) {
     const results=cells.filter(item=>item.missingResult).length;
     const targets=cells.filter(item=>item.missingTarget).length;
+    const withoutVolume=cells.filter(item=>item.noChances || item.noSurveys).length;
+    const zero=cells.filter(item=>item.measuredZero).length;
     const total=cells.length;
-    $("editorCount").textContent=total ? `${total} KPI’s · ${targets} zonder target · ${results} met ontbrekend resultaat` : "";
+    $("editorCount").textContent=total ? `${total} KPI’s · ${targets} zonder target · ${results} met ontbrekend cijfer · ${withoutVolume} zonder kansen of enquêtes · ${zero} gemeten nul` : "";
   }
   function visibleInFilter(item) {
     const filter=$("editorFilter").value;
-    return filter==="all" || (filter==="targets" && item.missingTarget) || (filter==="results" && item.missingResult);
+    return filter==="all" || (filter==="targets" && item.missingTarget) || (filter==="results" && item.missingResult)
+      || (filter==="no-volume" && (item.noChances || item.noSurveys)) || (filter==="zero" && item.measuredZero);
   }
   function renderTargets() {
     const items=editorEntities();
@@ -415,7 +431,9 @@
       return;
     }
     const showPerson=byKpi || selection.entities.length>1;
-    editor.innerHTML=visible.map(({entity,kpi,fields,missingTarget,missingResult},index)=>{
+    editor.innerHTML=visible.map((cell,index)=>{
+      const {entity,kpi,fields}=cell;
+      const status=statusText(cell);
       const readOnly=locked || regional || mode && kpi.id==="nps";
       const fieldsHtml=fields.map(field=>{
         const origin=fieldOrigin(field,mode);
@@ -431,7 +449,7 @@
       return `<section class="admin-edit-row${mode?" results":""}" data-cell="${index}" data-admin-kpi="${escape(kpi.id)}">
         <div><h3>${escape(byKpi ? entity.name : kpi.label)}</h3>
           ${showPerson&&!byKpi?`<span class="score-muted">${escape(entity.name)}</span>`:""}
-          ${(mode?missingResult:missingTarget)?'<span class="score-muted admin-missing">Ontbreekt</span>':""}
+          <small class="score-muted"${status?"":" hidden"} data-result-status>${escape(status)}</small>
         </div>
         <div class="admin-edit-values">${fieldsHtml}</div>
       </section>`;
@@ -449,8 +467,9 @@
         const data=cell.fields.find(field=>field.key===key);
         origin.textContent=fieldOrigin(data,mode);
         reset.hidden=!data.overridden || mode && data.value===data.original;
-        const observed=row.querySelector(".admin-missing");
-        if (observed) observed.hidden=!(mode?cell.missingResult:cell.missingTarget);
+        const observed=row.querySelector("[data-result-status]");
+        observed.textContent=statusText(cell);
+        observed.hidden=!observed.textContent;
         cells[cellIndex]=cell;
         editorCount(cells);
         return data.value ?? "";
@@ -878,15 +897,18 @@
     const people=(resultsAvailable?editorEntities(scope,true):targetPeople).filter(entity=>
       targetIds.has(entity.id) || resultEdits.lookup(corrections(),entity,per) || (closed && resultEdits.kpis.some(kpi=>kpi.fields.some(field=>
         resultEdits.imported(entity,per,field.key)!==null))));
-    const missingTargets=[], missingResults=[], statuses=[];
+    const missingTargets=[], missingResults=[], knownStates=[], statuses=[];
     for (const entity of people) {
       for (const kpi of resultEdits.kpis) {
         const checks=cellData(entity,kpi,per,true);
         if (targetIds.has(entity.id) && checks.missingTarget) missingTargets.push({entity,kpi,mode:"targets",label:"Geen target"});
         if (!resultsAvailable) continue;
-        const absent=checks.fields.filter(field=>field.original===null);
+        const absent=checks.missingFields;
         if (absent.length) missingResults.push({entity,kpi,mode:"resultaten",
           label:absent.map(field=>field.label).join(", "),field:absent[0].key});
+        if (checks.noChances || checks.noSurveys || checks.measuredZero) knownStates.push({entity,kpi,mode:"resultaten",
+          label:[checks.noChances?"Geen geregistreerde kansen":null,checks.noSurveys?"Geen enquêtes":null,
+            checks.measuredZero?"Gemeten nul":null].filter(Boolean).join(" · ")});
         const saved=resultEdits.lookup(publishedCorrections,entity,per);
         for (const field of checks.fields.filter(field=>field.overridden)) {
           const progress=saved?.waarden?.[field.key]===field.value?fieldOrigin(field,true):"Nog op te slaan in Admin";
@@ -897,6 +919,7 @@
     const groups=[
       {key:"targets",label:"Ontbrekende targets",items:missingTargets},
       {key:"resultaten",label:"Ontbrekende resultaten",items:resultsAvailable?missingResults:null},
+      {key:"status",label:"Nul of geen kansen",items:resultsAvailable?knownStates:null},
       {key:"correcties",label:isArchived(per)?"Correcties in het archief":"Correcties in Excel",items:statuses}
     ];
     if (!groups.some(group=>group.key===qualityGroup && group.items)) {

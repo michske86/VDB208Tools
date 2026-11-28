@@ -48,7 +48,8 @@
     return `<span class="score-result ${status.tone}"><span aria-hidden="true">${status.symbol}</span><span>${escape(value)}</span>${announce ? `<span class="score-sr-only"> (${status.label})</span>` : ""}</span>`;
   }
   function scoreFields(result, def) {
-    return {value:data.format(result.value,def),empty:result.value === null,status:statuses[data.points(result)]};
+    return {value:result.value===null ? data.resultState(result,def) : data.format(result.value,def),
+      empty:result.value === null,status:statuses[data.points(result)]};
   }
   function colorGuide() {
     return `<ul class="score-color-guide" aria-label="Betekenis van de resultaatkleuren">${[3,1,0].map(points =>
@@ -97,7 +98,17 @@
       : "");
   }
   function targetLabel(result, def) {
-    return result.target === null ? "Geen target" : "Target " + data.format(result.target,def);
+    return result.target === null ? "Ontbrekend target" : "Target " + data.format(result.target,def);
+  }
+  function volumeLabel(result,def) {
+    if (def.id==="nps") return result.count===null?"Enquêtes ontbreken":`${countValue(result.count)} enquêtes`;
+    if (def.type!=="ratio") return null;
+    return `${result.count==null?"Stuks ontbreken":countValue(result.count)+" stuks"} ·
+      ${result.chances==null?"Kansen ontbreken":countValue(result.chances)+" kansen"}`.replace(/\s+/g," ");
+  }
+  function coverageLabel(result) {
+    return result.total===undefined ? null :
+      `${result.coverage}/${result.total} mnd resultaat · ${result.targetCoverage}/${result.targetTotal} mnd target`;
   }
   function progressBar(value,max,style,caption,marker=false) {
     const width=Math.max(0,Math.min(100,value/max*100));
@@ -113,14 +124,16 @@
   function metricFacts(result, def, periodText = "Resultaat") {
     const score = data.points(result);
     const count = result.count === null || result.count === undefined ? null : integer.format(result.count);
-    const chances = result.chances > 0 ? integer.format(result.chances) : null;
-    const items = [[periodText,data.format(result.value,def),statuses[score]],["Target",result.target === null ? "Geen target" : data.format(result.target,def)]];
-    if (def.type === "ratio" || def.id === "s" || def.id === "nps") items.push([def.id === "nps" ? "Enquêtes" : "Stuks",count]);
-    if (def.type === "ratio") items.push(["Kansen",chances]);
+    const state = data.resultState(result,def);
+    const items = [[periodText,result.value===null?state:data.format(result.value,def),statuses[score]],
+      ["Target",result.target === null ? "Ontbrekend target" : data.format(result.target,def)]];
+    if (def.type === "ratio" || def.id === "s" || def.id === "nps") items.push([def.id === "nps" ? "Enquêtes" : "Stuks",count??"Ontbreekt"]);
+    if (def.type === "ratio") items.push(["Kansen",result.chances==null?"Ontbreekt":countValue(result.chances)]);
+    if (state!=="Gemeten" && result.value!==null) items.push(["Gegevensstatus",state]);
     if (result.euro !== null && result.euro !== undefined) items.push(["Bedrag",data.format(result.euro,{type:"bedrag"})]);
     if (result.prior !== null && result.prior !== undefined) items.push(["Vorig jaar",data.format(result.prior,def)]);
-    if (result.total !== undefined) items.push(["Maanden met data",result.coverage + " / " + result.total]);
-    if (result.targetTotal !== undefined && result.targetCoverage<result.targetTotal) {
+    if (result.total !== undefined) items.push(["Maanden met resultaat",result.coverage + " / " + result.total]);
+    if (result.targetTotal !== undefined) {
       items.push(["Maanden met target",result.targetCoverage + " / " + result.targetTotal]);
     }
     return facts(items) + (score === null ? "" : `<p class="score-section"><span class="score-status ${statuses[score].tone}">${score === 1 ? "Binnen 10% van target" : statuses[score].label}</span></p>`);
@@ -217,6 +230,33 @@
     if (!row.missing) return "Target behaald";
     return review.deltaLabel(row.missing,review.gapDef(row.result,row.def))+" tot target";
   }
+  function personalReference(row,term) {
+    if (row?.reference==null || row.improvement==null) return null;
+    const label=term==="jaar" && row.def.type!=="ratio" ? "Eigen YTD vorig jaar" : "Eigen referentie";
+    return `${label} ${data.format(row.reference,row.def)} · ${review.deltaLabel(-row.improvement,row.def,true)} verschil`;
+  }
+  function opportunitySection(ctx,def,result) {
+    if (def.type!=="ratio") return "";
+    const change=review.opportunityChange(ctx,def,result);
+    return section("Volume en resultaat per kans",change?facts([
+      ["Kansen",`${countValue(change.prior.chances)} → ${countValue(result.chances)}`],
+      ["Verschil in stuks",review.deltaLabel(change.total,{type:"stuks"},true)],
+      ["Door aantal kansen",review.deltaLabel(change.volume,{type:"stuks"},true)],
+      ["Door stuks per kans",review.deltaLabel(change.rate,{type:"stuks"},true)]
+    ])+`<p class="score-muted">Eerst rekenen we met de vroegere verhouding en het nieuwe aantal kansen. Daarna rekenen we het verschil in stuks per kans uit bij dat nieuwe aantal. Dit is een rekenkundige uitsplitsing.${Math.min(result.chances,change.prior.chances)<review.minimumChances?" Kleine steekproef in minstens één periode.":""}</p>`
+      : '<p class="score-empty">Deze uitsplitsing vraagt stuks en kansen in beide vergelijkbare periodes.</p>');
+  }
+  function paceSection(def,period,result) {
+    const pace=review.monthlyPace(def,period,result);
+    if (!pace) return "";
+    const guide=def.id==="life" ? Math.ceil(pace.guide) : pace.guide;
+    return section("Tempo deze maand",facts([
+      ["Stand",data.format(result.value,def)],["Richtpunt",data.format(guide,def)],
+      ["Resterende verkoopdagen",countValue(pace.remaining)],
+      ["Nog nodig per verkoopdag",pace.perDay===null ? null : data.format(def.id==="life"?Math.ceil(pace.perDay):pace.perDay,def)]
+    ])+`<p class="score-muted">${countValue(pace.elapsed)} van ${countValue(pace.total)} verkoopdagen verwerkt t.e.m. ${escape(dateLabel(pace.date))}.
+      Het richtpunt verdeelt het maandtarget gelijk over de verkoopdagen.${def.id==="life"?" Stuks per dag zijn naar boven afgerond.":""}</p>`);
+  }
   function analysisPage(q) {
     const ctx=review.fromParams(q);
     const {person,entity,def,period,term,comparison,candidates}=ctx;
@@ -243,6 +283,7 @@
       const result=review.metric(ctx,def);
       const missing=review.lack(result,def);
       const change=review.comparisonFor(ctx,def,result);
+      const ownReference=person ? personalReference(review.personal(ctx).rows.find(row=>row.def.id===def.id),term) : null;
       const people=person ? [] : review.sellerImpact(ctx,def);
       const notable=people.filter(row=>row.person.active && row.upside>0 && row.storeGain!==null).sort((a,b)=>b.storeGain-a.storeGain);
       const nilVolume=def.type==="ratio" && people.some(row=>row.result.chances>0 && row.result.chances<review.minimumChances);
@@ -259,6 +300,8 @@
           ${def.type==="ratio" && review.gapDef(result,def).type==="stuks"?"bij het huidige aantal kansen.":""}</p>`:"")+
         (change?section("Vergelijking",facts([["Vergeleken met",change.label],["Referentiewaarde",data.format(change.prior,def)],
           ["Verschil",review.deltaLabel(change.value,def,true)]])):"") +
+        (ownReference?section("Eigen eerdere resultaten",`<p>${escape(ownReference)}</p>`):"")+
+        opportunitySection(ctx,def,result)+
         (people.length?section(def.type==="ratio"?"Kansen en mogelijke winkelimpact":"Verkopersresultaten",
           (notable.length?`<p class="score-analysis-note">Grootste berekende ruimte bij ${escape(notable[0].person.name)} · ${escape(review.deltaLabel(notable[0].storeGain,ratioDef,true))} voor Diest.</p>`:"") +
           (def.type==="ratio"?`<div class="score-local-switch">${segment("Sorteer verkopers op",[
@@ -300,10 +343,11 @@
     })),label);
     const personal=person?review.personal(ctx):null;
     const focus=personal?section("Sterktes",personal.strengths.length?listTo(personal.strengths,"Sterktes",
-      row=>`${row.hits} van ${row.months} meetbare maanden op target`+
+      row=>`${row.hits} van ${row.months} meetbare afgesloten maanden op target`+
+        (row.months<row.periods?` · ${row.months}/${row.periods} afgesloten maanden meetbaar`:"")+
         (row.def.type==="ratio"?` · ${integer.format(row.totalChances)} kansen`:"")):'<p class="score-empty">Nog geen terugkerende sterkte zichtbaar.</p>')+
       section("Persoonlijke focus",personal.focus.length?listTo(personal.focus,"Persoonlijke focus",row=>
-        targetGap(row)+(row.def.type==="ratio"?` · ${row.result.chances} kansen`:"")):'<p class="score-empty">Geen duidelijke focus op basis van resultaten en meetvolume.</p>')+
+        [targetGap(row),row.def.type==="ratio"?`${row.result.chances} kansen`:null,personalReference(row,term)].filter(Boolean).join(" · ")):'<p class="score-empty">Geen duidelijke focus op basis van resultaten en meetvolume.</p>')+
       `<p class="score-muted">Focus gebruikt beschikbare targets en eerdere resultaten. Voor ratio’s en NPS gebruiken we minstens ${review.minimumChances} kansen of enquêtes.</p>`:"";
     const targetFilters=segment("KPI’s tonen",[
       ["aandacht","Aandacht nodig",analysisLink({...base,toon:null})],
@@ -323,15 +367,14 @@
       .sort((a,b) => (b.result.value ?? -Infinity)-(a.result.value ?? -Infinity) || a.person.name.localeCompare(b.person.name,"nl-BE"));
     return list(people.map(({person,result}) => {
       const meta = person.active ? [targetLabel(result,def)] : ["Historische verkoper",targetLabel(result,def)];
+      if (volumeLabel(result,def)) meta.push(volumeLabel(result,def));
       if (result.count !== null) {
-        if (def.type === "ratio" && result.chances > 0) meta.push(`${integer.format(result.count)} stuks / ${integer.format(result.chances)} kansen`);
-        if (def.id === "nps") meta.push(`${integer.format(result.count)} enquêtes`);
         if (def.id === "s") meta.push(`${integer.format(result.count)} stuks`);
       }
       if (["bedrag","accessoires","stuks"].includes(def.type) && result.value >= 0 && result.value !== null && store.value > 0) {
         meta.push(data.format(result.value/store.value*100,ratioDef)+" van winkelresultaat");
       }
-      if (annual && result.coverage < result.total && result.value !== null) meta.push(`${result.coverage}/${result.total} maanden`);
+      if (annual) meta.push(coverageLabel(result));
       return {label:person.name,meta:meta.join(" · "),...scoreFields(result,def),
         href:resultLink({weergave:"verkopers",verkoper:person.id,kpi:def.id,periode:period,termijn:annual?"jaar":null,van:"winkel"})};
     }),annual ? "Verkopersresultaten YTD" : "Verkopersresultaten maand");
@@ -367,10 +410,11 @@
         : back(entity ? source.name : "Alle KPI’s",resultLink({...base,kpi:null,detail:null})))
         + heading(def.label,`${source.name} · ${subtitle}`) + `<div class="score-filters inline">${selector}</div>`
         + metricFacts(annualSeller?annual:result,def,annualSeller?"Jaarresultaat":"Maandresultaat")
+        + (!entity && !annualSeller ? paceSection(def,period,result) : "")
         + (subdivisions.length ? section("Uitsplitsing",list(subdivisions.map(detail => ({
             label:detail.label, ...scoreFields(detail,ratioDef), meta:targetLabel(detail,ratioDef), href:resultLink({...base,detail:detail.id})
           })),"Uitsplitsing")) : "")
-        + (def.id === "nps" ? section("Klantbeleving",list([{label:"NPS en commentaren",href:url("nps",{verkoper:entity?.id,periode:period,onderdeel:"nps"})}],"Klantbeleving")) : "")
+        + (def.id === "nps" ? section("Klantbeleving",list([{label:"NPS en commentaren",href:url("nps",{verkoper:entity?.id,periode:period,termijn:base.termijn,onderdeel:"nps"})}],"Klantbeleving")) : "")
         + section(annualSeller?subtitle:"Jaar t.e.m. "+subtitle,metricFacts(annualSeller?result:annual,def,annualSeller?"Maandresultaat":"Jaarresultaat"))
         + trendSection(history,def,period)
         + (!entity ? section("Verkopersresultaten",`<div class="score-compare">
@@ -408,7 +452,10 @@
     const read = annual ? data.annual : data.month;
     return list(data.kpis.map(def => {
       const result = read(entity,def.id,period);
-      return {label:def.label,meta:targetLabel(result,def),...scoreFields(result,def),visual:targetProgress(result),href:resultLink({...base,kpi:def.id})};
+      const pace=!annual && entity===data.store ? review.monthlyPace(def,period,result) : null;
+      const paceLabel=pace ? "Richtpunt "+data.format(def.id==="life"?Math.ceil(pace.guide):pace.guide,def) : null;
+      return {label:def.label,meta:[targetLabel(result,def),volumeLabel(result,def),coverageLabel(result),paceLabel].filter(Boolean).join(" · "),
+        ...scoreFields(result,def),visual:targetProgress(result),href:resultLink({...base,kpi:def.id})};
     }),"KPI’s");
   }
 
@@ -427,6 +474,22 @@
     const name = metricKeys.find(([item]) => item === key)[1];
     const subtitle = (term === "jaar" ? "Jaar t.e.m. " : "") + data.monthLabel(period);
     const format = value => group ? value === null ? "Geen data" : integer.format(value) + " pt" : data.format(value,data.byId[key]);
+    const provisional = item => item.rank!==null && (
+      (group && item.available<item.total) || (term==="jaar" && item.breakdown.some(({result})=>
+        result.coverage<result.total || (group && result.targetCoverage<result.targetTotal))));
+    const resultMeta = (result,def) => [targetLabel(result,def),volumeLabel(result,def),coverageLabel(result)].filter(Boolean).join(" · ");
+    const own = regional && picks.find(item=>item.entity.id===data.store.id);
+    const peers = own ? picks.filter(item=>item!==own && item.value!==null && (!group || !provisional(item))) : [];
+    const regionalMiddle = peers.length ? (peers[Math.floor((peers.length-1)/2)].value+peers[Math.floor(peers.length/2)].value)/2 : null;
+    const nextHigher=own && own.value!==null ? picks.findLast(item=>item.value!==null && item.value>own.value) : null;
+    const difference=value=>group ? new Intl.NumberFormat("nl-BE",{signDisplay:"exceptZero",maximumFractionDigits:1}).format(value)+" pt"
+      : review.deltaLabel(value,data.byId[key],true);
+    const peersSection = own && own.value!==null ? section("Diest in de regio",facts([
+      ["Score Diest",format(own.value)],
+      ["Volgende hogere score",nextHigher?nextHigher.entity.name+" · "+difference(nextHigher.value-own.value):"Geen hogere score"],
+      ["Mediaan andere winkels",regionalMiddle===null?"Onvoldoende data":format(regionalMiddle)],
+      ["Diest tegenover mediaan",regionalMiddle===null?null:difference(own.value-regionalMiddle)]
+    ])+`<p class="score-muted">${peers.length} andere winkels in de mediaan.${group?" Voor de mediaan tellen winkels met alle KPI’s meetbaar.":""}</p>`) : "";
     if (chosen) {
       const entity = chosen.entity;
       const requestedKpi = data.kpis.find(item => item.id === q.get("kpi"));
@@ -442,15 +505,15 @@
             href:resultLink({weergave:"verkopers",verkoper:entity.id,kpi:def.id,periode:period,termijn:term==="jaar"?"jaar":null})}],"Resultaatdetails")) : "");
       }
       return back("Ranglijst",rankLink(base)) + heading(entity.name,`${name} · ${subtitle}`)
-        + facts([["Positie",chosen.rank ?? "Geen data"],["Score",format(chosen.value),group ? null : statuses[chosen.breakdown[0].points]],...(group ? [["KPI’s met score",chosen.available + " / " + chosen.total]] : [])])
+        + facts([["Positie",chosen.rank===null?"Geen data":chosen.rank+(provisional(chosen)?" · voorlopig":"")],["Score",format(chosen.value),group ? null : statuses[chosen.breakdown[0].points]],...(group ? [["KPI’s met score",chosen.available + " / " + chosen.total]] : [])])
         + section(group ? "Score per KPI" : "Resultaat",list(chosen.breakdown.map(item => {
           const def = data.byId[item.key];
-          return {label:def.label,...scoreFields(item.result,def),meta:targetLabel(item.result,def) + (group ? " · " + (item.points === null ? "Geen puntenberekening" : item.points + " pt") : ""),
+          return {label:def.label,...scoreFields(item.result,def),meta:resultMeta(item.result,def) + (group ? " · " + (item.points === null ? "Geen puntenberekening" : item.points + " pt") : ""),
             href:rankLink({...base,entiteit:entity.id,kpi:item.key})};
         }),"Resultaat per KPI"))
         + (regional ? section("Winkelresultaten",list(data.kpis.map(def => {
           const result = data.month(entity,def.id,period);
-          return {label:def.label,...scoreFields(result,def),meta:targetLabel(result,def),
+          return {label:def.label,...scoreFields(result,def),meta:resultMeta(result,def),
             href:rankLink({...base,entiteit:entity.id,kpi:def.id})};
         }),"Winkelresultaten")) : "");
     }
@@ -468,7 +531,13 @@
       const tied=item.rank!==null && picks.some(other=>other!==item && other.rank===item.rank);
       const gap=item.value!==null && preceding!==null ? preceding-item.value : null;
       const distance=gap===null?null:group?format(gap):review.deltaLabel(gap,data.byId[key]);
+      const reading=item.breakdown[0].result;
+      const sample=group?null:data.byId[key].type==="ratio"?reading.chances:key==="nps"?reading.count:null;
       const meta=[group?`${item.available} van ${item.total} KPI’s meetbaar`:null,
+        provisional(item)?"Voorlopige plaats":null,
+        !group?volumeLabel(reading,data.byId[key]):null,
+        !group?coverageLabel(reading):null,
+        sample>0 && sample<review.minimumChances?"Kleine steekproef":null,
         tied?`Gedeelde ${item.rank}e plaats`:null,distance?`${distance} tot de volgende hogere score`:null].filter(Boolean).join(" · ");
       const max=item.total*window.Diestroyers.config.points.green;
       return {label:item.entity.name,value:format(item.value),empty:item.value===null,rank:item.rank,meta,
@@ -477,8 +546,9 @@
         visual:group && item.value!==null && max>0 ? progressBar(item.value,max,"rank",`van ${max} punten`) : null};
     });
     return heading("Rankings",subtitle) + `<div class="score-filters">${filters}</div>`
+      + peersSection
       + list(rankedRows,"Ranglijst")
-      + (group ? '<p class="score-muted score-section">Punten per KPI met resultaat en target: 3 bij target, 1 vanaf 90%, anders 0.</p>' : "");
+      + (group ? '<p class="score-muted score-section">Punten per KPI met resultaat en target: 3 bij target, 1 vanaf 90%, anders 0. Bij onvolledige dekking is de plaats voorlopig.</p>' : "");
   }
 
   function npsLink(values) { return url("nps",values); }
@@ -836,7 +906,7 @@
     }
     root.innerHTML = views[page](params);
     if (page === "home" && review.importStatus.omzetTot) {
-      root.querySelector("[data-report-date]").textContent="Omzetgegevens t.e.m. "+dateLabel(review.importStatus.omzetTot);
+      root.querySelector("[data-report-date]").textContent="Omzet bijgewerkt t.e.m. "+dateLabel(review.importStatus.omzetTot);
     }
     if (page !== "home") root.querySelector("h1").tabIndex = -1;
     document.title = page === "home" ? "The Diestroyers | Prestatieplatform" : root.querySelector("h1").textContent + " | The Diestroyers";

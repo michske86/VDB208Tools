@@ -78,6 +78,27 @@
     const prior = data.month(ctx.entity,def.id,ctx.comparison);
     return available(prior.value) ? {value:result.value-prior.value,prior:prior.value,label:data.monthLabel(ctx.comparison)} : null;
   }
+  function opportunityChange(ctx,def,result=metric(ctx,def)) {
+    if (def.type!=="ratio" || !comparisonFor(ctx,def,result)) return null;
+    const period=ctx.term==="jaar" ? String(Number(ctx.period.slice(0,4))-1)+ctx.period.slice(4) : ctx.comparison;
+    const prior=metric({...ctx,period},def);
+    if (![result,prior].every(row=>row.chances>0 && Number.isFinite(row.count))) return null;
+    const oldRate=prior.count/prior.chances, newRate=result.count/result.chances;
+    const volume=(result.chances-prior.chances)*oldRate;
+    return {prior,volume,rate:result.chances*(newRate-oldRate),total:result.count-prior.count};
+  }
+  function monthlyPace(def,period,result) {
+    if (!["omzet","life"].includes(def.id) || period!==activeMonth() || sales.periode!==period || !importStatus.valid ||
+        !(result.target>0) || !Number.isFinite(result.value)) return null;
+    const date=def.id==="omzet" ? importStatus.omzetTot : importStatus.winkelTot;
+    const elapsed=sales.werkdagenVoorbij, total=sales.werkdagenMaand;
+    if (!date?.startsWith(period) || date!==sales.pvmDatum || !Number.isInteger(total) || !Number.isInteger(elapsed) ||
+        elapsed<=0 || elapsed>total) return null;
+    const remaining=total-elapsed;
+    const outstanding=Math.max(0,result.target-result.value);
+    return {date,elapsed,total,remaining,guide:result.target*elapsed/total,
+      perDay:remaining>0?outstanding/remaining:null,outstanding};
+  }
   function overview(ctx) {
     return data.kpis.map(def=>{
       const result=metric(ctx,def);
@@ -113,27 +134,28 @@
         (b.result.value??-Infinity)-(a.result.value??-Infinity) || a.person.name.localeCompare(b.person.name,"nl-BE"));
   }
   function personal(ctx) {
+    const end=ctx.period<activeMonth()?ctx.period:before(activeMonth());
     const strengthPeriods=ctx.term==="jaar"
-      ? data.periods.filter(period=>period.slice(0,4)===ctx.period.slice(0,4) && period<=ctx.period)
-      : monthsThrough(ctx.period,6);
+      ? monthsThrough(end).filter(period=>period.slice(0,4)===ctx.period.slice(0,4))
+      : monthsThrough(end,6);
     const rows=overview(ctx).map(row=>{
       const history=previousResults(ctx.person,row.def,ctx).filter(item=>
         available(item.value) && available(item.target) &&
         (row.def.type!=="ratio" || sample(item)) && (row.def.id!=="nps" || item.count>=minimumChances));
       const measured=row.def.type==="ratio" ? sample(row.result) : row.def.id==="nps" ? row.result.count>=minimumChances : true;
       const hits=history.filter(item=>item.value>=item.target).length;
-      const reference=row.def.type==="ratio" && history.length>=2
-        ? history.reduce((total,item)=>total+item.count,0)/history.reduce((total,item)=>total+item.chances,0)*100
-        : average(history.map(item=>item.value));
+      const reference=row.def.type==="ratio" ? (history.length>=2
+        ? history.reduce((total,item)=>total+item.count,0)/history.reduce((total,item)=>total+item.chances,0)*100 : null)
+        : ctx.term==="jaar" ? row.comparison?.prior??null : history.length>=2?average(history.map(item=>item.value)):null;
       const improvement=reference!==null && row.result.value!==null ? reference-row.result.value : null;
-      return {...row,measured,hits,months:history.length,improvement};
+      return {...row,measured,hits,months:history.length,reference,improvement};
     });
     const strengths=rows.map(row=>{
       const measured=strengthPeriods.map(period=>data.month(ctx.person,row.def.id,period)).filter(item=>
         available(item.value) && available(item.target) &&
         (row.def.type!=="ratio" || (item.chances>0 && available(item.count))) &&
         (row.def.id!=="nps" || item.count>=minimumChances));
-      return {...row,months:measured.length,hits:measured.filter(item=>item.value>=item.target).length,
+      return {...row,months:measured.length,periods:strengthPeriods.length,hits:measured.filter(item=>item.value>=item.target).length,
         totalChances:measured.reduce((sum,item)=>sum+(item.chances??0),0)};
     }).filter(row=>row.hits>=2 && row.hits>=row.months*.5)
       .sort((a,b)=>b.hits/b.months-a.hits/a.months || b.hits-a.hits);
@@ -163,8 +185,11 @@
     const ctx=fromParams(q);
     const title=(source==="analyse"?"Analyse":"Resultaten")+" · "+ctx.entity.name+(ctx.def?" · "+ctx.def.label:"");
     const period=(ctx.term==="jaar"?"YTD t.e.m. ":"")+data.monthLabel(ctx.period);
-    const stats=result=>[result?.value??null,result?.target??null,result?.count??null,result?.chances??null];
-    const resultHeads=["Resultaat","Target","Stuks / enquêtes","Kansen"];
+    const stats=(result,def)=>[result?.value??null,result?.target??null,result?.count??null,result?.chances??null,
+      data.resultState(result,def),result?.target==null?"Ontbrekend target":"Beschikbaar",
+      result?.total===undefined?null:`${result.coverage}/${result.total}`,
+      result?.targetTotal===undefined?null:`${result.targetCoverage}/${result.targetTotal}`];
+    const resultHeads=["Resultaat","Target","Stuks / enquêtes","Kansen","Resultaatstatus","Targetstatus","Mnd resultaat","Mnd target"];
     const tables=[];
     const charts=[];
     const add=(title,headers,rows)=>tables.push({title,headers,rows});
@@ -177,51 +202,65 @@
       charts.push({title:"Maandgrafiek · "+(selected?.label||def.label),unit,history});
       if (def.type==="ratio") charts.push({title:"Aantal kansen per maand",unit:"stuks",
         history:history.map(item=>({...item,metric:{value:item.metric?.chances??null}}))});
-      const summary=[[period,unit,...stats(result)]];
+      const componentDef=selected ? {type:selected.chances===null?"percentage":"ratio"} : def;
+      const summary=[[period,unit,...stats(result,componentDef)]];
       if (source==="resultaten" && !selected) {
         const other=ctx.term==="jaar" ? "maand" : "jaar";
-        summary.push([(other==="jaar"?"YTD t.e.m. ":"")+data.monthLabel(ctx.period),unit,...stats(metric({...ctx,term:other},def))]);
+        summary.push([(other==="jaar"?"YTD t.e.m. ":"")+data.monthLabel(ctx.period),unit,...stats(metric({...ctx,term:other},def),def)]);
       }
       add(selected?.label || def.label,["Periode","Eenheid",...resultHeads],summary);
       add("Maandgrafiek · gegevens",["Maand","Eenheid",...resultHeads],
-        [...history].reverse().map(item=>[data.monthLabel(item.period),unit,...stats(item.metric)]));
+        [...history].reverse().map(item=>[data.monthLabel(item.period),unit,...stats(item.metric,componentDef)]));
       if (!ctx.detail) {
         const components=data.components(ctx.entity,def.id,ctx.period);
-        if (components.length) add("Uitsplitsing · gekozen maand",["Onderdeel","Eenheid",...resultHeads],components.map(item=>[item.label,"%",...stats(item)]));
+        if (components.length) add("Uitsplitsing · gekozen maand",["Onderdeel","Eenheid",...resultHeads],components.map(item=>[item.label,"%",...stats(item,def)]));
       }
       if (source==="analyse" && !ctx.person) {
-        add("Verdeling en winkelimpact",["Verkoper",...resultHeads,"Aandeel kansen (%)","Eigen referentie (%)","Extra stuks bij referentie","Winkelimpact (pp)"],
-          sellerImpact(ctx,def).map(row=>[row.person.name,...stats(row.result),row.share,row.reference,row.upside,row.storeGain]));
+        const sellers=sellerImpact(ctx,def);
+        add("Verkopersresultaten",["Verkoper",...resultHeads],sellers.map(row=>[row.person.name,...stats(row.result,def)]));
+        if (def.type==="ratio") add("Verdeling en winkelimpact",["Verkoper","Aandeel kansen (%)","Eigen referentie (%)","Extra stuks bij referentie","Winkelimpact (pp)"],
+          sellers.map(row=>[row.person.name,row.share,row.reference,row.upside,row.storeGain]));
       } else if (source==="resultaten" && !ctx.person && !ctx.detail) {
         for (const term of ["maand","jaar"]) add(term==="maand"?"Verkopers · gekozen maand":"Verkopers · YTD",["Verkoper",...resultHeads],
-          sellerImpact({...ctx,term},def).map(row=>[row.person.name,...stats(row.result)]));
+          sellerImpact({...ctx,term},def).map(row=>[row.person.name,...stats(row.result,def)]));
       }
       if (source==="analyse") {
         const change=comparisonFor(ctx,def,result);
         if (change) add("Periodevergelijking",["Vergelijking","Eenheid","Vorig resultaat","Verschil"],[[change.label,unit,change.prior,change.value]]);
+        const own=ctx.person && personal(ctx).rows.find(row=>row.def.id===def.id);
+        if (own && own.reference!==null) add("Eigen eerdere resultaten",["Eenheid","Referentie","Verschil tegenover eigen referentie"],
+          [[unit,own.reference,own.improvement===null?null:-own.improvement]]);
+        const split=opportunityChange(ctx,def,result);
+        if (split) add("Volume en resultaat per kans",["Kansen vooraf","Kansen nu","Verschil stuks","Door aantal kansen","Door stuks per kans"],
+          [[split.prior.chances,result.chances,split.total,split.volume,split.rate]]);
+      } else if (!ctx.person && !selected && ctx.term==="maand") {
+        const pace=monthlyPace(def,ctx.period,result);
+        if (pace) add("Tempo deze maand",["Peildatum","Verkoopdagen verwerkt","Verkoopdagen totaal","Richtpunt","Nog nodig per verkoopdag"],
+          [[pace.date,pace.elapsed,pace.total,def.id==="life"?Math.ceil(pace.guide):pace.guide,
+            def.id==="life" && pace.perDay!==null?Math.ceil(pace.perDay):pace.perDay]]);
       }
     } else if (source==="resultaten" && !ctx.person && q.get("groep")==="verkopers") {
       add("Verkopers per KPI",["Verkoper","KPI","Eenheid",...resultHeads],
         data.sellers.flatMap(person=>data.kpis.flatMap(def=>{
           const result=metric(ctx,def,person);
-          return person.active || result.value!==null ? [[person.name,def.label,metricUnit(def),...stats(result)]] : [];
+          return person.active || result.value!==null ? [[person.name,def.label,metricUnit(def),...stats(result,def)]] : [];
         })));
     } else {
       if (source==="analyse" && ctx.person) {
         const {strengths,focus}=personal(ctx);
         for (const [title,rows] of [["Sterktes",strengths],["Focus",focus]]) {
-          if (rows.length) add(title,["KPI","Eenheid",...resultHeads,...(title==="Sterktes"?["Meetbare maanden op target","Meetbare maanden","Kansen in die maanden"]:["Eerdere maanden op target","Eerdere maanden gemeten"])],
-            rows.map(({def,result,hits,months,totalChances})=>[def.label,metricUnit(def),...stats(result),hits,months,
-              ...(title==="Sterktes"?[def.type==="ratio"?totalChances:null]:[])]));
+          if (rows.length) add(title,["KPI","Eenheid",...resultHeads,...(title==="Sterktes"?["Meetbare maanden op target","Afgesloten maanden meetbaar","Afgesloten maanden bekeken","Kansen in die maanden"]:["Eigen referentie","Verschil tegenover eigen referentie"])],
+            rows.map(({def,result,hits,months,periods,totalChances,reference,improvement})=>[def.label,metricUnit(def),...stats(result,def),
+              ...(title==="Sterktes"?[hits,months,periods,def.type==="ratio"?totalChances:null]:[reference,improvement===null?null:-improvement])]));
         }
       }
       add("Overzicht",["KPI","Eenheid",...resultHeads,...(source==="analyse"?["Vergelijking","Verschil","Tekort","Eenheid tekort"]:[])],
-        (source==="analyse"?analysisKpis(ctx):overview(ctx)).map(({def,result,missing,comparison})=>[def.label,metricUnit(def),...stats(result),
+        (source==="analyse"?analysisKpis(ctx):overview(ctx)).map(({def,result,missing,comparison})=>[def.label,metricUnit(def),...stats(result,def),
           ...(source==="analyse"?[comparison?.label??null,comparison?.value??null,missing,
             gapDef(result,def).type==="stuks"?"stuks":["ratio","percentage"].includes(def.type)?"pp":metricUnit(def)]:[])]));
     }
     const scope=source==="resultaten" && !ctx.person && q.get("groep")==="verkopers"?"Alle verkopers":ctx.entity.name;
-    return {title,period,tables,charts:charts.filter(chart=>chart.history.some(item=>Number.isFinite(item.metric?.value))),ctx,source,scope};
+    return {title,period,sourceDate:importStatus.omzetTot??null,tables,charts:charts.filter(chart=>chart.history.some(item=>Number.isFinite(item.metric?.value))),ctx,source,scope};
   }
-  w.ScorebladReview={activeMonth,fromParams,metric,deltaLabel,lack,gapDef,comparisonFor,overview,analysisKpis,sellerImpact,personal,series,report,minimumChances,importStatus};
+  w.ScorebladReview={activeMonth,fromParams,metric,deltaLabel,lack,gapDef,comparisonFor,opportunityChange,monthlyPace,overview,analysisKpis,sellerImpact,personal,series,report,minimumChances,importStatus};
 })();
