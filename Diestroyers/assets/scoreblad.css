@@ -213,6 +213,13 @@ a.score-row.with-visual::after { grid-area: 1 / 3 / 3 / 4; }
 .score-source-list dd { margin: 0; font-size: .85rem; font-weight: 700; white-space: nowrap; }
 .admin-source-warning { display: block; color: var(--red); }
 .score-nps-summary .score-facts { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.score-nps-filters { grid-template-columns: repeat(auto-fit,minmax(min(12rem,100%),1fr)); align-items: end; }
+.score-nps-note { margin: .5rem 0; }
+.score-nps-coaching { padding: .8rem 1rem; background: var(--white); border: 1px solid var(--line); border-inline-start: 3px solid var(--red); border-radius: .35rem; }
+.score-nps-trend { margin-top: 1rem; }
+.score-nps-trend summary { padding: .65rem .8rem; cursor: pointer; font-weight: 700; background: var(--white); border: 1px solid var(--line); border-radius: .35rem; }
+.score-nps-trend .score-list { margin-top: .65rem; }
+#nps-comments h2, #score-experience-heading { scroll-margin-top: 1rem; }
 .score-nps-distribution { display: grid; gap: .5rem; margin-top: .6rem; padding: .62rem; background: var(--white); border: 1px solid var(--line); border-radius: .38rem; }
 .score-nps-bar { display: flex; height: 1.35rem; border-radius: .34rem; }
 .score-nps-bar a { flex: var(--portion) 1 0; }
