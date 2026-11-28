@@ -508,6 +508,12 @@
       <div class="score-nps-legend" role="group" aria-label="Filter klantcommentaren">${categories.map(item=>
         `<a class="${item.key}" ${control(item)}><span>${item.label}</span><strong>${countValue(item.count)}</strong></a>`).join("")}</div></div>`;
   }
+  function commentFilters(selected,link) {
+    const options=[{key:null,type:"Alle",label:"Alle reacties"},...surveyTypes];
+    return `<div class="score-segments score-comment-filters" role="group" aria-label="Filter reacties op type">
+      ${options.map(item=>`<a class="${item.tone||""}" href="${escape(link(item.key))}"
+        aria-label="${escape(item.label)}"${item.key===selected?' aria-current="true"':""}>${escape(item.type)}</a>`).join("")}</div>`;
+  }
   function experienceResult(stats, warning, target) {
     const value = stats?.responses > 0 ? stats.value ?? null : null;
     const status = value === null ? null : statuses[value >= target ? 3 : value >= warning ? 1 : 0];
@@ -583,9 +589,9 @@
             ${surveyDistribution(survey,category?.key,filterUrl)}</div>`
         + trendSection([...surveyPeriods].sort().reverse().map(month=>({period:month,metric:surveyResult(source,month,profile?.month?.[month])})),
           data.byId.nps,period,["count","Enquêtes"])
-        + `<section class="score-section" id="nps-comments"><div class="score-section-heading">
+        + `<section class="score-section" id="nps-comments">
             <h2 tabindex="-1">Klantcommentaren · ${category?escape(category.label)+" · ":""}${visible.length}</h2>
-            ${category?`<a class="score-back" href="${escape(filterUrl(null))}">Alle reacties</a>`:""}</div>${commentList}${paging}</section>`
+            ${commentFilters(category?.key??null,filterUrl)}${commentList}${paging}</section>`
         + section("Maandhistoriek",list([...surveyPeriods].sort().reverse().map(month => ({
             label:data.monthLabel(month),...scoreFields(surveyResult(source,month,profile?.month?.[month]),data.byId.nps),
             meta:`${profile?.month?.[month]?.cards ?? 0} enquêtes`,href:npsLink({...base,periode:month})
