@@ -87,7 +87,7 @@
     return monthsThrough(before(start),6).map(p=>data.month(entity,def.id,p));
   }
   function sample(row) {
-    return row.chances>=minimumChances && row.count!==null && row.count>=0 && row.count<=row.chances;
+    return Number.isFinite(row.chances) && row.chances>=minimumChances && Number.isFinite(row.count) && row.count>=0;
   }
   function sellerImpact(ctx,def) {
     const store=metric(ctx,def,data.store);
