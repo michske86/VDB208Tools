@@ -13,6 +13,7 @@
     ["information","Inlichtingen",90,95],["wait","Wachttijd",90,95],["friendly","Vriendelijkheid",90,95]
   ];
   const integer = new Intl.NumberFormat("nl-BE");
+  const preciseNumber = new Intl.NumberFormat("nl-BE",{maximumFractionDigits:1});
   const axisNumber = new Intl.NumberFormat("nl-BE",{notation:"compact",maximumFractionDigits:1});
   const axisMonth = new Intl.DateTimeFormat("nl-BE",{month:"short",timeZone:"UTC"});
   const dateFormat = new Intl.DateTimeFormat("nl-BE",{dateStyle:"medium",timeZone:"UTC"});
@@ -49,11 +50,12 @@
     return `<ul class="score-color-guide" aria-label="Betekenis van de resultaatkleuren">${[3,1,0].map(points =>
       `<li>${resultStatus(statuses[points].label,statuses[points],false)}</li>`).join("")}</ul>`;
   }
-  function row({label, meta, value, href, rank, own, empty, status}) {
+  function row({label, meta, value, href, rank, own, empty, status, visual}) {
     const body = `<span class="score-name">${rank !== undefined ? `<span class="score-rank">${rank ?? "—"}</span>` : ""}
       <span>${escape(label)}${meta ? `<small class="score-meta">${escape(meta)}</small>` : ""}</span></span>
-      ${value === undefined ? "" : `<span class="score-value${empty ? " empty" : ""}">${resultStatus(value,status)}</span>`}`;
-    const cls = "score-row" + (own ? " own" : "") + (value === undefined ? " name-only" : "");
+      ${value === undefined ? "" : `<span class="score-value${empty ? " empty" : ""}">${resultStatus(value,status)}</span>`}
+      ${visual ? `<span class="score-row-viz">${visual}</span>` : ""}`;
+    const cls = "score-row" + (own ? " own" : "") + (value === undefined ? " name-only" : "") + (visual ? " with-visual" : "");
     return href ? `<li><a class="${cls}" href="${escape(href)}">${body}</a></li>` : `<li class="${cls}">${body}</li>`;
   }
   function list(items, label) {
@@ -93,6 +95,17 @@
   function targetLabel(result, def) {
     return result.target === null ? "Geen target" : "Target " + data.format(result.target,def);
   }
+  function progressBar(value,max,style,caption,marker=false) {
+    const width=Math.max(0,Math.min(100,value/max*100));
+    return `<span class="score-progress"><span class="score-progress-track ${style}${marker?" has-target":""}" aria-hidden="true">
+      <span style="--progress:${width}%"></span></span>${caption?`<small>${escape(caption)}</small>`:""}</span>`;
+  }
+  function targetProgress(result) {
+    if (!Number.isFinite(result.value) || !(result.target>0)) return "";
+    const achieved=result.value/result.target*100;
+    const text=preciseNumber.format(achieved)+"% van target";
+    return progressBar(achieved,120,statuses[data.points(result)]?.tone||"",text,true);
+  }
   function metricFacts(result, def, periodText = "Resultaat") {
     const score = data.points(result);
     const count = result.count === null || result.count === undefined ? null : integer.format(result.count);
@@ -129,7 +142,7 @@
     }).join(" ");
     const ticks = [0,1,2,3].map(index => {
       const value = bottom+(top-bottom)*index/3;
-      const label = axisNumber.format(value);
+      const label = axisNumber.format(def.type==="stuks" && top-bottom>=6 ? Math.round(value) : value);
       return `<line x1="${box.left}" x2="${box.right}" y1="${y(value)}" y2="${y(value)}"/>
         <text x="${box.left-8}" y="${y(value)+5}" text-anchor="end">${escape(["bedrag","accessoires"].includes(def.type) ? "€ "+label : ["ratio","percentage"].includes(def.type) ? label+"%" : label)}</text>`;
     }).join("");
@@ -138,7 +151,7 @@
     const dots = months.map((item,index) => {
       const value = item.metric?.value;
       if (!hasValue(value)) return "";
-      return `<circle class="${item.period === period ? "selected" : ""}" cx="${x(index)}" cy="${y(value)}" r="${item.period === period ? 5.5 : 3.4}">
+      return `<circle data-trend-dot="${item.period}" class="${item.period === period ? "selected" : ""}" cx="${x(index)}" cy="${y(value)}" r="${item.period === period ? 5.5 : 3.4}">
         <title>${escape(data.monthLabel(item.period)+" · "+data.format(value,def))}</title></circle>`;
     }).join("");
     const targetDots=months.map((item,index)=>{
@@ -146,23 +159,54 @@
       if (!hasValue(value) || hasValue(months[index-1]?.metric?.target) || hasValue(months[index+1]?.metric?.target)) return "";
       return `<circle class="score-trend-target-dot" cx="${x(index)}" cy="${y(value)}" r="3.2"/>`;
     }).join("");
-    return `<figure class="score-trend">
+    const initial=x(Math.max(0,months.findIndex(item=>item.period===period)));
+    const hitWidth=Math.min(16,months.length===1?16:77/(months.length-1));
+    return `<figure class="score-trend"><div class="score-trend-plot">
       <svg viewBox="0 0 440 190" role="img" aria-label="${escape(legend+" per maand t.e.m. "+data.monthLabel(period))}">
         <g class="score-trend-grid">${ticks}${labels}</g>
+        <line class="score-trend-selection" data-trend-rail x1="${initial}" x2="${initial}" y1="${box.top}" y2="${box.bottom}"/>
         ${targetLine ? `<path class="score-trend-target" d="${line("target")}"/>` : ""}
         ${targetDots}
         <path class="score-trend-value" d="${line("value")}"/>
         <g class="score-trend-dots">${dots}</g>
       </svg>
+      <div class="score-trend-months" role="group" aria-label="${escape(legend+" per maand")}">${months.map((item,index)=>
+        `<button type="button" data-chart-month="${item.period}" data-chart-x="${x(index)}" aria-pressed="${item.period===period}"${item.period!==period?' tabindex="-1"':""}
+          aria-label="${escape(data.monthLabel(item.period)+": "+data.format(item.metric?.value,def))}"
+          style="--month-x:${x(index)/440*100}%;--month-width:${hitWidth}%"></button>`).join("")}</div>
+      </div>
       <figcaption><span class="score-trend-key">${escape(legend)}</span>${targetLine ? '<span class="score-trend-key target">Target</span>' : ""}
         <span>T.e.m. ${escape(data.monthLabel(period))}</span></figcaption>
     </figure>`;
   }
-  function trendSection(history,def,period) {
-    const volume=history.map(item=>({...item,metric:{value:item.metric?.chances??null}}));
-    return section("Maandevolutie",trendChart(history,def,period)+
-      (def.type==="ratio" && volume.some(item=>item.metric.value!==null)
-        ? `<details class="score-chart-more"><summary>Verloop van de kansen</summary>${trendChart(volume,{type:"stuks"},period,"Kansen")}</details>` : ""));
+  function trendSection(history,def,period,secondary=def.type==="ratio"?["chances","Kansen"]:null) {
+    const months=history.filter(item=>item.period<=period).slice(0,12);
+    if (!months.length) return section("Maandevolutie",'<p class="score-empty">Geen gegevens voor deze maandgrafiek.</p>');
+    const volume=secondary ? history.map(item=>({...item,metric:{value:item.metric?.[secondary[0]]??null}})) : [];
+    const readings=months.map(({period:month,metric})=>{
+      const fields=[["Resultaat",data.format(metric?.value,def)],["Target",data.format(metric?.target,def)]];
+      if (def.type==="ratio" || def.id==="s") fields.push(["Stuks",countValue(metric?.count)]);
+      if (secondary) fields.push([secondary[1],countValue(metric?.[secondary[0]])]);
+      return `<div data-chart-reading="${month}"${month!==period?" hidden":""}><strong>${escape(data.monthLabel(month))}</strong>${facts(fields)}</div>`;
+    }).join("");
+    return section("Maandevolutie",`<div class="score-chart" data-chart>
+      <div class="score-chart-readout" aria-live="polite">${readings}</div>
+      ${months.some(item=>Number.isFinite(item.metric?.value))?'<p class="score-muted score-chart-hint">Kies een maand in de grafiek.</p>':""}
+      ${trendChart(history,def,period)}
+      ${volume.some(item=>item.metric.value!==null)?trendChart(volume,{type:"stuks"},period,secondary[1]):""}</div>`);
+  }
+  function countValue(value) {
+    return Number.isFinite(value)?integer.format(value):"—";
+  }
+  function impactFields(entry) {
+    const {result,share,reference,upside,storeGain}=entry;
+    const volume=result.chances===null ? "—" : countValue(result.chances);
+    const portion=share===null?"":` · ${preciseNumber.format(share)}% van de winkel`;
+    const impact=storeGain===null?"—":review.deltaLabel(storeGain,ratioDef,true);
+    return `<span class="score-impact-fields"><span><small>Kansen</small><strong>${escape(volume)}</strong>
+       <small>${escape((result.count===null?"—":countValue(result.count)+" stuks")+portion)}</small></span>
+       <span><small>Mogelijke winkelimpact</small><strong>${escape(impact)}</strong>
+       ${upside===null?"":`<small>${escape(review.deltaLabel(upside,{type:"stuks"},true))}${reference===null?"":" · ref. "+escape(data.format(reference,ratioDef))}</small>`}</span></span>`;
   }
   function targetGap(row) {
     if (row.missing===null) return row.result.value===null ? "Geen resultaat" : "Geen target";
@@ -172,7 +216,8 @@
   function analysisPage(q) {
     const ctx=review.fromParams(q);
     const {person,entity,def,period,term,comparison,candidates}=ctx;
-    const base={verkoper:person?.id,kpi:def?.id,periode:period,termijn:term,vergelijk:comparison};
+    const base={verkoper:person?.id,kpi:def?.id,periode:period,termijn:term,vergelijk:comparison,
+      sortering:ctx.sort==="kansen"?ctx.sort:null,toon:ctx.show==="alle"?ctx.show:null};
     const subtitle=(term==="jaar"?"YTD t.e.m. ":"")+data.monthLabel(period);
     const currentPeriod=period>=review.activeMonth();
     const reportDate=review.importStatus.omzetTot;
@@ -195,19 +240,14 @@
       const missing=review.lack(result,def);
       const change=review.comparisonFor(ctx,def,result);
       const people=person ? [] : review.sellerImpact(ctx,def);
-      const notable=people.filter(row=>row.person.active && row.upside>0 && row.storeGain!==null);
+      const notable=people.filter(row=>row.person.active && row.upside>0 && row.storeGain!==null).sort((a,b)=>b.storeGain-a.storeGain);
       const nilVolume=def.type==="ratio" && people.some(row=>row.result.chances>0 && row.result.chances<review.minimumChances);
-      const breakdown=people.map(({person:member,result,share,reference,upside,storeGain,missing})=>{
+      const breakdown=people.map(entry=>{
+        const {person:member,result,missing}=entry;
         const meta=[targetLabel(result,def)];
-        if (def.type==="ratio") {
-          if (result.chances!==null) meta.push(`${result.count ?? "—"} / ${integer.format(result.chances)} kansen`);
-          if (share!==null) meta.push(`${integer.format(share)}% van winkelkansen`);
-          if (reference!==null) meta.push("Eigen referentie "+data.format(reference,ratioDef));
-          if (storeGain!==null && upside>0) meta.push(`+${upside} stuks · ${review.deltaLabel(storeGain,ratioDef,true)} voor Diest`);
-        }
         if (missing>0) meta.push(targetGap({missing,def,result}));
         return {label:member.name,meta:meta.join(" · "),...scoreFields(result,def),
-          href:analysisLink({...base,verkoper:member.id})};
+          visual:def.type==="ratio"?impactFields(entry):null,href:analysisLink({...base,verkoper:member.id})};
       });
       const components=data.components(entity,def.id,period);
       return head+metricFacts(result,def,term==="jaar"?"Jaarresultaat":"Maandresultaat") +
@@ -217,6 +257,10 @@
           ["Verschil",review.deltaLabel(change.value,def,true)]])):"") +
         (people.length?section(def.type==="ratio"?"Kansen en mogelijke winkelimpact":"Verkopersresultaten",
           (notable.length?`<p class="score-analysis-note">Grootste berekende ruimte bij ${escape(notable[0].person.name)} · ${escape(review.deltaLabel(notable[0].storeGain,ratioDef,true))} voor Diest.</p>`:"") +
+          (def.type==="ratio"?`<div class="score-local-switch">${segment("Sorteer verkopers op",[
+            ["impact","Winkelimpact",analysisLink({...base,sortering:null})],
+            ["kansen","Kansen",analysisLink({...base,sortering:"kansen"})]
+          ],ctx.sort)}</div>`:"")+
           list(breakdown,"Verkopers per KPI")+
           (def.type==="ratio"?`<p class="score-muted">Winkelimpact per verkoper bij hetzelfde aantal kansen, afgezet tegen diens eigen resultaat uit maximaal zes maanden vóór ${term==="jaar"?"het gekozen jaar":"de gekozen maand"}. Minstens twee referentiemaanden met elk ${review.minimumChances} kansen.${nilVolume?" Bij weinig kansen weegt één verkoop zwaar door.":""}</p>`:"")):"") +
         trendSection(review.series(ctx,def),def,period) +
@@ -230,16 +274,26 @@
       : currentPeriod?"Voor de lopende maand vergelijken we alleen cijfers met een overeenkomstige peildatum."
         : !comparison?"Er is nog geen eerdere afgesloten maand beschikbaar.":"";
     const rows=review.overview(ctx);
-    const ranked=rows.filter(row=>row.missing>0).sort((a,b)=>a.result.value/a.result.target-b.result.value/b.result.target);
+    const selected=review.analysisKpis(ctx,rows);
     const movers=rows.filter(row=>row.comparison?.value);
     const normalized=row=>row.comparison.value/(row.result.target>0 ? row.result.target : Math.max(1,Math.abs(row.comparison.prior)));
     const deltas=movers.sort((a,b)=>normalized(b)-normalized(a));
     const listTo=(values,label,meta)=>list(values.map(row=>({
       label:row.def.label,meta:meta(row),...scoreFields(row.result,row.def),href:rowLink(row)
     })),label);
-    const gapList=ranked.length ? listTo(ranked,"Afstand tot target",targetGap) : '<p class="score-empty">Geen gemeten KPI’s onder target in deze periode.</p>';
-    const movementList=(label,values)=>list(values.map(row=>({label:row.def.label,
-      meta:row.comparison.label,value:review.deltaLabel(row.comparison.value,row.def,true),href:rowLink(row)})),label);
+    const targetList=selected.length ? list(selected.map(row=>({
+      label:row.def.label,meta:[targetLabel(row.result,row.def),row.missing>0?targetGap(row):null].filter(Boolean).join(" · "),
+      ...scoreFields(row.result,row.def),visual:targetProgress(row.result),href:rowLink(row)
+    })),"KPI’s en targets") : '<p class="score-empty">Geen gemeten KPI’s onder target in deze periode.</p>';
+    const maxDelta=Math.max(0,...deltas.map(row=>Math.abs(normalized(row))));
+    const changes=[["Stijgers",deltas.filter(row=>row.comparison.value>0).slice(0,3)],
+      ["Dalers",deltas.filter(row=>row.comparison.value<0).reverse().slice(0,3)]].filter(([,items])=>items.length);
+    const movementList=(label,values)=>list(values.map(row=>({
+      label:row.def.label,meta:[row.comparison.label,row.comparison.date?dateLabel(row.comparison.date):null].filter(Boolean).join(" · "),
+      value:review.deltaLabel(row.comparison.value,row.def,true),href:rowLink(row),
+      visual:`<span aria-hidden="true" class="score-delta-track ${row.comparison.value<0?"negative":"positive"}">
+        <span style="--delta:${Math.abs(normalized(row))/maxDelta*50}%"></span></span>`
+    })),label);
     const personal=person?review.personal(ctx):null;
     const focus=personal?section("Sterktes",personal.strengths.length?listTo(personal.strengths,"Sterktes",
       row=>`${row.hits} van ${row.months} meetbare maanden op target`+
@@ -247,11 +301,15 @@
       section("Persoonlijke focus",personal.focus.length?listTo(personal.focus,"Persoonlijke focus",row=>
         targetGap(row)+(row.def.type==="ratio"?` · ${row.result.chances} kansen`:"")):'<p class="score-empty">Geen duidelijke focus op basis van resultaten en meetvolume.</p>')+
       `<p class="score-muted">Focus gebruikt beschikbare targets en eerdere resultaten. Voor ratio’s en NPS gebruiken we minstens ${review.minimumChances} kansen of enquêtes.</p>`:"";
-    return head+focus+section("Afstand tot target",gapList)+
-      (deltas.length?section("Verandering tegenover de referentie",`<div class="score-compare"><div><h3>Stijgers</h3>${movementList("Stijgers",deltas.filter(row=>row.comparison.value>0).slice(0,3))}</div>
-         <div><h3>Dalers</h3>${movementList("Dalers",deltas.filter(row=>row.comparison.value<0).reverse().slice(0,3))}</div></div>`):"")+
+    const targetFilters=segment("KPI’s tonen",[
+      ["aandacht","Aandacht nodig",analysisLink({...base,toon:null})],
+      ["alle","Alle KPI’s",analysisLink({...base,toon:"alle"})]
+    ],ctx.show);
+    return head+focus+section("Afstand tot target",`<div class="score-local-switch">${targetFilters}</div>`+targetList)+
+      (changes.length?section("Verandering tegenover de referentie",`<div class="score-compare${changes.length===1?" single":""}">${changes.map(([label,items])=>
+        `<div>${changes.length>1?`<h3>${label}</h3>`:""}${movementList(label,items)}</div>`).join("")}</div>`):"")+
       (notes?`<p class="score-muted">${escape(notes)}</p>`:"")+
-      section("Alle KPI’s",listTo(rows,"KPI's",targetGap))+exportView("analyse",base);
+      exportView("analyse",base);
   }
   function sellerKpiResults(def, period, annual) {
     const read = annual ? data.annual : data.month;
@@ -346,7 +404,7 @@
     const read = annual ? data.annual : data.month;
     return list(data.kpis.map(def => {
       const result = read(entity,def.id,period);
-      return {label:def.label,meta:targetLabel(result,def),...scoreFields(result,def),href:resultLink({...base,kpi:def.id})};
+      return {label:def.label,meta:targetLabel(result,def),...scoreFields(result,def),visual:targetProgress(result),href:resultLink({...base,kpi:def.id})};
     }),"KPI’s");
   }
 
@@ -397,18 +455,47 @@
     ],scope) + (regional ? "" : segment("Rankingperiode",[
       ["maand","Actieve maand",rankLink({...base,termijn:"maand"})],["jaar","Jaar t.e.m. actieve maand",rankLink({...base,termijn:"jaar"})]
     ],term)) + picker("Rangschikking",metricKeys.map(([id,label]) => [id,label,rankLink({...base,rang:id})]),key);
-    const showCoverage = group && picks.some(item => item.available < item.total);
+    let preceding=null, last=null;
+    const rankedRows=picks.map(item=>{
+      if (item.value!==null && item.value!==last) {
+        preceding=last;
+        last=item.value;
+      }
+      const tied=item.rank!==null && picks.some(other=>other!==item && other.rank===item.rank);
+      const gap=item.value!==null && preceding!==null ? preceding-item.value : null;
+      const distance=gap===null?null:group?format(gap):review.deltaLabel(gap,data.byId[key]);
+      const meta=[group?`${item.available} van ${item.total} KPI’s meetbaar`:null,
+        tied?`Gedeelde ${item.rank}e plaats`:null,distance?`${distance} tot de volgende hogere score`:null].filter(Boolean).join(" · ");
+      const max=item.total*window.Diestroyers.config.points.green;
+      return {label:item.entity.name,value:format(item.value),empty:item.value===null,rank:item.rank,meta,
+        status:group?null:statuses[item.breakdown[0].points],own:regional && item.entity.id===data.store.id,
+        href:rankLink({...base,entiteit:item.entity.id}),
+        visual:group && item.value!==null && max>0 ? progressBar(item.value,max,"rank",`van ${max} punten`) : null};
+    });
     return heading("Rankings",subtitle) + `<div class="score-filters">${filters}</div>`
-      + list(picks.map(item => ({label:item.entity.name,value:format(item.value),empty:item.value === null,rank:item.rank,
-          status:group ? null : statuses[item.breakdown[0].points],
-          meta:showCoverage ? `${item.available} van ${item.total} KPI’s met score` : "",own:regional && item.entity.id === data.store.id,
-          href:rankLink({...base,entiteit:item.entity.id})})),"Ranglijst")
-      + (showCoverage ? '<p class="score-muted score-section">Punten per KPI met resultaat en target: 3 bij target, 1 vanaf 90%, anders 0.</p>' : "");
+      + list(rankedRows,"Ranglijst")
+      + (group ? '<p class="score-muted score-section">Punten per KPI met resultaat en target: 3 bij target, 1 vanaf 90%, anders 0.</p>' : "");
   }
 
   function npsLink(values) { return url("nps",values); }
   function surveyResult(entity, period, survey) {
-    return {value:survey?.cards > 0 ? survey.nps ?? null : null,target:data.month(entity,"nps",period).target};
+    return {value:survey?.cards > 0 ? survey.nps ?? null : null,target:data.month(entity,"nps",period).target,count:survey?.cards??null};
+  }
+  const surveyTypes=[
+    {key:"promoters",label:"Promotoren",type:"Promotor"},
+    {key:"passives",label:"Neutralen",type:"Neutraal"},
+    {key:"detractors",label:"Detractoren",type:"Detractor"}
+  ];
+  function surveyDistribution(survey,selected,link) {
+    const categories=surveyTypes.map(group=>({...group,count:survey?.[group.key]??0}));
+    const count=categories.reduce((sum,item)=>sum+item.count,0);
+    const control=item=>`href="${escape(link(item.key))}" aria-label="${escape(item.label+" · "+countValue(item.count))}"
+      ${item.key===selected?' aria-current="true"':""}`;
+    return `<div class="score-nps-distribution">
+      ${count?`<div class="score-nps-bar" role="group" aria-label="Verdeling van de enquêtes">${categories.filter(item=>item.count>0).map(item=>
+        `<a class="${item.key}" style="--portion:${item.count}" ${control(item)}></a>`).join("")}</div>`:""}
+      <div class="score-nps-legend" role="group" aria-label="Filter klantcommentaren">${categories.map(item=>
+        `<a class="${item.key}" ${control(item)}><span>${item.label}</span><strong>${countValue(item.count)}</strong></a>`).join("")}</div></div>`;
   }
   function experienceResult(stats, warning, target) {
     const value = stats?.responses > 0 ? stats.value ?? null : null;
@@ -432,16 +519,20 @@
     const subtitle = source.name + " · " + data.monthLabel(period);
 
     if (chosenMetric === "nps") {
-      const selector = periodPicker(surveyPeriods.length ? surveyPeriods : [period],period,data.monthLabel,value => npsLink({...base,periode:value}));
+      const category=surveyTypes.find(item=>item.key===q.get("reactietype"));
+      const reactionBase={...base,reactietype:category?.key};
+      const selector = periodPicker(surveyPeriods.length ? surveyPeriods : [period],period,data.monthLabel,value => npsLink({...reactionBase,periode:value,termijn:q.get("termijn")}));
       const viewYear = q.get("termijn") === "jaar";
       const survey = viewYear ? ytd : mtd;
       const comments = (entity ? profile?.comments : data.nps.comments) || [];
       const visible = [...comments].filter(comment => viewYear ? comment.period?.startsWith(period.slice(0,4)) && comment.period <= period : comment.period === period)
+        .filter(comment=>!category || comment.type===category.type)
         .sort((a,b) => String(b.dateIso).localeCompare(String(a.dateIso)));
       const commentSize = 15;
       const pageCount = Math.max(1,Math.ceil(visible.length/commentSize));
       const current = Math.max(1,Math.min(pageCount,Math.floor(Number(q.get("reacties")) || 1)));
-      const commentUrl = page => npsLink({...base,termijn:viewYear ? "jaar" : "maand",reacties:page});
+      const commentUrl = page => npsLink({...reactionBase,termijn:viewYear ? "jaar" : "maand",reacties:page});
+      const filterUrl=reactietype=>npsLink({...reactionBase,termijn:viewYear?"jaar":"maand",reactietype,reacties:1});
       const commentList = visible.length
         ? `<ul class="score-comments">${visible.slice((current-1)*commentSize,current*commentSize).map(comment => `<li>
           <span class="score-muted">${escape([dateLabel(comment.dateIso || comment.date),comment.score,comment.type,entity ? null : comment.sellerName].filter(x => x !== null && x !== undefined && x !== "").join(" · "))}</span>
@@ -455,17 +546,16 @@
       const {value,status} = scoreFields(result,data.byId.nps);
       return back(source.name,npsLink({...base,onderdeel:null})) + heading("NPS",subtitle)
         + `<div class="score-filters">${selector}${segment("NPS-periode",[
-            ["maand","Maand",npsLink({...base,termijn:"maand"})],["jaar","Jaar t.e.m. gekozen maand",npsLink({...base,termijn:"jaar"})]
+            ["maand","Maand",npsLink({...reactionBase,termijn:"maand"})],["jaar","YTD",npsLink({...reactionBase,termijn:"jaar"})]
           ],viewYear ? "jaar" : "maand")}</div>`
-        + facts([["NPS",value,status],
-            ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",survey?.cards ?? 0],
-            ["Promotoren",survey?.promoters ?? 0],["Neutralen",survey?.passives ?? 0],["Detractoren",survey?.detractors ?? 0]])
-        + section("Maandevolutie",trendChart([...surveyPeriods].sort().reverse().map(month=>({
-          period:month,metric:surveyResult(source,month,profile?.month?.[month])
-        })),data.byId.nps,period)+trendChart([...surveyPeriods].sort().reverse().map(month=>({
-          period:month,metric:{value:profile?.month?.[month]?.cards??null}
-        })),{type:"stuks"},period,"Enquêtes"))
-        + section("Klantcommentaren · " + visible.length,commentList + paging)
+        + `<div class="score-nps-summary">${facts([["NPS",value,status],
+            ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",survey?.cards ?? 0]])}
+            ${surveyDistribution(survey,category?.key,filterUrl)}</div>`
+        + trendSection([...surveyPeriods].sort().reverse().map(month=>({period:month,metric:surveyResult(source,month,profile?.month?.[month])})),
+          data.byId.nps,period,["count","Enquêtes"])
+        + `<section class="score-section" id="nps-comments"><div class="score-section-heading">
+            <h2 tabindex="-1">Klantcommentaren · ${category?escape(category.label)+" · ":""}${visible.length}</h2>
+            ${category?`<a class="score-back" href="${escape(filterUrl(null))}">Alle reacties</a>`:""}</div>${commentList}${paging}</section>`
         + section("Maandhistoriek",list([...surveyPeriods].sort().reverse().map(month => ({
             label:data.monthLabel(month),...scoreFields(surveyResult(source,month,profile?.month?.[month]),data.byId.nps),
             meta:`${profile?.month?.[month]?.cards ?? 0} enquêtes`,href:npsLink({...base,periode:month})
@@ -504,25 +594,77 @@
   }
 
   const views = {home:() => home,analyse:analysisPage,resultaten:resultPage,rankings:rankingPage,nps:npsPage};
+  let localSwitch=null;
   function render(focus = false) {
     const [requested,query] = location.hash.slice(1).split("?",2);
     const page = routes.includes(requested) ? requested : "home";
+    const params=new URLSearchParams(query);
     for (const link of nav.querySelectorAll("a")) {
       if (link.getAttribute("href") === "#" + page) link.setAttribute("aria-current","page");
       else link.removeAttribute("aria-current");
     }
-    root.innerHTML = views[page](new URLSearchParams(query));
+    root.innerHTML = views[page](params);
     if (page === "home" && review.importStatus.omzetTot) {
       root.querySelector("[data-report-date]").textContent="Omzetgegevens t.e.m. "+dateLabel(review.importStatus.omzetTot);
     }
     if (page !== "home") root.querySelector("h1").tabIndex = -1;
     document.title = page === "home" ? "The Diestroyers | Prestatieplatform" : root.querySelector("h1").textContent + " | The Diestroyers";
     if (focus) {
-      window.scrollTo(0,0);
-      root.querySelector("h1").focus({preventScroll:true});
+      if (localSwitch) {
+        const group=[...root.querySelectorAll(".score-local-switch [role=group]")].find(item=>item.getAttribute("aria-label")===localSwitch.label);
+        window.scrollTo(0,localSwitch.top);
+        group?.querySelector('[aria-current="true"]')?.focus({preventScroll:true});
+      } else if (page==="nps" && params.has("reacties") && root.querySelector("#nps-comments")) {
+        const comments=root.querySelector("#nps-comments");
+        comments.scrollIntoView();
+        comments.querySelector("h2").focus({preventScroll:true});
+      } else {
+        window.scrollTo(0,0);
+        root.querySelector("h1").focus({preventScroll:true});
+      }
     }
+    localSwitch=null;
   }
 
+  function selectChartMonth(button) {
+    const chart=button.closest("[data-chart]");
+    const month=button.dataset.chartMonth;
+    for (const control of chart.querySelectorAll("[data-chart-month]")) {
+      const selected=control.dataset.chartMonth===month;
+      control.setAttribute("aria-pressed",String(selected));
+      control.tabIndex=selected?0:-1;
+    }
+    for (const reading of chart.querySelectorAll("[data-chart-reading]")) reading.hidden=reading.dataset.chartReading!==month;
+    for (const figure of chart.querySelectorAll(".score-trend")) {
+      const selected=[...figure.querySelectorAll("[data-chart-month]")].find(item=>item.dataset.chartMonth===month);
+      if (!selected) continue;
+      const rail=figure.querySelector("[data-trend-rail]");
+      rail.setAttribute("x1",selected.dataset.chartX);
+      rail.setAttribute("x2",selected.dataset.chartX);
+      for (const dot of figure.querySelectorAll("[data-trend-dot]")) {
+        const current=dot.dataset.trendDot===month;
+        dot.classList.toggle("selected",current);
+        dot.setAttribute("r",current?"5.5":"3.4");
+      }
+    }
+  }
+  root.addEventListener("click",event=>{
+    const month=event.target.closest("[data-chart-month]");
+    if (month) selectChartMonth(month);
+    const link=event.target.closest(".score-local-switch a");
+    if (link && link.hash!==location.hash && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      localSwitch={top:window.scrollY,label:link.parentElement.getAttribute("aria-label")};
+    }
+  });
+  root.addEventListener("keydown",event=>{
+    const month=event.target.closest("[data-chart-month]");
+    if (!month || !["ArrowLeft","ArrowRight"].includes(event.key)) return;
+    const next=event.key==="ArrowLeft"?month.previousElementSibling:month.nextElementSibling;
+    if (!next) return;
+    event.preventDefault();
+    selectChartMonth(next);
+    next.focus({preventScroll:true});
+  });
   root.addEventListener("change",event => {
     if (event.target.matches("select[data-score-select]")) location.hash = event.target.value;
   });

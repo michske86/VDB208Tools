@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/scoreblad.css?v=7">
+<link rel="stylesheet" href="assets/scoreblad.css?v=8">
 <style>
 .report, .report *{box-sizing:border-box}
 .report{color:#111}
@@ -158,7 +158,8 @@
       <button type="button" id="tabCompact" aria-pressed="false">Compacte YTD</button>
     </div>
     <p id="viewBack" hidden><a class="score-back" id="viewBackLink">Terug naar gekozen weergave</a></p>
-    <p class="score-muted export-period" id="statusNote" role="status"></p>
+    <p class="score-sr-only" id="statusNote" role="status"></p>
+    <dl class="export-selection" id="exportSelection" aria-label="Gekozen rapport"></dl>
     <div class="export-downloads">
       <button type="button" class="score-button primary" id="pdfBtn">Download PDF</button>
       <button type="button" class="score-button" id="xlsxBtn">Download Excel</button>
@@ -185,7 +186,7 @@
 <script src="assets/config.js"></script>
 <script src="assets/registry.js"></script>
 <script src="assets/scoreblad-data.js?v=5"></script>
-<script src="assets/scoreblad-review.js?v=3"></script>
+<script src="assets/scoreblad-review.js?v=4"></script>
 <script src="assets/calculations.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/components.js"></script>
@@ -484,7 +485,23 @@ function renderView(){
  <table class="report-table"><thead><tr>${table.headers.map(header=>`<th scope="col">${esc(header)}</th>`).join('')}</tr></thead>
  <tbody>${table.rows.map(values=>`<tr>${values.map(value=>`<td>${esc(viewText(value))}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`).join('')}</article>`;
 }
+function renderSelection(){
+ const context=mode==='view'?viewReport.ctx:null;
+ const formatPeriod=window.ScorebladData.monthLabel;
+ const cells=context?[
+  ['Voor',viewReport.scope],['KPI',context.detail?viewReport.tables[0].title:context.def?.label||'Alle KPI’s'],
+  ['Periode',formatPeriod(context.period)],['Termijn',context.term==='jaar'?'YTD t.e.m. gekozen maand':'Gekozen maand'],
+  ...(viewReport.source==='analyse'&&!context.def?[['Weergave',context.show==='alle'?'Alle KPI’s':'Aandacht nodig']]:[]),
+  ...(viewReport.source==='analyse'&&context.def?.type==='ratio'&&!context.person?[['Sortering',context.sort==='kansen'?'Kansen':'Winkelimpact']]:[])
+ ]:[
+  ['Voor',shop.naam+' · winkel en verkopers'],
+  ['Periode',mode==='mtd'?formatPeriod(period):ytdLabel],
+  ['Termijn',mode==='mtd'?'MTD':mode==='compact'?'Compacte YTD':'Afgesloten maanden · YTD']
+ ];
+ document.getElementById('exportSelection').innerHTML=cells.map(([key,value])=>`<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join('');
+}
 function render(){
+ renderSelection();
  const preview=document.getElementById('reportHost');
  preview.innerHTML=mode==='view'?renderView():mode==='mtd'?renderMTD():mode==='compact'?renderCompactYTD():renderYTD();
  if(mode==='view') document.getElementById('exportViewCharts').append(...viewReport.charts.map(viewChart));

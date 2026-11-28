@@ -36,6 +36,7 @@
   let remembered = readToken();
   const chosenEntities = new Map();
   let chosenKpi = "life";
+  let qualityGroup=null;
 
   function showEntry() {
     const app = $("adminApp"), dialog = $("adminEntry");
@@ -856,8 +857,17 @@
       ["Portfolio-export opgebouwd",window.DIESTROYERS_PORTFOLIO_STATUS?.generatedAt,
         window.DIESTROYERS_PORTFOLIO_STATUS?.available===false?"Portfolio niet beschikbaar":null]
     ];
-    $("qualitySources").innerHTML='<h3>Gepubliceerde bronstanden</h3><dl class="score-facts">'+sources.map(([label,value,note])=>
-      `<div><dt>${escape(label)}</dt><dd>${escape(value?String(value).replace("T"," "):"Onbekend")}</dd>${note?`<small>${escape(note)}</small>`:""}</div>`).join("")+'</dl>';
+    const shortDate=new Intl.DateTimeFormat("nl-BE",{day:"numeric",month:"short",timeZone:"UTC"});
+    const shortMonth=new Intl.DateTimeFormat("nl-BE",{month:"short",year:"numeric",timeZone:"UTC"});
+    $("qualitySources").innerHTML='<h3>Gepubliceerde bronstanden</h3><dl class="score-source-list">'+sources.map(([label,value,note])=>{
+      const date=String(value||"");
+      const day=date.slice(0,10);
+      const monthOnly=periodFormat.test(date);
+      const at=new Date((monthOnly?date+"-01":day)+"T00:00:00Z");
+      const formatted=isNaN(at)?"Onbekend":(monthOnly?shortMonth:shortDate).format(at);
+      return `<div><dt>${escape(label)}${note?`<small class="admin-source-warning">${escape(note)}</small>`:""}</dt>
+        <dd>${value?`<time datetime="${escape(date.replace(" ","T"))}" title="${escape(date.replace("T"," "))}">${escape(formatted)}</time>`:formatted}</dd></div>`;
+    }).join("")+'</dl>';
     if (!periodFormat.test(per)) {
       $("qualityResults").innerHTML='<p class="score-empty">Kies een geldige maand.</p>';
       return;
@@ -884,21 +894,41 @@
         }
       }
     }
-    const qualityList=(label,items,open)=>`<details class="admin-record"${open?" open":""}>
-      <summary>${escape(label)} · ${items.length}</summary>
-      ${items.length?'<ul class="score-list">'+items.map(({entity,kpi,mode,label,field})=>
+    const groups=[
+      {key:"targets",label:"Ontbrekende targets",items:missingTargets},
+      {key:"resultaten",label:"Ontbrekende resultaten",items:resultsAvailable?missingResults:null},
+      {key:"correcties",label:isArchived(per)?"Correcties in het archief":"Correcties in Excel",items:statuses}
+    ];
+    if (!groups.some(group=>group.key===qualityGroup && group.items)) {
+      qualityGroup=(groups.find(group=>group.items?.length) || groups[0]).key;
+    }
+    const qualityList=({key,label,items})=>`<section class="score-quality-panel" id="quality-${key}" data-quality-panel="${key}"${key!==qualityGroup?" hidden":""}>
+      <h3>${escape(label)}</h3>
+      ${items?.length?'<ul class="score-list">'+items.map(({entity,kpi,mode,label,field})=>
         `<li><button type="button" class="score-row name-only" data-quality-mode="${mode}" data-quality-id="${escape(entity.id)}"
           data-quality-kpi="${escape(kpi.id)}" data-quality-key="${escape(field||"")}"><span class="score-name">
           <span>${escape(entity.name+" · "+kpi.label)}<small class="score-meta">${escape(label)}</small></span></span></button></li>`).join("")+'</ul>':
-        '<p class="score-empty">Geen meldingen.</p>'}</details>`;
+        '<p class="score-empty">Geen meldingen.</p>'}</section>`;
     $("qualityResults").innerHTML=`<div class="score-quality-list">
-      ${qualityList("Ontbrekende targets",missingTargets,missingTargets.length>0)}
-      ${resultsAvailable?qualityList("Ontbrekende gepubliceerde resultaten",missingResults,missingResults.length>0):
-        '<p class="score-muted">Districtsresultaten zijn beschikbaar voor de laatst gepubliceerde maand.</p>'}
-      ${qualityList(isArchived(per)?"Correcties in het archief":"Correcties in Excel",statuses,statuses.length>0)}</div>`;
+      <div class="score-quality-counts" role="group" aria-label="Datakwaliteit filteren">${groups.map(({key,label,items})=>
+        `<button type="button" data-quality-group="${key}" aria-controls="quality-${key}" aria-pressed="${key===qualityGroup}"${items?"":" disabled"}>
+          <strong>${items?.length??"—"}</strong><span>${escape(label)}</span></button>`).join("")}</div>
+      ${resultsAvailable?"":'<p class="score-muted">Districtsresultaten zijn beschikbaar voor de laatst gepubliceerde maand.</p>'}
+      ${groups.map(qualityList).join("")}</div>`;
   }
 
   function openQualityItem(event) {
+    const group=event.target.closest("[data-quality-group]");
+    if (group && !group.disabled) {
+      qualityGroup=group.dataset.qualityGroup;
+      for (const control of $("qualityResults").querySelectorAll("[data-quality-group]")) {
+        control.setAttribute("aria-pressed",String(control===group));
+      }
+      for (const panel of $("qualityResults").querySelectorAll("[data-quality-panel]")) {
+        panel.hidden=panel.dataset.qualityPanel!==qualityGroup;
+      }
+      return;
+    }
     const item=event.target.closest("[data-quality-mode]");
     if (!item) return;
     const {qualityMode,qualityId,qualityKpi,qualityKey}=item.dataset;

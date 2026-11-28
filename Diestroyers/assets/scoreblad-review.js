@@ -34,7 +34,9 @@
     const requestedDetail=q.get("detail");
     const detail=def && requestedDetail && data.components(entity,def.id,period).some(item=>item.id===requestedDetail) ? requestedDetail : null;
     const term = q.get("termijn")==="jaar" && !detail ? "jaar" : "maand";
-    return {period,person,entity,def,term,comparison,candidates,detail};
+    const sort=q.get("sortering")==="kansen"?"kansen":"impact";
+    const show=q.get("toon")==="alle"?"alle":"aandacht";
+    return {period,person,entity,def,term,comparison,candidates,detail,sort,show};
   }
   function metric(ctx,def,entity=ctx.entity) {
     return (ctx.term==="jaar" ? data.annual : data.month)(entity,def.id,ctx.period);
@@ -82,6 +84,10 @@
       return {def,result,missing:lack(result,def),comparison:comparisonFor(ctx,def,result)};
     });
   }
+  function analysisKpis(ctx,rows=overview(ctx)) {
+    return ctx.show==="alle"?rows:rows.filter(row=>row.missing>0)
+      .sort((a,b)=>a.result.value/a.result.target-b.result.value/b.result.target);
+  }
   function previousResults(entity,def,ctx) {
     const start=ctx.term==="jaar" ? ctx.period.slice(0,5)+"01" : ctx.period;
     return monthsThrough(before(start),6).map(p=>data.month(entity,def.id,p));
@@ -102,8 +108,8 @@
       return {person,result,share,reference,upside,storeGain,historyCount:history.length,missing:lack(result,def)};
     });
     return rows.filter(row=>row.person.active || available(row.result.value) || row.result.chances>0)
-      .sort((a,b)=>(Number(b.person.active)-Number(a.person.active))||
-        (b.storeGain??-1)-(a.storeGain??-1) || (b.result.chances??-1)-(a.result.chances??-1) ||
+      .sort((a,b)=>(ctx.sort==="kansen"?(b.result.chances??-1)-(a.result.chances??-1):(b.storeGain??-1)-(a.storeGain??-1)) ||
+        (b.result.chances??-1)-(a.result.chances??-1) ||
         (b.result.value??-Infinity)-(a.result.value??-Infinity) || a.person.name.localeCompare(b.person.name,"nl-BE"));
   }
   function personal(ctx) {
@@ -210,11 +216,12 @@
         }
       }
       add("Overzicht",["KPI","Eenheid",...resultHeads,...(source==="analyse"?["Vergelijking","Verschil","Tekort","Eenheid tekort"]:[])],
-        overview(ctx).map(({def,result,missing,comparison})=>[def.label,metricUnit(def),...stats(result),
+        (source==="analyse"?analysisKpis(ctx):overview(ctx)).map(({def,result,missing,comparison})=>[def.label,metricUnit(def),...stats(result),
           ...(source==="analyse"?[comparison?.label??null,comparison?.value??null,missing,
             gapDef(result,def).type==="stuks"?"stuks":["ratio","percentage"].includes(def.type)?"pp":metricUnit(def)]:[])]));
     }
-    return {title,period,tables,charts:charts.filter(chart=>chart.history.some(item=>Number.isFinite(item.metric?.value))),ctx,source};
+    const scope=source==="resultaten" && !ctx.person && q.get("groep")==="verkopers"?"Alle verkopers":ctx.entity.name;
+    return {title,period,tables,charts:charts.filter(chart=>chart.history.some(item=>Number.isFinite(item.metric?.value))),ctx,source,scope};
   }
-  w.ScorebladReview={activeMonth,fromParams,metric,deltaLabel,lack,gapDef,comparisonFor,overview,sellerImpact,personal,series,report,minimumChances,importStatus};
+  w.ScorebladReview={activeMonth,fromParams,metric,deltaLabel,lack,gapDef,comparisonFor,overview,analysisKpis,sellerImpact,personal,series,report,minimumChances,importStatus};
 })();
