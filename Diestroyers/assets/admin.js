@@ -29,6 +29,7 @@
   const targetIdentity = new Set(["Periode","periode","EntiteitType","entiteitType","Naam","naam","ShopNr","shopNr"]);
   const sellerDrafts = new WeakSet();
   let published = JSON.stringify(base);
+  let publishedCorrections = base?.resultaatCorrecties || [];
   let remembered = readToken();
   const chosenEntities = new Map();
   let chosenKpi = "life";
@@ -186,8 +187,7 @@
     if (selected>=0) for (const [container] of sections) container.querySelector("details[open] input")?.focus();
   }
 
-  function entities() {
-    const mode = $("targetMode").value;
+  function entities(mode = $("targetMode").value) {
     if (mode==="winkel") return [{type:"Winkel", name:state.shop.naam, shopNr:state.shop.shopNr,id:String(state.shop.shopNr)}];
     if (mode==="district") return state.district.filter(active).map(row=>({type:"DistrictWinkel",name:row.Winkel||row.winkel,shopNr:String(row.ShopNr || row.shopNr || ""),id:String(row.ShopNr || row.shopNr || "")}));
     return state.verkopers.filter(active).map(row=>({type:"Verkoper",name:row.Naam||row.naam,shopNr:String(row.ShopNr || row.shopNr || state.shop.shopNr),id:String(row.PersoneelsNr || row.personeelsNr || "")}));
@@ -306,7 +306,7 @@
     }
     return {value:null,source:""};
   }
-  function cellData(entity,kpi,per) {
+  function cellData(entity,kpi,per,showResults=isResults()) {
     const target=targetField(kpi);
     const set=target ? readTarget(entity,per,target.key) : undefined;
     const fallback=target ? importedTarget(entity,per,target.key) : {value:null,source:""};
@@ -321,14 +321,14 @@
     return {
       entity,kpi,missingTarget:Boolean(target && !(Number(targetValue)>0)),
       missingResult:resultFields.some(field=>field.value===null),
-      fields:isResults() ? resultFields : [{
+      fields:showResults ? resultFields : [{
         ...target,original:fallback.value,source:fallback.source,value:targetValue,overridden:set!==undefined
       }]
     };
   }
-  function editorEntities() {
-    const items=entities().filter(item=>item.name && item.id);
-    if (!isResults() || $("targetMode").value!=="verkopers") return items;
+  function editorEntities(mode=$("targetMode").value,withHistory=isResults()) {
+    const items=entities(mode).filter(item=>item.name && item.id);
+    if (!withHistory || mode!=="verkopers") return items;
     const known=new Set(items.map(item=>item.id));
     for (const row of [...state.verkopers,...(window.DIESTROYERS_RESULTATEN || []).filter(item=>norm(item.EntiteitType)==="verkoper")]) {
       const id=String(row.PersoneelsNr || row.personeelsNr || "").trim(), name=row.Naam || row.naam;
@@ -409,7 +409,7 @@
           <button class="score-button admin-edit-reset" type="button" data-reset="${field.key}"${canReset?"":" hidden"}>${mode?"Intrekken":"Wis"}</button>
         </div>`;
       }).join("");
-      return `<section class="admin-edit-row${mode?" results":""}" data-cell="${index}">
+      return `<section class="admin-edit-row${mode?" results":""}" data-cell="${index}" data-admin-kpi="${escape(kpi.id)}">
         <div><h3>${escape(byKpi ? entity.name : kpi.label)}</h3>
           ${showPerson&&!byKpi?`<span class="score-muted">${escape(entity.name)}</span>`:""}
           ${(mode?missingResult:missingTarget)?'<span class="score-muted admin-missing">Ontbreekt</span>':""}
@@ -426,7 +426,7 @@
       const key=input.dataset.key, reset=input.closest(".admin-edit-field").querySelector("[data-reset]");
       const origin=input.closest(".admin-edit-field").querySelector("[data-origin]");
       function updateField() {
-        const cell=cellData(entity,kpi,per);
+        const cell=cellData(entity,kpi,per,mode);
         const data=cell.fields.find(field=>field.key===key);
         origin.textContent=fieldOrigin(data,mode);
         reset.hidden=!data.overridden || mode && data.value===data.original;
@@ -689,6 +689,7 @@
         body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(serialize(saved))})});
       checkResponse(response);
       published=sent;
+      publishedCorrections=JSON.parse(sent).resultaatCorrecties || [];
       submittedDrafts.forEach(person=>sellerDrafts.delete(person));
       renderRecords("verkopers");
       if (["targets","resultaten"].includes($("adminSection").value)) renderTargets();
@@ -709,12 +710,90 @@
     setTimeout(()=>URL.revokeObjectURL(link.href),1000);
   }
 
+  function renderQuality() {
+    const per=$("qualityPeriod").value, scope=$("qualityScope").value;
+    const published=window.DIESTROYERS_IMPORT_STATUS || {};
+    const districtPeriod=(window.DIESTROYERS_DISTRICT || []).map(row=>row.Periode).sort().at(-1);
+    const closed=per<resultEdits.closedMonth();
+    const sources=[
+      ["Omzetgegevens t.e.m.",published.omzetTot],
+      ["Winkelgegevens t.e.m.",published.winkelTot],
+      ["Resultatencontrole uitgevoerd",published.checkedAt,published.valid===false?"Controle meldde een probleem":null],
+      ["Regionale resultaten · periode",districtPeriod],
+      ["NPS-export opgebouwd",window.DIESTROYERS_NPS?.generatedAt],
+      ["Akte Van Vertrouwen-export opgebouwd",window.DIESTROYERS_AVV?.generatedAt],
+      ["Portfolio-export opgebouwd",window.DIESTROYERS_PORTFOLIO_STATUS?.generatedAt,
+        window.DIESTROYERS_PORTFOLIO_STATUS?.available===false?"Portfolio niet beschikbaar":null]
+    ];
+    $("qualitySources").innerHTML='<h3>Gepubliceerde bronstanden</h3><dl class="score-facts">'+sources.map(([label,value,note])=>
+      `<div><dt>${escape(label)}</dt><dd>${escape(value?String(value).replace("T"," "):"Onbekend")}</dd>${note?`<small>${escape(note)}</small>`:""}</div>`).join("")+'</dl>';
+    if (!periodFormat.test(per)) {
+      $("qualityResults").innerHTML='<p class="score-empty">Kies een geldige maand.</p>';
+      return;
+    }
+    const targetPeople=entities(scope).filter(entity=>entity.id && entity.name);
+    const targetIds=new Set(targetPeople.map(entity=>entity.id));
+    const resultsAvailable=scope!=="district" || per===districtPeriod;
+    const people=(resultsAvailable?editorEntities(scope,true):targetPeople).filter(entity=>
+      targetIds.has(entity.id) || resultEdits.lookup(corrections(),entity,per) || (closed && resultEdits.kpis.some(kpi=>kpi.fields.some(field=>
+        resultEdits.imported(entity,per,field.key)!==null))));
+    const missingTargets=[], missingResults=[], statuses=[];
+    for (const entity of people) {
+      for (const kpi of resultEdits.kpis) {
+        const checks=cellData(entity,kpi,per,true);
+        if (targetIds.has(entity.id) && checks.missingTarget) missingTargets.push({entity,kpi,mode:"targets",label:"Geen target"});
+        if (!resultsAvailable) continue;
+        const absent=checks.fields.filter(field=>field.original===null);
+        if (absent.length) missingResults.push({entity,kpi,mode:"resultaten",
+          label:absent.map(field=>field.label).join(", "),field:absent[0].key});
+        const saved=resultEdits.lookup(publishedCorrections,entity,per);
+        for (const field of checks.fields.filter(field=>field.overridden)) {
+          const progress=saved?.waarden?.[field.key]===field.value?fieldOrigin(field,true):"Nog op te slaan in Admin";
+          statuses.push({entity,kpi,mode:"resultaten",label:field.label+" · "+progress,field:field.key});
+        }
+      }
+    }
+    const qualityList=(label,items,open)=>`<details class="admin-record"${open?" open":""}>
+      <summary>${escape(label)} · ${items.length}</summary>
+      ${items.length?'<ul class="score-list">'+items.map(({entity,kpi,mode,label,field})=>
+        `<li><button type="button" class="score-row name-only" data-quality-mode="${mode}" data-quality-id="${escape(entity.id)}"
+          data-quality-kpi="${escape(kpi.id)}" data-quality-key="${escape(field||"")}"><span class="score-name">
+          <span>${escape(entity.name+" · "+kpi.label)}<small class="score-meta">${escape(label)}</small></span></span></button></li>`).join("")+'</ul>':
+        '<p class="score-empty">Geen meldingen.</p>'}</details>`;
+    $("qualityResults").innerHTML=`<div class="score-quality-list">
+      ${qualityList("Ontbrekende targets",missingTargets,missingTargets.length>0)}
+      ${resultsAvailable?qualityList("Ontbrekende gepubliceerde resultaten",missingResults,missingResults.length>0):
+        '<p class="score-muted">Districtsresultaten zijn beschikbaar voor de laatst gepubliceerde maand.</p>'}
+      ${qualityList("Correcties in Excel",statuses,statuses.length>0)}</div>`;
+  }
+
+  function openQualityItem(event) {
+    const item=event.target.closest("[data-quality-mode]");
+    if (!item) return;
+    const {qualityMode,qualityId,qualityKpi,qualityKey}=item.dataset;
+    const scope=$("qualityScope").value;
+    $("adminSection").value=qualityMode;
+    $("targetMode").value=scope;
+    $("editorPeriod").value=$("qualityPeriod").value;
+    $("editorFilter").value="all";
+    $("editorLayout").value="entity";
+    chosenEntities.set(scope,qualityId);
+    showSection();
+    const row=$("targetEditor").querySelector(`[data-admin-kpi="${CSS.escape(qualityKpi)}"]`);
+    const field=qualityKey?row?.querySelector(`[data-key="${CSS.escape(qualityKey)}"]`):row?.querySelector("input");
+    if (field) {
+      field.scrollIntoView({block:"center"});
+      field.focus({preventScroll:true});
+    }
+  }
+
   function showSection() {
     const current = $("adminSection").value;
     const editor=current==="targets" || current==="resultaten";
     for (const panel of document.querySelectorAll(".admin-section")) panel.hidden=panel.id!==(editor?"targets":current);
-    $("saveConfig").hidden=editor;
+    $("saveConfig").hidden=editor || current==="datakwaliteit";
     if (editor) { updateShop(); renderTargets(); }
+    if (current==="datakwaliteit") renderQuality();
     if (current==="tv-incentives") { updateShop(); showIncentives(); }
     if (current==="validatie") validate();
   }
@@ -743,6 +822,9 @@
       .filter(row=>norm(row.EntiteitType || row.entiteitType)==="winkel" && periodFormat.test(row.Periode))
       .map(row=>row.Periode).sort().at(-1);
     $("editorPeriod").value=latest || period(date.getFullYear(),date.getMonth());
+    $("qualityPeriod").value=$("editorPeriod").value;
+    $("qualityPeriod").onchange=$("qualityScope").onchange=renderQuality;
+    $("qualityResults").onclick=openQualityItem;
     for (const key of ["editorPeriod","targetMode","editorLayout","editorFilter"]) $(key).onchange=renderTargets;
     $("targetEntity").onchange=()=>{
       chosenEntities.set($("targetMode").value,$("targetEntity").value);

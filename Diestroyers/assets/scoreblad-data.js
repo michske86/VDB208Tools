@@ -89,12 +89,7 @@
     const matching = (config.targets || []).filter(target => target.Periode === period && type(target) === knownType &&
       norm(rowName(target)) === norm(entity.name) && (!target.ShopNr || id(target.ShopNr) === numberForEntity));
     const configured = matching.find(target => id(target.ShopNr) === numberForEntity) || matching[0];
-    if (def.id === "accessoires") {
-      const rate = number(configured?.[key]) ?? number(row?.[key]) ?? number(detail?.TargetPct);
-      const revenue = number(row?.Omzet);
-      return rate > 0 && revenue !== null ? revenue * rate / 100 : null;
-    }
-    const detailKey = def.type === "ratio" || def.type === "percentage" ? "TargetPct" : "Target";
+    const detailKey = def.type === "ratio" || def.type === "percentage" || def.id === "accessoires" ? "TargetPct" : "Target";
     const target = number(configured?.[key]) ?? number(row?.[key]) ?? number(detail?.[detailKey]);
     return target > 0 ? target : null;
   }
@@ -116,7 +111,9 @@
     const row = entity.type === "DistrictWinkel" ? (entity.row?.Periode === period ? entity.row : null) : resultIndex.get(entityId(entity) + "|" + period);
     const breakdown = details(entity,def.key,period);
     const detail = breakdown.get("") || breakdown.get("totaal");
-    const target = targetFor(entity,def,period,row,detail);
+    const targetRate = def.id === "accessoires" ? targetFor(entity,def,period,row,detail) : null;
+    const revenue = def.id === "accessoires" ? number(row?.Omzet) : null;
+    const target = def.id === "accessoires" ? targetRate !== null && revenue !== null ? revenue * targetRate / 100 : null : targetFor(entity,def,period,row,detail);
     const hasActivity = entity.type !== "Verkoper" || Boolean(number(row?.Omzet) || number(row?.Life) || number(row?.InsuranceKansen) || number(row?.DSPKansen) || number(row?.SPGKansen) || number(row?.SRPKansen));
     let value = null, count = null, chances = null, euro = null;
     if (kpiId === "nps") {
@@ -148,18 +145,16 @@
       if (!hasActivity && !value && !count && !euro) value = count = euro = null;
     }
     const prior = number(detail?.[["percentage","ratio"].includes(def.type) ? "VorigJaarPct" : "VorigJaar"]);
-    return {value,target,count,chances,euro,prior:prior || null,coverage:value === null ? 0 : 1};
+    return {value,target,count,chances,euro,targetRate,revenue,prior:prior || null,coverage:value === null ? 0 : 1};
   }
 
-  function yearPeriods(period) {
-    return periods.filter(item => item.startsWith(period.slice(0,4)) && item <= period);
-  }
   function annual(entity,kpiId,period) {
     const def = registry.kpiById[kpiId];
-    const included = yearPeriods(period);
-    const items = included.map(item => month(entity,kpiId,item)).filter(item => item.value !== null);
+    const calendar = Array.from({length:Number(period.slice(5))},(_,index) => period.slice(0,5) + String(index+1).padStart(2,"0"));
+    const all = calendar.map(item => month(entity,kpiId,item));
+    const items = all.filter(item => item.value !== null);
     const values = items.map(item => item.value);
-    const targets = items.map(item => item.target).filter(value => value !== null);
+    const targets = all.map(item => def.id === "accessoires" ? item.targetRate : item.target).filter(value => value !== null);
     const counts = items.map(item => item.count).filter(value => value !== null);
     const chances = items.map(item => item.chances).filter(value => value !== null);
     const euros = items.map(item => item.euro).filter(value => value !== null);
@@ -167,23 +162,23 @@
     let count = sum(counts), opportunity = sum(chances);
     if (def.type === "ratio") {
       const measurable = items.filter(item => item.chances > 0 && item.count !== null);
-      const targeted = measurable.filter(item => item.target !== null);
       count = sum(measurable.map(item => item.count));
       opportunity = sum(measurable.map(item => item.chances));
-      value = ratio(count,opportunity) ?? average(values);
-      const weighted = sum(targeted.map(item => item.chances * item.target));
-      const targetedChances = sum(targeted.map(item => item.chances));
-      target = targetedChances ? weighted / targetedChances : average(targets);
+      value = ratio(count,opportunity);
+      target = average(targets);
     } else if (def.type === "percentage" || def.type === "score") {
       value = average(values);
       target = average(targets);
+    } else if (def.id === "accessoires") {
+      const revenue = sum(items.map(item=>item.revenue).filter(value=>value !== null));
+      target = targets.length && revenue !== null ? revenue * average(targets) / 100 : null;
     }
     if (kpiId === "nps") {
       const survey = npsProfile(entity)?.ytd?.[period];
       if (survey) { value = survey.cards > 0 ? number(survey.nps) : null; count = number(survey.cards); }
     }
-    return {value,target:targets.length === items.length ? target : null,count,chances:opportunity,euro:sum(euros),
-      coverage:items.length,total:included.length};
+    return {value,target,count,chances:opportunity,euro:sum(euros),targetCoverage:targets.length,targetTotal:calendar.length,
+      coverage:def.type === "ratio" ? items.filter(item=>item.chances > 0 && item.count !== null).length : items.length,total:calendar.length};
   }
 
   function components(entity,kpiId,period) {

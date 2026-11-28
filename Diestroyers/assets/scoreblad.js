@@ -2,11 +2,12 @@
 (() => {
   "use strict";
   const data = window.ScorebladData;
+  const review = window.ScorebladReview;
   const root = document.getElementById("score-main");
   const home = root.innerHTML;
   const nav = document.querySelector(".score-nav");
   const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
-  const routes = ["home","resultaten","rankings","nps"];
+  const routes = ["home","analyse","resultaten","rankings","nps"];
   const metrics = [
     ["trust","Akte van Vertrouwen",70,80],["price","Laagste Prijs Garantie",70,80],
     ["information","Inlichtingen",90,95],["wait","Wachttijd",90,95],["friendly","Vriendelijkheid",90,95]
@@ -76,6 +77,12 @@
   function section(title, html) {
     return `<section class="score-section"><h2>${escape(title)}</h2>${html}</section>`;
   }
+  function exportView(view,values) {
+    const q=new URLSearchParams({weergave:view});
+    for (const [key,value] of Object.entries(values)) if (value) q.set(key,value);
+    return `<p class="score-view-export"><a class="score-button" href="export.html?${escape(q)}">Exporteer deze weergave</a></p>`;
+  }
+  function analysisLink(values) { return url("analyse",values); }
   function sellerLists(label, toRow, hasHistory) {
     const current = data.sellers.filter(person => person.active).map(toRow);
     const historical = data.sellers.filter(person => !person.active && hasHistory(person)).map(toRow);
@@ -96,13 +103,16 @@
     if (result.euro !== null && result.euro !== undefined) items.push(["Bedrag",data.format(result.euro,{type:"bedrag"})]);
     if (result.prior !== null && result.prior !== undefined) items.push(["Vorig jaar",data.format(result.prior,def)]);
     if (result.total !== undefined) items.push(["Maanden met data",result.coverage + " / " + result.total]);
+    if (result.targetTotal !== undefined && result.targetCoverage<result.targetTotal) {
+      items.push(["Maanden met target",result.targetCoverage + " / " + result.targetTotal]);
+    }
     return facts(items) + (score === null ? "" : `<p class="score-section"><span class="score-status ${statuses[score].tone}">${score === 1 ? "Binnen 10% van target" : statuses[score].label}</span></p>`);
   }
   function resultLink(values) { return url("resultaten",values); }
-  function trendChart(history, def, period) {
+  function trendChart(history, def, period, legend="Resultaat") {
     const months = history.filter(item => item.period <= period).slice(0,12).reverse();
     const hasValue = value => Number.isFinite(value);
-    if (!months.some(item => hasValue(item.metric?.value))) return '<p class="score-empty">Geen maandresultaten om te tekenen.</p>';
+    if (!months.some(item => hasValue(item.metric?.value))) return '<p class="score-empty">Geen gegevens voor deze maandgrafiek.</p>';
     const values = months.flatMap(item => [item.metric?.value,item.metric?.target]).filter(hasValue);
     const min = Math.min(...values), max = Math.max(...values);
     const pad = (max-min || Math.abs(max) || 1) * .12;
@@ -131,16 +141,116 @@
       return `<circle class="${item.period === period ? "selected" : ""}" cx="${x(index)}" cy="${y(value)}" r="${item.period === period ? 5.5 : 3.4}">
         <title>${escape(data.monthLabel(item.period)+" · "+data.format(value,def))}</title></circle>`;
     }).join("");
+    const targetDots=months.map((item,index)=>{
+      const value=item.metric?.target;
+      if (!hasValue(value) || hasValue(months[index-1]?.metric?.target) || hasValue(months[index+1]?.metric?.target)) return "";
+      return `<circle class="score-trend-target-dot" cx="${x(index)}" cy="${y(value)}" r="3.2"/>`;
+    }).join("");
     return `<figure class="score-trend">
-      <svg viewBox="0 0 440 190" role="img" aria-label="${escape("Maandevolutie tot en met "+data.monthLabel(period)+". Exacte cijfers staan in de maandhistoriek.")}">
+      <svg viewBox="0 0 440 190" role="img" aria-label="${escape(legend+" per maand t.e.m. "+data.monthLabel(period))}">
         <g class="score-trend-grid">${ticks}${labels}</g>
         ${targetLine ? `<path class="score-trend-target" d="${line("target")}"/>` : ""}
+        ${targetDots}
         <path class="score-trend-value" d="${line("value")}"/>
         <g class="score-trend-dots">${dots}</g>
       </svg>
-      <figcaption><span class="score-trend-key">Resultaat</span>${targetLine ? '<span class="score-trend-key target">Target</span>' : ""}
+      <figcaption><span class="score-trend-key">${escape(legend)}</span>${targetLine ? '<span class="score-trend-key target">Target</span>' : ""}
         <span>T.e.m. ${escape(data.monthLabel(period))}</span></figcaption>
     </figure>`;
+  }
+  function trendSection(history,def,period) {
+    const volume=history.map(item=>({...item,metric:{value:item.metric?.chances??null}}));
+    return section("Maandevolutie",trendChart(history,def,period)+
+      (def.type==="ratio" && volume.some(item=>item.metric.value!==null)
+        ? `<details class="score-chart-more"><summary>Verloop van de kansen</summary>${trendChart(volume,{type:"stuks"},period,"Kansen")}</details>` : ""));
+  }
+  function targetGap(row) {
+    if (row.missing===null) return row.result.value===null ? "Geen resultaat" : "Geen target";
+    if (!row.missing) return "Target behaald";
+    return review.deltaLabel(row.missing,review.gapDef(row.result,row.def))+" tot target";
+  }
+  function analysisPage(q) {
+    const ctx=review.fromParams(q);
+    const {person,entity,def,period,term,comparison,candidates}=ctx;
+    const base={verkoper:person?.id,kpi:def?.id,periode:period,termijn:term,vergelijk:comparison};
+    const subtitle=(term==="jaar"?"YTD t.e.m. ":"")+data.monthLabel(period);
+    const currentPeriod=period>=review.activeMonth();
+    const reportDate=review.importStatus.omzetTot;
+    const periodFilters=periodPicker(data.periods.length?data.periods:[data.latest],period,data.monthLabel,
+      value=>analysisLink({...base,periode:value,vergelijk:null}))+segment("Analyseperiode",[
+        ["maand","Maand",analysisLink({...base,termijn:"maand"})],
+        ["jaar","YTD",analysisLink({...base,termijn:"jaar"})]
+      ],term);
+    const people=[["winkel",data.store.name,analysisLink({...base,verkoper:null})],
+      ...data.sellers.map(item=>[item.id,item.name+(item.active?"":" · Historiek"),analysisLink({...base,verkoper:item.id})])];
+    const filters=`<div class="score-filters score-analysis-filters">${picker("Voor",people,person?.id||"winkel")}${periodFilters}
+      ${term==="maand"&&!currentPeriod&&candidates.length?periodPicker(candidates,comparison,data.monthLabel,
+        value=>analysisLink({...base,vergelijk:value}),"Vergelijk met"):""}</div>`;
+    const asOf=reportDate?.startsWith(period) && currentPeriod ? `<p class="score-muted">Omzetgegevens t.e.m. ${escape(dateLabel(reportDate))}</p>` : "";
+    const head=(def?back("Analyse · "+entity.name,analysisLink({...base,kpi:null})):"")+
+      heading(def?.label || (person?"Analyse · "+person.name:"Analyse"),def?entity.name+" · "+subtitle:subtitle)+filters+asOf;
+    const resultDetails=key=>resultLink({kpi:key,periode:period,verkoper:person?.id,termijn:term});
+    if (def) {
+      const result=review.metric(ctx,def);
+      const missing=review.lack(result,def);
+      const change=review.comparisonFor(ctx,def,result);
+      const people=person ? [] : review.sellerImpact(ctx,def);
+      const notable=people.filter(row=>row.person.active && row.upside>0 && row.storeGain!==null);
+      const nilVolume=def.type==="ratio" && people.some(row=>row.result.chances>0 && row.result.chances<review.minimumChances);
+      const breakdown=people.map(({person:member,result,share,reference,upside,storeGain,missing})=>{
+        const meta=[targetLabel(result,def)];
+        if (def.type==="ratio") {
+          if (result.chances!==null) meta.push(`${result.count ?? "—"} / ${integer.format(result.chances)} kansen`);
+          if (share!==null) meta.push(`${integer.format(share)}% van winkelkansen`);
+          if (reference!==null) meta.push("Eigen referentie "+data.format(reference,ratioDef));
+          if (storeGain!==null && upside>0) meta.push(`+${upside} stuks · ${review.deltaLabel(storeGain,ratioDef,true)} voor Diest`);
+        }
+        if (missing>0) meta.push(targetGap({missing,def,result}));
+        return {label:member.name,meta:meta.join(" · "),...scoreFields(result,def),
+          href:analysisLink({...base,verkoper:member.id})};
+      });
+      const components=data.components(entity,def.id,period);
+      return head+metricFacts(result,def,term==="jaar"?"Jaarresultaat":"Maandresultaat") +
+        (missing>0?`<p class="score-analysis-note">${escape(targetGap({missing,def,result}))}
+          ${def.type==="ratio" && review.gapDef(result,def).type==="stuks"?"bij het huidige aantal kansen.":""}</p>`:"")+
+        (change?section("Vergelijking",facts([["Vergeleken met",change.label],["Referentiewaarde",data.format(change.prior,def)],
+          ["Verschil",review.deltaLabel(change.value,def,true)]])):"") +
+        (people.length?section(def.type==="ratio"?"Kansen en mogelijke winkelimpact":"Verkopersresultaten",
+          (notable.length?`<p class="score-analysis-note">Grootste berekende ruimte bij ${escape(notable[0].person.name)} · ${escape(review.deltaLabel(notable[0].storeGain,ratioDef,true))} voor Diest.</p>`:"") +
+          list(breakdown,"Verkopers per KPI")+
+          (def.type==="ratio"?`<p class="score-muted">Winkelimpact per verkoper bij hetzelfde aantal kansen, afgezet tegen diens eigen resultaat uit maximaal zes maanden vóór ${term==="jaar"?"het gekozen jaar":"de gekozen maand"}. Minstens twee referentiemaanden met elk ${review.minimumChances} kansen.${nilVolume?" Bij weinig kansen weegt één verkoop zwaar door.":""}</p>`:"")):"") +
+        trendSection(review.series(ctx,def),def,period) +
+        (components.length?section("Uitsplitsing · gekozen maand",list(components.map(item=>({label:item.label,...scoreFields(item,ratioDef),
+          meta:item.chances>0?`${item.count ?? "—"} / ${item.chances} kansen`:null,href:resultLink({kpi:def.id,verkoper:person?.id,periode:period,detail:item.id})})),"Uitsplitsing")):"") +
+        (def.id==="nps"?`<a class="score-button" href="${escape(url("nps",{onderdeel:"nps",verkoper:person?.id,periode:period,termijn:term}))}">Lees de klantreacties</a>`:"") +
+        `<p><a class="score-back" href="${escape(resultDetails(def.id))}">Volledige resultaatdetails</a></p>`+exportView("analyse",base);
+    }
+    const rowLink=row=>analysisLink({...base,kpi:row.def.id});
+    const notes=term==="jaar"?"YTD bevat de gekozen maand. Een vergelijking vereist volledige cijfers voor dezelfde afgesloten periode van vorig jaar."
+      : currentPeriod?"Voor de lopende maand vergelijken we alleen cijfers met een overeenkomstige peildatum."
+        : !comparison?"Er is nog geen eerdere afgesloten maand beschikbaar.":"";
+    const rows=review.overview(ctx);
+    const ranked=rows.filter(row=>row.missing>0).sort((a,b)=>a.result.value/a.result.target-b.result.value/b.result.target);
+    const movers=rows.filter(row=>row.comparison?.value);
+    const normalized=row=>row.comparison.value/(row.result.target>0 ? row.result.target : Math.max(1,Math.abs(row.comparison.prior)));
+    const deltas=movers.sort((a,b)=>normalized(b)-normalized(a));
+    const listTo=(values,label,meta)=>list(values.map(row=>({
+      label:row.def.label,meta:meta(row),...scoreFields(row.result,row.def),href:rowLink(row)
+    })),label);
+    const gapList=ranked.length ? listTo(ranked,"Afstand tot target",targetGap) : '<p class="score-empty">Geen gemeten KPI’s onder target in deze periode.</p>';
+    const movementList=(label,values)=>list(values.map(row=>({label:row.def.label,
+      meta:row.comparison.label,value:review.deltaLabel(row.comparison.value,row.def,true),href:rowLink(row)})),label);
+    const personal=person?review.personal(ctx):null;
+    const focus=personal?section("Sterktes",personal.strengths.length?listTo(personal.strengths,"Sterktes",
+      row=>`${row.hits} van ${row.months} eerdere meetbare maanden op target`):'<p class="score-empty">Nog geen terugkerende sterkte zichtbaar.</p>')+
+      section("Persoonlijke focus",personal.focus.length?listTo(personal.focus,"Persoonlijke focus",row=>
+        targetGap(row)+(row.def.type==="ratio"?` · ${row.result.chances} kansen`:"")):'<p class="score-empty">Geen duidelijke focus op basis van resultaten en meetvolume.</p>')+
+      `<p class="score-muted">Focus gebruikt beschikbare targets en eerdere resultaten. Voor ratio’s en NPS gebruiken we minstens ${review.minimumChances} kansen of enquêtes.</p>`:"";
+    return head+focus+section("Afstand tot target",gapList)+
+      (deltas.length?section("Verandering tegenover de referentie",`<div class="score-compare"><div><h3>Stijgers</h3>${movementList("Stijgers",deltas.filter(row=>row.comparison.value>0).slice(0,3))}</div>
+         <div><h3>Dalers</h3>${movementList("Dalers",deltas.filter(row=>row.comparison.value<0).reverse().slice(0,3))}</div></div>`):"")+
+      (notes?`<p class="score-muted">${escape(notes)}</p>`:"")+
+      section("Alle KPI’s",listTo(rows,"KPI's",targetGap))+exportView("analyse",base);
   }
   function sellerKpiResults(def, period, annual) {
     const read = annual ? data.annual : data.month;
@@ -168,9 +278,10 @@
     const mode = entity || q.get("weergave") === "verkopers" ? "verkopers" : "kpis";
     const period = data.periods.includes(q.get("periode")) ? q.get("periode") : data.latest;
     const def = data.kpis.find(item => item.id === q.get("kpi"));
-    const annualSeller = Boolean(entity && q.get("termijn") === "jaar");
+    const annualSeller = q.get("termijn") === "jaar";
     const fromStore = Boolean(entity && q.get("van") === "winkel");
     const base = {weergave:mode,periode:period,verkoper:entity?.id,kpi:def?.id,detail:q.get("detail"),termijn:annualSeller?"jaar":null,van:fromStore?"winkel":null};
+    const exportResults=exportView("resultaten",{...base,weergave:null,groep:mode});
     const source = entity || data.store;
     const subtitle = data.monthLabel(period);
     const periods = data.periods.length ? data.periods : [period];
@@ -180,33 +291,34 @@
       const subdivisions = data.components(source,def.id,period);
       const requested = subdivisions.find(item => item.id === base.detail);
       if (requested) {
-        const history = [...periods].reverse().map(item => ({period:item,metric:data.components(source,def.id,item).find(component => component.id === requested.id)}))
-          .filter(item => item.metric);
+        const history = review.series({entity:source,period,detail:requested.id},def);
         return back(def.label,resultLink({...base,detail:null})) + heading(requested.label,`${source.name} · ${def.label} · ${subtitle}`)
           + selector + metricFacts(requested,ratioDef)
-          + section("Maandhistoriek",list(history.map(item => ({label:data.monthLabel(item.period),...scoreFields(item.metric,ratioDef),
-            meta:targetLabel(item.metric,ratioDef),href:resultLink({...base,periode:item.period})})),"Maandhistoriek"));
+          + trendSection(history,{type:requested.chances!==null?"ratio":"percentage"},period)
+          + section("Maandhistoriek",list(history.filter(item=>item.metric).map(item => ({label:data.monthLabel(item.period),...scoreFields(item.metric,ratioDef),
+            meta:targetLabel(item.metric,ratioDef),href:resultLink({...base,periode:item.period})})),"Maandhistoriek"))+exportResults;
       }
       const annual = data.annual(source,def.id,period);
-      const history = [...periods].reverse().map(item => ({period:item,metric:data.month(source,def.id,item)}));
+      const history = review.series({entity:source,period,detail:null},def);
       return (fromStore ? back("Winkelresultaat "+def.label,resultLink({weergave:"kpis",periode:period,kpi:def.id}))
         : back(entity ? source.name : "Alle KPI’s",resultLink({...base,kpi:null,detail:null})))
         + heading(def.label,`${source.name} · ${subtitle}`) + `<div class="score-filters inline">${selector}</div>`
-        + metricFacts(result,def)
+        + metricFacts(annualSeller?annual:result,def,annualSeller?"Jaarresultaat":"Maandresultaat")
         + (subdivisions.length ? section("Uitsplitsing",list(subdivisions.map(detail => ({
             label:detail.label, ...scoreFields(detail,ratioDef), meta:targetLabel(detail,ratioDef), href:resultLink({...base,detail:detail.id})
           })),"Uitsplitsing")) : "")
         + (def.id === "nps" ? section("Klantbeleving",list([{label:"NPS en commentaren",href:url("nps",{verkoper:entity?.id,periode:period,onderdeel:"nps"})}],"Klantbeleving")) : "")
-        + section("Jaar t.e.m. " + subtitle,metricFacts(annual,def,"Jaarresultaat"))
-        + (entity ? section("Maandevolutie",trendChart(history,def,period))
-          : section("Verkopersresultaten",`<div class="score-compare">
+        + section(annualSeller?subtitle:"Jaar t.e.m. "+subtitle,metricFacts(annualSeller?result:annual,def,annualSeller?"Maandresultaat":"Jaarresultaat"))
+        + trendSection(history,def,period)
+        + (!entity ? section("Verkopersresultaten",`<div class="score-compare">
               <div><h3>${escape(subtitle)}</h3>${sellerKpiResults(def,period,false)}</div>
               <div><h3>YTD t.e.m. ${escape(subtitle)}</h3>${sellerKpiResults(def,period,true)}</div>
-            </div>`))
+            </div>`):"")
         + section("Maandhistoriek",list(history.map(item => ({
             label:data.monthLabel(item.period), ...scoreFields(item.metric,def),
             meta:targetLabel(item.metric,def),href:resultLink({...base,periode:item.period,detail:null})
-          })),"Maandhistoriek"));
+          })),"Maandhistoriek"))
+        + `<p><a class="score-back" href="${escape(analysisLink({periode:period,verkoper:entity?.id,kpi:def.id,termijn:base.termijn}))}">Analyse van deze KPI</a></p>`+exportResults;
     }
 
     if (entity) {
@@ -216,7 +328,8 @@
       ],annualSeller?"jaar":"maand");
       return back("Alle verkopers",resultLink({weergave:mode,periode:period}))
         + heading(entity.name,(annualSeller ? "YTD t.e.m. " : "") + subtitle + (entity.active ? "" : " · Historiek"))
-        + `<div class="score-filters">${terms}${selector}</div>` + colorGuide() + kpiList(source,base,period,annualSeller);
+        + `<div class="score-filters">${terms}${selector}</div>` + colorGuide() + kpiList(source,base,period,annualSeller)
+        + `<p><a class="score-back" href="${escape(analysisLink({periode:period,verkoper:entity.id,termijn:base.termijn}))}">Persoonlijke analyse</a></p>`+exportResults;
     }
     const switches = segment("Resultaten bekijken voor",[
       ["kpis","KPI’s",resultLink({...base,weergave:"kpis"})],["verkopers","Verkopers",resultLink({...base,weergave:"verkopers"})]
@@ -224,9 +337,9 @@
     if (mode === "verkopers") {
       const sellers = sellerLists("Verkopers",person => ({label:person.name,href:resultLink({...base,verkoper:person.id})}),
         person => data.kpis.some(def => data.month(person,def.id,period).value !== null));
-      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + sellers;
+      return heading("Resultaten",subtitle) + `<div class="score-filters">${switches}${selector}</div>` + sellers+exportResults;
     }
-    return heading("Resultaten",`${data.store.name} · ${subtitle}`) + `<div class="score-filters">${switches}${selector}</div>` + colorGuide() + kpiList(source,base,period);
+    return heading("Resultaten",`${data.store.name} · ${subtitle}`) + `<div class="score-filters">${switches}${selector}</div>` + colorGuide() + kpiList(source,base,period)+exportResults;
   }
   function kpiList(entity,base,period,annual = false) {
     const read = annual ? data.annual : data.month;
@@ -337,6 +450,7 @@
         <span class="score-muted">Pagina ${current} van ${pageCount}</span>
         ${current < pageCount ? `<a class="score-button" href="${escape(commentUrl(current+1))}">Volgende</a>` : ""}</div>` : "";
       const result = surveyResult(source,period,survey);
+      if (viewYear) result.target=data.annual(source,"nps",period).target;
       const {value,status} = scoreFields(result,data.byId.nps);
       return back(source.name,npsLink({...base,onderdeel:null})) + heading("NPS",subtitle)
         + `<div class="score-filters">${selector}${segment("NPS-periode",[
@@ -345,6 +459,11 @@
         + facts([["NPS",value,status],
             ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",survey?.cards ?? 0],
             ["Promotoren",survey?.promoters ?? 0],["Neutralen",survey?.passives ?? 0],["Detractoren",survey?.detractors ?? 0]])
+        + section("Maandevolutie",trendChart([...surveyPeriods].sort().reverse().map(month=>({
+          period:month,metric:surveyResult(source,month,profile?.month?.[month])
+        })),data.byId.nps,period)+trendChart([...surveyPeriods].sort().reverse().map(month=>({
+          period:month,metric:{value:profile?.month?.[month]?.cards??null}
+        })),{type:"stuks"},period,"Enquêtes"))
         + section("Klantcommentaren · " + visible.length,commentList + paging)
         + section("Maandhistoriek",list([...surveyPeriods].sort().reverse().map(month => ({
             label:data.monthLabel(month),...scoreFields(surveyResult(source,month,profile?.month?.[month]),data.byId.nps),
@@ -383,7 +502,7 @@
         })),"Klantbeleving"));
   }
 
-  const views = {home:() => home,resultaten:resultPage,rankings:rankingPage,nps:npsPage};
+  const views = {home:() => home,analyse:analysisPage,resultaten:resultPage,rankings:rankingPage,nps:npsPage};
   function render(focus = false) {
     const [requested,query] = location.hash.slice(1).split("?",2);
     const page = routes.includes(requested) ? requested : "home";
@@ -392,6 +511,9 @@
       else link.removeAttribute("aria-current");
     }
     root.innerHTML = views[page](new URLSearchParams(query));
+    if (page === "home" && review.importStatus.omzetTot) {
+      root.querySelector("[data-report-date]").textContent="Omzetgegevens t.e.m. "+dateLabel(review.importStatus.omzetTot);
+    }
     if (page !== "home") root.querySelector("h1").tabIndex = -1;
     document.title = page === "home" ? "The Diestroyers | Prestatieplatform" : root.querySelector("h1").textContent + " | The Diestroyers";
     if (focus) {

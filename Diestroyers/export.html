@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/scoreblad.css">
+<link rel="stylesheet" href="assets/scoreblad.css?v=6">
 <style>
 .report, .report *{box-sizing:border-box}
 .report{color:#111}
@@ -138,6 +138,7 @@
   <div class="score-brand"><a href="home.html">Diestroyers</a><span id="exportShop">Diest · 208</span></div>
   <nav class="score-nav" aria-label="Hoofdnavigatie">
     <a href="home.html">Home</a>
+    <a href="home.html#analyse">Analyse</a>
     <a href="home.html#resultaten">Resultaten</a>
     <a href="home.html#rankings">Rankings</a>
     <a href="home.html#nps">NPS</a>
@@ -151,10 +152,12 @@
       <p>Winkel- en verkopersrapporten</p>
     </div>
     <div class="score-segments export-modes" role="group" aria-label="Rapport kiezen">
+      <button type="button" id="tabView" aria-pressed="false" hidden>Gekozen weergave</button>
       <button type="button" id="tabMtd" aria-pressed="true">Actuele maand <small>MTD</small></button>
       <button type="button" id="tabYtd" aria-pressed="false">Afgesloten maanden <small>YTD</small></button>
       <button type="button" id="tabCompact" aria-pressed="false">Compacte YTD</button>
     </div>
+    <p id="viewBack" hidden><a class="score-back" id="viewBackLink">Terug naar gekozen weergave</a></p>
     <p class="score-muted export-period" id="statusNote" role="status"></p>
     <div class="export-downloads">
       <button type="button" class="score-button primary" id="pdfBtn">Download PDF</button>
@@ -180,6 +183,8 @@
 
 <script src="assets/config.js"></script>
 <script src="assets/registry.js"></script>
+<script src="assets/scoreblad-data.js?v=3"></script>
+<script src="assets/scoreblad-review.js?v=1"></script>
 <script src="assets/calculations.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/components.js"></script>
@@ -196,6 +201,7 @@ const sales=window.DIESTROYERS_SALES_EXTRA||{};
 const days=Array.isArray(window.DIESTROYERS_SALES_DAYS)?window.DIESTROYERS_SALES_DAYS:[];
 const money=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
 const num=new Intl.NumberFormat('nl-BE',{maximumFractionDigits:1});
+const viewNumber=new Intl.NumberFormat('nl-BE',{maximumFractionDigits:2});
 const months=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const KPI=[
  {key:'Life',label:'Life',kind:'count',value:'Life',target:'LifeTarget'},
@@ -206,7 +212,7 @@ const KPI=[
  {key:'SRP',label:'SRP',kind:'ratio',stuks:'SRPStuks',kansen:'SRPKansen',target:'SRPTargetPct'},
  {key:'Link',label:'Link',kind:'pct',value:'LinkPct',target:'LinkTargetPct'}
 ];
-let mode='mtd';
+let mode='mtd', viewReport=null;
 function s(v){return String(v??'').trim()}
 function n(v){const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:0}
 function active(v){return !['nee','no','0','false','n','inactief'].includes(s(v).toLowerCase())}
@@ -221,38 +227,52 @@ function ytdRecords(type,id){return closedMonths.map((_,i)=>rowFor(type,id,month
 function rowFor(type,id,p){return rows.find(r=>s(r.Periode||r.periode)===p&&s(r.EntiteitType||r.entiteitType).toLowerCase()===type.toLowerCase()&&(type==='Winkel'||s(r.PersoneelsNr||r.personeelsNr)===s(id)))||null}
 function sellerId(v){return s(v.PersoneelsNr??v.personeelsNr??v.id)}
 function sellerName(v){return s(v.Naam??v.naam)||sellerId(v)}
+function exportEntity(row){
+ if(!row)return null;
+ return s(row.EntiteitType||row.entiteitType).toLowerCase()==='verkoper'
+   ? {type:'Verkoper',id:sellerId(row),name:sellerName(row)}
+   : window.ScorebladData.store;
+}
+function scoreTarget(key,entity,period,annual=false){
+ const def=window.Diestroyers.registry.kpiByKey[key];
+ return def && entity && period ? (annual?window.ScorebladData.annual:window.ScorebladData.month)(entity,def.id,period) : null;
+}
 function pct(stuks,kansen){return window.Diestroyers.calculations.servicePercentage(stuks,kansen)}
-function metric(r,k,context='month'){
+function metric(r,k){
  if(!r)return {display:'—',sub:'',status:'empty',raw:null,target:null,stuks:0,kansen:0};
  let raw,target,sub='';
- if(k.kind==='count'){raw=n(r[k.value]);target=n(r[k.target]);sub=`Target ${num.format(target)}`;}
- else if(k.kind==='ratio'){const st=n(r[k.stuks]),ka=n(r[k.kansen]);raw=pct(st,ka);target=n(r[k.target]);sub=`${num.format(st)} / ${num.format(ka)} · T ${num.format(target)}%`;}
- else {raw=n(r[k.value]);target=n(r[k.target]);sub=`Target ${num.format(target)}%`;}
- if(k.key==='Life'&&context==='seller-ytd')target=50;
+ target=scoreTarget(k.key,exportEntity(r),s(r.Periode||r.periode))?.target??null;
+ if(k.kind==='count'){raw=n(r[k.value]);sub=target===null?'Geen target':`Target ${num.format(target)}`;}
+ else if(k.kind==='ratio'){const st=n(r[k.stuks]),ka=n(r[k.kansen]);raw=pct(st,ka);sub=`${num.format(st)} / ${num.format(ka)} · ${target===null?'Geen target':'T '+num.format(target)+'%'}`;}
+ else {raw=n(r[k.value]);sub=target===null?'Geen target':`Target ${num.format(target)}%`;}
  const ratio=target>0?raw/target:0;
- return {display:k.kind==='count'?num.format(raw):num.format(raw)+'%',sub,status:ratio>=1?'ok':ratio>=.9?'close':'bad',raw,target,
+ return {display:k.kind==='count'?num.format(raw):num.format(raw)+'%',sub,status:target===null?'':ratio>=1?'ok':ratio>=.9?'close':'bad',raw,target,
   stuks:k.kind==='ratio'?n(r[k.stuks]):raw,kansen:k.kind==='ratio'?n(r[k.kansen]):0};
 }
-function aggregate(records,isSeller){
+function aggregate(records, entity=exportEntity(records.find(Boolean))){
  const out={Omzet:0};
- KPI.forEach(k=>{out[k.key]={raw:0,stuks:0,kansen:0,target:0,has:false}});
+ KPI.forEach(k=>{out[k.key]={raw:0,stuks:0,kansen:0,target:0,targetMonths:0,has:false}});
  records.filter(Boolean).forEach(r=>{
   out.Omzet+=n(r.Omzet);
   KPI.forEach(k=>{
    const x=out[k.key];x.has=true;
-   if(k.kind==='count'){x.raw+=n(r[k.value]);x.target+=n(r[k.target]);}
-   else if(k.kind==='ratio'){x.stuks+=n(r[k.stuks]);x.kansen+=n(r[k.kansen]);x.target=n(r[k.target])||x.target;}
-   else {x.raw+=n(r[k.value]);x.target=n(r[k.target])||x.target;}
+   if(k.kind==='ratio'){x.stuks+=n(r[k.stuks]);x.kansen+=n(r[k.kansen]);}
+   else x.raw+=n(r[k.value]);
+   const target=n(r[k.target]);
+   if(target>0){x.target+=target;x.targetMonths++;}
   });
  });
  KPI.forEach(k=>{
   const x=out[k.key];
   if(k.kind==='ratio')x.raw=pct(x.stuks,x.kansen);
   if(k.kind==='pct'&&records.filter(Boolean).length)x.raw=x.raw/records.filter(Boolean).length;
-  if(k.key==='Life'&&isSeller)x.target=50;
-  const ratio=x.target?x.raw/x.target:0;x.status=!x.has?'empty':ratio>=1?'ok':ratio>=.9?'close':'bad';
+  if(entity?.type!=='DistrictWinkel' && entity && closedMonths.length){
+   x.target=scoreTarget(k.key,entity,monthPeriod(closedMonths.length-1),true)?.target??null;
+  }else if(k.kind!=='count'&&x.targetMonths)x.target/=x.targetMonths;
+  const ratio=x.target?x.raw/x.target:0;x.status=!x.has?'empty':!x.target?'':ratio>=1?'ok':ratio>=.9?'close':'bad';
   x.display=!x.has?'—':(k.kind==='count'?num.format(x.raw):num.format(x.raw)+'%');
-  x.sub=!x.has?'':(k.kind==='ratio'?`${num.format(x.stuks)} / ${num.format(x.kansen)} · T ${num.format(x.target)}%`:`Target ${num.format(x.target)}${k.kind==='pct'?'%':''}`);
+  const label=x.target===null?'Geen target':`${k.kind==='ratio'?'T':'Target'} ${num.format(x.target)}${k.kind==='count'?'':'%'}`;
+  x.sub=!x.has?'':(k.kind==='ratio'?`${num.format(x.stuks)} / ${num.format(x.kansen)} · ${label}`:label);
  });
  return out;
 }
@@ -280,17 +300,17 @@ function salesMonthData(i){
 function renderYTD(){
  if(!closedMonths.length)return `<div class="report" id="activeReport">${header('Year To Date',ytdLabel)}<p>Er zijn nog geen afgeronde maanden in het huidige jaar.</p></div>`;
  const storeMonthly=closedMonths.map((m,i)=>({m,p:monthPeriod(i),r:rowFor('Winkel','',monthPeriod(i)),sales:salesMonthData(i)}));
- const storeAgg=aggregate(storeMonthly.filter(x=>x.r).map(x=>x.r),false);
+ const storeAgg=aggregate(storeMonthly.filter(x=>x.r).map(x=>x.r));
  const currentSales=storeMonthly.filter(x=>x.sales.has);
  const custYtd=currentSales.reduce((a,x)=>a+n(x.sales.customers),0);
  const concYtd=currentSales.length?currentSales.reduce((a,x)=>a+n(x.sales.conc),0)/currentSales.length:null;
  const storeRows=storeMonthly.map(x=>`<tr><td class="left">${x.m}</td><td>${x.r?money.format(n(x.r.Omzet)):'—'}</td><td>${x.sales.has?num.format(x.sales.customers):'—'}</td><td>${x.sales.has?num.format(x.sales.conc)+'%':'—'}</td>${KPI.map(k=>kpiCell(metric(x.r,k))).join('')}</tr>`).join('');
  const ytdStore=`<tr class="ytd-total"><td class="left">YTD Totaal</td><td>${money.format(storeAgg.Omzet)}</td><td>${currentSales.length?num.format(custYtd):'—'}</td><td>${concYtd===null?'—':num.format(concYtd)+'%'}</td>${KPI.map(k=>kpiCell(storeAgg[k.key])).join('')}</tr>`;
  const sellerSorted=sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b)));
- const sellerTotalRows=sellerSorted.map(v=>{const rec=closedMonths.map((_,i)=>rowFor('Verkoper',sellerId(v),monthPeriod(i))).filter(Boolean);const a=aggregate(rec,true);return `<tr><td class="left">${esc(sellerId(v))} · ${esc(sellerName(v))}</td><td>${money.format(a.Omzet)}</td>${KPI.map(k=>kpiCell(a[k.key])).join('')}</tr>`}).join('');
+ const sellerTotalRows=sellerSorted.map(v=>{const rec=closedMonths.map((_,i)=>rowFor('Verkoper',sellerId(v),monthPeriod(i))).filter(Boolean);const a=aggregate(rec);return `<tr><td class="left">${esc(sellerId(v))} · ${esc(sellerName(v))}</td><td>${money.format(a.Omzet)}</td>${KPI.map(k=>kpiCell(a[k.key])).join('')}</tr>`}).join('');
  const sellerPages=sellerSorted.map(v=>{
    const recs=closedMonths.map((m,i)=>({m,r:rowFor('Verkoper',sellerId(v),monthPeriod(i))}));
-   const a=aggregate(recs.map(x=>x.r).filter(Boolean),true);
+   const a=aggregate(recs.map(x=>x.r).filter(Boolean));
    return `<section class="seller-page"><div class="section-title">${esc(sellerId(v))} · ${esc(sellerName(v))} — per maand</div><table class="report-table">${tableHead('Maand')}<tbody>${recs.map(x=>`<tr><td class="left">${x.m}</td><td>${x.r?money.format(n(x.r.Omzet)):'—'}</td>${KPI.map(k=>kpiCell(metric(x.r,k))).join('')}</tr>`).join('')}<tr class="ytd-total"><td class="left">YTD Totaal</td><td>${money.format(a.Omzet)}</td>${KPI.map(k=>kpiCell(a[k.key])).join('')}</tr></tbody></table></section>`;
  }).join('');
  return `<div class="report" id="activeReport">${header('Year To Date',ytdLabel)}
@@ -324,20 +344,23 @@ function compactMetric(e,kpi,sub='',kind='ratio'){
  const rec=mainRecords(e), def=KPI.find(k=>k.key===kpi);
  const sum=(rs,key)=>rs.reduce((a,r)=>a+n(r[key]),0);
  const count=rs=>new Set(rs.map(r=>s(r.Periode))).size;
+ const meanTarget=(rs,key)=>{const values=rs.map(row=>n(row[key])).filter(value=>value>0);return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:null;};
+ const own=e.type==='Verkoper'||e.id===s(shop.shopNr);
+ const score=own&&closedMonths.length?scoreTarget(kpi,e,monthPeriod(closedMonths.length-1),true):null;
  let source=rec, value=null, stuks=null,kansen=null,target=null,mean=false;
  if(kpi==='Omzet'||kpi==='Accessoires'||kpi==='S'){
   const key={Omzet:'Omzet',Accessoires:'Accessoires',S:'SEuro'}[kpi];
   source=rec.filter(r=>r[key]!==undefined);
-  if(source.length){value=sum(source,key);if(kpi==='Accessoires'){const rev=sum(source,'Omzet');value=rev?value/rev*100:null;target=n(source.at(-1).AccessoiresTargetPct);}if(kpi==='S')stuks=sum(source,'SStuks');}
+  if(source.length){value=sum(source,key);if(kpi==='Accessoires'){const rev=sum(source,'Omzet');value=rev?value/rev*100:null;target=rev&&score?.target!=null?score.target/rev*100:meanTarget(source,'AccessoiresTargetPct');}if(kpi==='S')stuks=sum(source,'SStuks');}
  }else if(kpi==='Life'){
-  if(source.length){stuks=sum(source,'Life');target=sum(source,'LifeTarget');value=stuks;}
+  if(source.length){stuks=sum(source,'Life');target=score?.target??sum(source,'LifeTarget');value=stuks;}
  }else if(def&&sub===''){
-  const a=aggregate(rec,e.type==='Verkoper')[kpi];
+  const a=aggregate(rec,own?e:{...e,type:'DistrictWinkel'})[kpi];
   if(a.has){value=a.raw;target=a.target;stuks=def.kind==='ratio'?a.stuks:null;kansen=def.kind==='ratio'?a.kansen:null;mean=def.kind==='pct';if(def.kind==='ratio'&&!kansen)value=null;}
  }else source=[];
  const details=detailRecords(e,kpi,sub||(['Insurance','Link'].includes(kpi)?'Totaal':''));
  if(!source.length&&details.length){
-  source=details;stuks=sum(details,'Stuks');kansen=sum(details,'Kansen');target=n(details.at(-1).TargetPct)||null;
+  source=details;stuks=sum(details,'Stuks');kansen=sum(details,'Kansen');target=meanTarget(details,'TargetPct');
   if(kind==='money'){value=sum(details,'Waarde');}
   else if(kpi==='Life'){value=stuks;target=sum(details,'Target');kansen=null;}
   else if(kpi==='Accessoires'){
@@ -405,9 +428,65 @@ function addCompactWorkbook(wb){
  for(const p of params)coverage.addRow([p.label,...entities.map(e=>compactValue(e,p).coverage)]);
  styleSheet(coverage);coverage.autoFilter=undefined;
 } 
+function viewText(value){
+ return value===null?'—':typeof value==='number'?viewNumber.format(value):String(value);
+}
+function viewChart(chart){
+ const canvas=document.createElement('canvas');
+ canvas.width=1000;canvas.height=330;
+ canvas.setAttribute('role','img');
+ canvas.setAttribute('aria-label',chart.title+' · '+chart.unit);
+ const ctx=canvas.getContext('2d');
+ const history=chart.history;
+ const valid=Number.isFinite;
+ const values=history.flatMap(({metric})=>[metric?.value,metric?.target]).filter(valid);
+ const min=Math.min(...values),max=Math.max(...values);
+ const padding=(max-min||Math.abs(max)||1)*.1;
+ const low=min>=0?Math.max(0,min-padding):min-padding, high=max+padding;
+ const x=index=>history.length===1?530:90+index*870/(history.length-1);
+ const y=value=>255-(value-low)/(high-low)*168;
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle='#202124';ctx.font='bold 25px Arial';ctx.fillText(chart.title,22,35);
+ ctx.font='20px Arial';ctx.fillStyle='#555';ctx.fillText(chart.unit+' · Resultaat',22,64);
+ if(history.some(item=>valid(item.metric?.target)))ctx.fillText('– – Target',190,64);
+ ctx.font='18px Arial';
+ for(const fraction of [0,1/3,2/3,1]){
+  const value=low+(high-low)*fraction, height=y(value);
+  ctx.strokeStyle='#ddd';ctx.beginPath();ctx.moveTo(90,height);ctx.lineTo(960,height);ctx.stroke();
+  ctx.fillText(num.format(value),12,height+6);
+ }
+ for(const [key,color] of [['target','#666'],['value','#9b1222']]){
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3;
+  ctx.setLineDash(key==='target'?[7,5]:[]);
+  ctx.beginPath();
+  history.forEach(({metric},index)=>{
+   if(!valid(metric?.[key]))return;
+   const method=valid(history[index-1]?.metric?.[key])?'lineTo':'moveTo';
+   ctx[method](x(index),y(metric[key]));
+  });
+  ctx.stroke();
+  if(key==='value') history.forEach(({metric},index)=>{
+   if(valid(metric?.value)){ctx.beginPath();ctx.arc(x(index),y(metric.value),4.5,0,Math.PI*2);ctx.fill();}
+  });
+ }
+ ctx.fillStyle='#555';ctx.textAlign='center';ctx.font='17px Arial';
+ const month=new Intl.DateTimeFormat('nl-BE',{month:'short',year:'2-digit',timeZone:'UTC'});
+ for(const index of new Set([0,Math.round((history.length-1)/2),history.length-1])){
+  ctx.fillText(month.format(new Date(history[index].period+'-01T00:00:00Z')),x(index),289);
+ }
+ return canvas;
+}
+function renderView(){
+ return `<article class="export-view-report"><header><h3>${esc(viewReport.title)}</h3><p>${esc(viewReport.period)}</p></header>
+ <div id="exportViewCharts"></div>
+ ${viewReport.tables.map(table=>`<section><div class="section-title">${esc(table.title)}</div>
+ <table class="report-table"><thead><tr>${table.headers.map(header=>`<th scope="col">${esc(header)}</th>`).join('')}</tr></thead>
+ <tbody>${table.rows.map(values=>`<tr>${values.map(value=>`<td>${esc(viewText(value))}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`).join('')}</article>`;
+}
 function render(){
  const preview=document.getElementById('reportHost');
- preview.innerHTML=mode==='mtd'?renderMTD():mode==='compact'?renderCompactYTD():renderYTD();
+ preview.innerHTML=mode==='view'?renderView():mode==='mtd'?renderMTD():mode==='compact'?renderCompactYTD():renderYTD();
+ if(mode==='view') document.getElementById('exportViewCharts').append(...viewReport.charts.map(viewChart));
  for(const table of preview.querySelectorAll('.report-table')){
    const scroll=document.createElement('div');
    scroll.className='export-table-scroll';
@@ -417,9 +496,17 @@ function render(){
    table.before(scroll);
    scroll.append(table);
  }
- document.getElementById('statusNote').textContent=mode==='mtd'?`Actuele maand · ${period}`:`${mode==='compact'?'Compacte YTD':'Jaaroverzicht'} · ${ytdLabel}`;
+ document.getElementById('statusNote').textContent=mode==='view'?viewReport.period:
+   mode==='mtd'?`Actuele maand · ${period}`:`${mode==='compact'?'Compacte YTD':'Jaaroverzicht'} · ${ytdLabel}`;
 }
-function filename(ext){return `Diestroyers_${shop.naam}_${mode.toUpperCase()}_${mode==='mtd'?period:year+'_excl_'+calendarPeriod}.${ext}`}
+function filename(ext){
+ if(mode==='view'){
+   const {source,ctx}=viewReport;
+   const key=[source,ctx.entity.name,ctx.def?.id,ctx.detail,ctx.term,ctx.period].filter(Boolean).join('_').replace(/[^\p{L}\p{N}_-]/gu,'-');
+   return `Diestroyers_${key}.${ext}`;
+ }
+ return `Diestroyers_${shop.naam}_${mode.toUpperCase()}_${mode==='mtd'?period:year+'_excl_'+calendarPeriod}.${ext}`;
+}
 function downloadBlob(blob,name){
  const url=URL.createObjectURL(blob);
  const a=document.createElement('a');
@@ -479,7 +566,61 @@ async function compactPdf(){
   downloadBlob(doc.output('blob'),filename('pdf'));
  }catch(err){showExportError(err)}finally{mask(false)}
 }
+function viewPdf(){
+ if(!window.jspdf?.jsPDF) throw new Error('De PDF-bibliotheek kon niet worden geladen.');
+ const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+ const text=value=>viewText(value).replace(/[—–−]/g,'-');
+ let y;
+ function page(first=false){
+  if(!first)doc.addPage();
+  doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text(text(viewReport.title),10,12);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(text(viewReport.period),10,18);
+  y=24;
+ }
+ page(true);
+ for(const chart of viewReport.charts){
+  if(y+65>196)page();
+  doc.addImage(viewChart(chart),'PNG',10,y,190,62.7);
+  y+=66;
+ }
+ for(const table of viewReport.tables){
+  const firstWidth=table.headers.length>7?30:47;
+  const widths=[firstWidth,...table.headers.slice(1).map(()=> (277-firstWidth)/(table.headers.length-1))];
+  const positions=widths.reduce((all,width)=>[...all,all.at(-1)+width],[10]);
+  const lines=values=>values.map((value,index)=>doc.splitTextToSize(text(value),widths[index]-3));
+  function write(cells,header=false){
+   const height=Math.max(...cells.map(cell=>cell.length))*3.7+2.2;
+   doc.setFont('helvetica',header?'bold':'normal');doc.setFontSize(8);
+   if(header){doc.setFillColor(155,18,34);doc.rect(10,y,277,height,'F');doc.setTextColor(255,255,255);}
+   else{doc.setDrawColor(224,218,209);doc.line(10,y+height,287,y+height);doc.setTextColor(25,25,25);}
+   cells.forEach((cell,index)=>doc.text(cell,positions[index]+1.5,y+3.5));
+   y+=height;
+  }
+  function startTable(){
+   doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(11);
+   doc.text(text(table.title),10,y+4);y+=6;
+   doc.setFontSize(8);
+   write(lines(table.headers),true);
+  }
+  if(y>176)page();
+  startTable();
+  for(const row of table.rows){
+   doc.setFont('helvetica','normal');doc.setFontSize(8);
+   const cells=lines(row);
+   if(y+Math.max(...cells.map(cell=>cell.length))*3.7+2.2>196){page();startTable();}
+   write(cells);
+  }
+  y+=7;
+ }
+ downloadBlob(doc.output('blob'),filename('pdf'));
+}
 async function pdf(){
+ if(mode==='view'){
+  mask(true);
+  try{viewPdf();}catch(err){showExportError(err);}finally{mask(false);}
+  return;
+ }
   if(mode==='compact')return compactPdf();
  const el=document.getElementById('activeReport');
  if(!el)return;
@@ -569,7 +710,26 @@ async function downloadWorkbook(){
  mask(true);
  try{
   const wb=new ExcelJS.Workbook();wb.creator='The Diestroyers';wb.created=new Date();
-  if(mode==='mtd'){
+  if(mode==='view'){
+   viewReport.tables.forEach((table,index)=>{
+    const ws=wb.addWorksheet(`${index+1}. ${table.title}`.replace(/[\\/?:*\[\]]/g,' ').slice(0,31));
+    ws.addRow([viewReport.title+' · '+viewReport.period+' · '+table.title]);
+    ws.mergeCells(1,1,1,table.headers.length);
+    ws.addRow(table.headers);
+    table.rows.forEach(values=>ws.addRow(values));
+    styleSheet(ws);
+    ws.columns.forEach((column,i)=>{column.width=i===0?28:Math.max(16,table.headers[i].length+2);});
+   });
+   if(viewReport.charts.length){
+    const charts=wb.addWorksheet('Maandgrafieken');
+    charts.addRow([viewReport.title+' · '+viewReport.period]);
+    charts.getRow(1).font={bold:true};
+    viewReport.charts.forEach((chart,index)=>{
+     const image=wb.addImage({base64:viewChart(chart).toDataURL('image/png'),extension:'png'});
+     charts.addImage(image,{tl:{col:0,row:index*17+1},ext:{width:700,height:231}});
+    });
+   }
+  }else if(mode==='mtd'){
    const store=rowFor('Winkel','',period);
    const ws=wb.addWorksheet('MTD Winkel');
    ws.addRow([`The Diestroyers · ${shop.naam} · Shop ${shop.shopNr} · MTD ${period}`]);
@@ -586,7 +746,7 @@ async function downloadWorkbook(){
    const wm=wb.addWorksheet('Winkel per maand');wm.addRow([`The Diestroyers · ${shop.naam} · Shop ${shop.shopNr} · YTD ${ytdLabel}`]);wm.mergeCells(1,1,1,12);wm.addRow(['Maand','Omzet','Klanten','Concretisatie',...KPI.map(k=>k.label)]);
    closedMonths.forEach((m,i)=>{const r=rowFor('Winkel','',monthPeriod(i)),sd=salesMonthData(i);wm.addRow([m,r?n(r.Omzet):'—',sd.has?sd.customers:'—',sd.has?sd.conc/100:'—',...KPI.map(k=>excelCell(metric(r,k)))])});styleSheet(wm);wm.getColumn(2).numFmt='€ #,##0';
    const vy=wb.addWorksheet('Verkopers YTD');vy.addRow([`The Diestroyers · ${shop.naam} · Verkopers YTD ${ytdLabel}`]);vy.mergeCells(1,1,1,10);vy.addRow(['Personeelsnr.','Verkoper','Omzet',...KPI.map(k=>k.label)]);
-   sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b))).forEach(v=>{const rec=closedMonths.map((_,i)=>rowFor('Verkoper',sellerId(v),monthPeriod(i))).filter(Boolean),a=aggregate(rec,true);vy.addRow([sellerId(v),sellerName(v),a.Omzet,...KPI.map(k=>excelCell(a[k.key]))])});styleSheet(vy);vy.getColumn(3).numFmt='€ #,##0';
+   sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b))).forEach(v=>{const rec=closedMonths.map((_,i)=>rowFor('Verkoper',sellerId(v),monthPeriod(i))).filter(Boolean),a=aggregate(rec);vy.addRow([sellerId(v),sellerName(v),a.Omzet,...KPI.map(k=>excelCell(a[k.key]))])});styleSheet(vy);vy.getColumn(3).numFmt='€ #,##0';
    const vm=wb.addWorksheet('Verkopers per maand');vm.addRow([`The Diestroyers · ${shop.naam} · Verkopers per maand ${ytdLabel}`]);vm.mergeCells(1,1,1,11);vm.addRow(['Personeelsnr.','Verkoper','Maand','Omzet',...KPI.map(k=>k.label)]);
    sellers.slice().sort((a,b)=>Number(sellerId(a))-Number(sellerId(b))).forEach(v=>closedMonths.forEach((m,i)=>{const r=rowFor('Verkoper',sellerId(v),monthPeriod(i));vm.addRow([sellerId(v),sellerName(v),m,r?n(r.Omzet):'—',...KPI.map(k=>excelCell(metric(r,k)))])}));styleSheet(vm);vm.getColumn(4).numFmt='€ #,##0';
   }
@@ -602,11 +762,12 @@ async function downloadWorkbook(){
 function mask(on){document.getElementById('loadingMask').classList.toggle('show',on)}
 function selectMode(next){
  mode=next;
- for(const [id,value] of [['tabMtd','mtd'],['tabYtd','ytd'],['tabCompact','compact']]){
+ for(const [id,value] of [['tabView','view'],['tabMtd','mtd'],['tabYtd','ytd'],['tabCompact','compact']]){
    document.getElementById(id).setAttribute('aria-pressed',String(mode===value));
  }
  render();
 }
+document.getElementById('tabView').onclick=()=>selectMode('view');
 document.getElementById('tabMtd').onclick=()=>selectMode('mtd');
 document.getElementById('tabYtd').onclick=()=>selectMode('ytd');
 document.getElementById('tabCompact').onclick=()=>selectMode('compact');
@@ -614,7 +775,23 @@ document.getElementById('pdfBtn').onclick=pdf;
 document.getElementById('xlsxBtn').onclick=downloadWorkbook;
 document.getElementById('tvPdfBtn').onclick=()=>{const win=window.open('tv.html?export=slides2to13&autostart=1','_blank');if(!win)showExportError(new Error('De browser blokkeerde het exportvenster. Sta pop-ups toe voor deze pagina.'));};
 document.getElementById('exportShop').textContent=`${shop.naam} · ${shop.shopNr}`;
-render();
+window.addEventListener('DOMContentLoaded',()=>{
+ const params=new URLSearchParams(location.search);
+ viewReport=window.ScorebladReview.report(params);
+ if(viewReport){
+  const source=viewReport.source;
+  params.delete('weergave');
+  if(params.get('groep')==='verkopers')params.set('weergave','verkopers');
+  params.delete('groep');
+  document.getElementById('viewBackLink').href='home.html#'+source+(params.size?'?'+params:'');
+  document.getElementById('viewBack').hidden=false;
+  document.getElementById('tabView').hidden=false;
+  document.querySelector('.export-modes').classList.add('with-view');
+  selectMode('view');
+ }else{
+  render();
+ }
+},{once:true});
 })();
 </script>
 </body></html>

@@ -30,7 +30,7 @@ body.scoreblad { margin: 0; background: var(--paper); color: var(--ink); font: 4
 .score-brand { display: flex; justify-content: space-between; align-items: center; padding: .8rem clamp(.75rem, 3vw, 1.7rem); min-height: 3.65rem; }
 .score-brand a { font: 800 1.52rem/.9 var(--headline); letter-spacing: .08em; text-transform: uppercase; text-decoration: none; }
 .score-brand span { font-size: .82rem; color: var(--muted); }
-.score-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-inline: clamp(.3rem, 2.4vw, 1.4rem); }
+.score-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding-inline: clamp(.3rem, 2.4vw, 1.4rem); }
 .score-nav a { display: grid; place-items: center; min-height: 2.85rem; border-bottom: 3px solid transparent; font-weight: 700; font-size: clamp(.75rem, 3vw, .98rem); text-decoration: none; color: var(--muted); }
 .score-nav a:hover { background: var(--white); }
 .score-nav a[aria-current="page"] { border-color: var(--red); color: var(--red); }
@@ -96,12 +96,30 @@ a.score-row:hover { background: var(--soft); }
 .score-trend-value, .score-trend-target { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 .score-trend-value { stroke: var(--red); }
 .score-trend-target { stroke: var(--muted); stroke-dasharray: 5 5; }
+.score-trend-target-dot { fill: var(--muted); }
 .score-trend-dots circle { fill: var(--red); stroke: var(--white); stroke-width: 1.6; }
 .score-trend-dots circle.selected { stroke: var(--ink); stroke-width: 1.75; }
 .score-trend figcaption { display: flex; justify-content: center; flex-wrap: wrap; gap: .4rem .9rem; color: var(--muted); font-size: .77rem; }
 .score-trend-key { display: inline-flex; align-items: center; gap: .35rem; }
 .score-trend-key::before { content: ""; width: 1.1rem; border-top: 2px solid var(--red); }
 .score-trend-key.target::before { border-top: 2px dashed var(--muted); }
+.score-trend + .score-trend { margin-top: .65rem; }
+.score-chart-more { margin-top: .65rem; }
+.score-chart-more summary { cursor: pointer; padding: .65rem 0; font-weight: 700; }
+.score-analysis-note { border-left: 3px solid var(--red); background: var(--white); padding: .65rem .85rem; }
+@media (min-width: 350px) {
+  .score-analysis-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .score-analysis-filters > :nth-child(n+3) { grid-column: 1 / -1; }
+}
+.score-view-export { margin-top: 1.3rem; }
+.score-home-review { margin-top: 1rem; text-align: center; }
+.score-home-review p { margin: .5rem 0 0; }
+.score-home-review p:empty { display: none; }
+.score-quality-list { display: grid; gap: .5rem; }
+.score-quality-list .score-list { margin: 0; }
+.score-quality-list .score-empty { padding: .65rem; }
+.score-quality-list button.score-row { width: 100%; text-align: left; border: 0; background: var(--white); font: inherit; color: inherit; cursor: pointer; }
+.score-nav a { font-size: clamp(.71rem,2.65vw,.98rem); }
 .score-comments { list-style: none; padding: 0; margin: 0; }
 .score-comments li { padding: .68rem .8rem; border: 1px solid var(--line); border-bottom: 0; background: var(--white); overflow-wrap: anywhere; }
 .score-comments li:last-child { border-bottom: 1px solid var(--line); }
@@ -166,6 +184,13 @@ a.score-row:hover { background: var(--soft); }
 .export-modes button { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .export-modes button small { font-size: .72rem; font-weight: 500; }
 .export-modes button[aria-pressed="true"] { background: var(--ink); color: white; }
+.export-modes.with-view { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.export-view-report { padding: .85rem; border: 1px solid var(--line); background: var(--white); }
+.export-view-report header p { margin: .3rem 0 1rem; color: var(--muted); }
+.export-view-report section { margin-top: 1.15rem; }
+.export-view-report .report-table { min-width: 40rem; }
+.export-view-report .report-table td:first-child { text-align: left; }
+.export-view-report canvas { display: block; width: 100%; height: auto; max-width: 52rem; margin-bottom: .6rem; border: 1px solid var(--line); }
 .export-period { margin: .75rem 0 !important; }
 .export-downloads { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem; }
 .export-tv { grid-column: 1 / -1; }
