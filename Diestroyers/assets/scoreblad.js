@@ -478,8 +478,9 @@
   }
 
   function npsLink(values) { return url("nps",values); }
-  function surveyResult(entity, period, survey) {
-    return {value:survey?.cards > 0 ? survey.nps ?? null : null,target:data.month(entity,"nps",period).target,count:survey?.cards??null};
+  function surveyResult(entity, period, survey, term = "maand") {
+    const target = (term === "jaar" ? data.annual : data.month)(entity,"nps",period).target;
+    return {value:survey?.cards > 0 ? survey.nps ?? null : null,target,count:survey?.cards??null};
   }
   const surveyTypes=[
     {key:"promoters",label:"Promotoren",type:"Promotor",tone:"good"},
@@ -519,57 +520,52 @@
     const status = value === null ? null : statuses[value >= target ? 3 : value >= warning ? 1 : 0];
     return {value:data.format(value,ratioDef),empty:value === null,status};
   }
-  function experienceOverview(profile,period,linkedMetric) {
-    const periodLabel=period ? data.monthLabel(period) : "Geen gepubliceerde periode";
-    const cell=(stats,warning,target)=>{
-      const {value,empty,status}=experienceResult(stats,warning,target);
-      return `<td><span class="score-experience-value${empty?" empty":""}">${resultStatus(value,status)}</span>
-        <small>${countValue(stats?.responses??0)} antwoorden</small></td>`;
-    };
-    return `<section class="score-section" id="klantbeleving" aria-labelledby="score-experience-heading">
-      <div class="score-section-heading"><h2 tabindex="-1" id="score-experience-heading">Klantbeleving</h2>
-        <span class="score-muted">${escape(periodLabel)}</span></div>
-      <table class="score-experience">
-        <thead><tr><th scope="col">Meting</th><th scope="col">Maand</th>
-          <th scope="col"><abbr title="${escape("Jaar t.e.m. "+periodLabel)}">YTD</abbr></th></tr></thead>
-        <tbody>${metrics.map(([key,label,warning,target])=>`<tr id="klantbeleving-${key}" tabindex="-1"${key===linkedMetric?' class="is-linked"':""}>
-          <th scope="row">${escape(label)}<small>Target ${data.format(target,ratioDef)}</small></th>
-          ${cell(profile?.month?.[key],warning,target)}${cell(profile?.ytd?.[key],warning,target)}
-        </tr>`).join("")}</tbody>
-      </table>
-    </section>`;
+  function experienceUnavailable(latest,base) {
+    return latest
+      ? `<p class="score-empty">Klantbeleving is beschikbaar voor de laatst gepubliceerde maand.
+          <a href="${escape(npsLink({...base,periode:latest}))}">Bekijk ${escape(data.monthLabel(latest))}</a></p>`
+      : '<p class="score-empty">Er zijn nog geen cijfers voor klantbeleving gepubliceerd.</p>';
   }
   function npsPage(q) {
     const entity = data.sellers.find(person => person.id === q.get("verkoper"));
     const mode = entity || q.get("weergave") === "verkopers" ? "verkopers" : "winkel";
     const source = entity || data.store;
-    const surveyPeriods = [...new Set(data.nps.periods || Object.keys(data.nps.store?.month || {}))];
-    const latest = data.nps.latestPeriod || data.latest;
-    const period = surveyPeriods.includes(q.get("periode")) ? q.get("periode") : latest;
-    const activeMetric = metrics.find(([key]) => key === q.get("onderdeel"))?.[0];
+    const avvPeriod = data.avv.latestPeriod;
+    const surveyPeriods = data.nps.periods || Object.keys(data.nps.store?.month || {});
+    const latest = data.nps.latestPeriod || data.latest || avvPeriod;
+    const periods = [...new Set([...surveyPeriods,avvPeriod,latest].filter(Boolean))];
+    const period = periods.includes(q.get("periode")) ? q.get("periode") : latest;
+    const activeMetric = metrics.find(([key]) => key === q.get("onderdeel"));
     const chosenMetric = q.get("onderdeel") === "nps" ? "nps" : null;
-    const base = {weergave:mode,verkoper:entity?.id,periode:period,onderdeel:chosenMetric};
+    const term = q.get("termijn") === "jaar" ? "jaar" : "maand";
+    const viewYear = term === "jaar";
+    const base = {weergave:mode,verkoper:entity?.id,periode:period,termijn:term,onderdeel:activeMetric?.[0] || chosenMetric};
     const profile = data.npsProfile(source);
     const experience = data.avvProfile(source);
-    const mtd = profile?.month?.[period], ytd = profile?.ytd?.[period];
-    const avvPeriod = data.avv.latestPeriod;
-    const subtitle = source.name + " · " + data.monthLabel(period);
+    const bucket = viewYear ? "ytd" : "month";
+    const survey = profile?.[bucket]?.[period];
+    const periodText = (viewYear ? "YTD t.e.m. " : "") + data.monthLabel(period);
+    const subtitle = source.name + " · " + periodText;
+    const filters = (state,switches = "") => `${switches ? `<div class="score-filters">${switches}</div>` : ""}
+      <div class="score-filters inline">
+        ${periodPicker(periods,period,data.monthLabel,value=>npsLink({...state,periode:value}))}
+        ${segment("NPS-periode",[
+          ["maand","Maand",npsLink({...state,termijn:"maand"})],["jaar","YTD",npsLink({...state,termijn:"jaar"})]
+        ],term)}
+      </div>`;
 
     if (chosenMetric === "nps") {
       const category=surveyTypes.find(item=>item.key===q.get("reactietype"));
       const reactionBase={...base,reactietype:category?.key};
-      const selector = periodPicker(surveyPeriods.length ? surveyPeriods : [period],period,data.monthLabel,value => npsLink({...reactionBase,periode:value,termijn:q.get("termijn")}));
-      const viewYear = q.get("termijn") === "jaar";
-      const survey = viewYear ? ytd : mtd;
       const comments = (entity ? profile?.comments : data.nps.comments) || [];
-      const visible = [...comments].filter(comment => viewYear ? comment.period?.startsWith(period.slice(0,4)) && comment.period <= period : comment.period === period)
+      const visible = comments.filter(comment => viewYear ? period && comment.period?.startsWith(period.slice(0,4)) && comment.period <= period : comment.period === period)
         .filter(comment=>!category || comment.type===category.type)
         .sort((a,b) => String(b.dateIso).localeCompare(String(a.dateIso)));
       const commentSize = 15;
       const pageCount = Math.max(1,Math.ceil(visible.length/commentSize));
       const current = Math.max(1,Math.min(pageCount,Math.floor(Number(q.get("reacties")) || 1)));
-      const commentUrl = page => npsLink({...reactionBase,termijn:viewYear ? "jaar" : "maand",reacties:page});
-      const filterUrl=reactietype=>npsLink({...reactionBase,termijn:viewYear?"jaar":"maand",reactietype,reacties:1});
+      const commentUrl = page => npsLink({...reactionBase,reacties:page});
+      const filterUrl=reactietype=>npsLink({...reactionBase,reactietype,reacties:1});
       const commentList = visible.length
         ? `<ul class="score-comments">${visible.slice((current-1)*commentSize,current*commentSize)
           .map(comment=>surveyComment(comment,!entity)).join("")}</ul>` : '<p class="score-empty">Geen commentaren in deze periode.</p>';
@@ -577,13 +573,10 @@
         ${current > 1 ? `<a class="score-button" href="${escape(commentUrl(current-1))}">Vorige</a>` : ""}
         <span class="score-muted">Pagina ${current} van ${pageCount}</span>
         ${current < pageCount ? `<a class="score-button" href="${escape(commentUrl(current+1))}">Volgende</a>` : ""}</div>` : "";
-      const result = surveyResult(source,period,survey);
-      if (viewYear) result.target=data.annual(source,"nps",period).target;
+      const result = surveyResult(source,period,survey,term);
       const {value,status} = scoreFields(result,data.byId.nps);
       return back(source.name,npsLink({...base,onderdeel:null})) + heading("NPS",subtitle)
-        + `<div class="score-filters">${selector}${segment("NPS-periode",[
-            ["maand","Maand",npsLink({...reactionBase,termijn:"maand"})],["jaar","YTD",npsLink({...reactionBase,termijn:"jaar"})]
-          ],viewYear ? "jaar" : "maand")}</div>`
+        + filters(reactionBase)
         + `<div class="score-nps-summary">${facts([["NPS",value,status],
             ["Target",data.format(result.target,data.byId.nps)],["Enquêtes",survey?.cards ?? 0]])}
             ${surveyDistribution(survey,category?.key,filterUrl)}</div>`
@@ -594,27 +587,60 @@
             ${commentFilters(category?.key??null,filterUrl)}${commentList}${paging}</section>`
         + section("Maandhistoriek",list([...surveyPeriods].sort().reverse().map(month => ({
             label:data.monthLabel(month),...scoreFields(surveyResult(source,month,profile?.month?.[month]),data.byId.nps),
-            meta:`${profile?.month?.[month]?.cards ?? 0} enquêtes`,href:npsLink({...base,periode:month})
+            meta:`${profile?.month?.[month]?.cards ?? 0} enquêtes`,href:npsLink({...base,periode:month,termijn:"maand"})
           })),"NPS-maandhistoriek"));
     }
 
     const switches = segment("Klantbeleving voor",[
-      ["winkel","Winkel",npsLink({periode:period})],["verkopers","Verkopers",npsLink({weergave:"verkopers",periode:period})]
+      ["winkel","Winkel",npsLink({...base,weergave:"winkel",verkoper:null})],
+      ["verkopers","Verkopers",npsLink({...base,weergave:"verkopers",verkoper:null})]
     ],mode);
+    const hasExperience = Boolean(avvPeriod && period === avvPeriod);
     if (mode === "verkopers" && !entity) {
-      return heading("NPS",data.monthLabel(period)) + `<div class="score-filters">${switches}</div>`
+      return heading("NPS",periodText) + filters(base,switches)
         + sellerLists("NPS per verkoper",person => {
-          const survey = data.npsProfile(person)?.month?.[period];
-          return {label:person.name,...scoreFields(surveyResult(person,period,survey),data.byId.nps),meta:"NPS",
+          const survey = data.npsProfile(person)?.[bucket]?.[period];
+          return {label:person.name,...scoreFields(surveyResult(person,period,survey,term),data.byId.nps),meta:`${countValue(survey?.cards??0)} enquêtes`,
             href:npsLink({...base,verkoper:person.id})};
-        },person => data.npsProfile(person)?.month?.[period]?.cards > 0 ||
-          Object.values(data.avvProfile(person)?.ytd || {}).some(metric => metric.responses > 0));
+        },person => data.npsProfile(person)?.[bucket]?.[period]?.cards > 0 ||
+          (hasExperience && Object.values(data.avvProfile(person)?.[bucket] || {}).some(metric => metric.responses > 0)));
     }
-    return (entity ? back("Alle verkopers",npsLink({weergave:"verkopers",periode:period})) : "") + heading(entity ? entity.name : "NPS",entity ? data.monthLabel(period) : subtitle)
-      + (entity ? "" : `<div class="score-filters">${switches}</div>`)
-      + list([{label:"NPS en klantcommentaren",meta:`${mtd?.cards ?? 0} enquêtes`,...scoreFields(surveyResult(source,period,mtd),data.byId.nps),
+    if (activeMetric) {
+      const [key,label,warning,target] = activeMetric;
+      const stats = experience?.[bucket]?.[key];
+      const other = experience?.[viewYear?"month":"ytd"]?.[key];
+      const comparison = experienceResult(other,warning,target);
+      const {value,status} = experienceResult(stats,warning,target);
+      const gap = Number.isFinite(stats?.value) && stats.responses > 0 ? target - stats.value : null;
+      const sellers = hasExperience && !entity ? data.sellers.map(person=>({
+        person,stats:data.avvProfile(person)?.[bucket]?.[key]
+      })).filter(item=>item.stats?.responses > 0).sort((a,b)=>b.stats.responses-a.stats.responses).map(({person,stats})=>({
+        label:person.name,meta:`${countValue(stats.responses)} antwoorden${person.active?"":" · Historiek"}`,
+        ...experienceResult(stats,warning,target),href:npsLink({...base,verkoper:person.id,weergave:"verkopers"})
+      })) : [];
+      return back("Klantbeleving",npsLink({...base,onderdeel:"klantbeleving"}))
+        + heading(label,subtitle) + filters(base)
+        + (hasExperience ? facts([["Score",value,status],["Target",data.format(target,ratioDef)],
+            ["Antwoorden",countValue(stats?.responses??0)],
+            ["Afstand tot target",gap===null?null:gap>0?`${preciseNumber.format(gap)} procentpunt`:"Target behaald"]])
+          + section(viewYear?"Gekozen maand":"Jaar t.e.m. "+data.monthLabel(period),facts([
+              ["Score",comparison.value,comparison.status],["Antwoorden",countValue(other?.responses??0)]
+            ])) : experienceUnavailable(avvPeriod,base))
+        + (sellers.length ? section("Verkopers",list(sellers,"Resultaten per verkoper")) : "");
+    }
+    return (entity ? back("Alle verkopers",npsLink({...base,verkoper:null,onderdeel:null})) : "")
+      + heading(entity ? entity.name : "NPS",entity ? periodText : subtitle) + filters(base,entity?"":switches)
+      + list([{label:"NPS en klantcommentaren",meta:`${countValue(survey?.cards??0)} enquêtes`,...scoreFields(surveyResult(source,period,survey,term),data.byId.nps),
             href:npsLink({...base,onderdeel:"nps"})}],"NPS")
-      + experienceOverview(experience,avvPeriod,activeMetric);
+      + `<section class="score-section" aria-labelledby="score-experience-heading">
+        <h2 tabindex="-1" id="score-experience-heading">Klantbeleving</h2>
+        ${hasExperience ? list(metrics.map(([key,label,warning,target])=>{
+          const stats = experience?.[bucket]?.[key];
+          return {label,...experienceResult(stats,warning,target),
+            meta:`Target ${data.format(target,ratioDef)} · ${countValue(stats?.responses??0)} antwoorden`,
+            href:npsLink({...base,onderdeel:key})};
+        }),"Metingen klantbeleving") : experienceUnavailable(avvPeriod,base)}
+      </section>`;
   }
 
   const views = {home:() => home,analyse:analysisPage,resultaten:resultPage,rankings:rankingPage,nps:npsPage};
@@ -633,9 +659,8 @@
     }
     if (page !== "home") root.querySelector("h1").tabIndex = -1;
     document.title = page === "home" ? "The Diestroyers | Prestatieplatform" : root.querySelector("h1").textContent + " | The Diestroyers";
-    if (page==="nps" && params.has("onderdeel")) {
-      const experience=root.querySelector(".score-experience .is-linked") ||
-        (params.get("onderdeel")==="klantbeleving"?root.querySelector("#score-experience-heading"):null);
+    if (page==="nps" && params.get("onderdeel")==="klantbeleving") {
+      const experience=root.querySelector("#score-experience-heading");
       if (experience) {
         requestAnimationFrame(()=>{
           if (!experience.isConnected) return;
