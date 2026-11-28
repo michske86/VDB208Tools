@@ -1,5 +1,5 @@
 window.DIESTROYERS_CONFIG_DATA = {
-  "version": "2026-11-27T22:52:12.531Z",
+  "version": "2026-11-28T06:40:26.380Z",
   "source": "admin",
   "shop": {
     "shopNr": "208",
@@ -4234,5 +4234,6 @@ window.DIESTROYERS_CONFIG_DATA = {
       "MonsterTarget": 2500,
       "NPSTarget": 65
     }
-  ]
+  ],
+  "archiefVersie": "2026-11-28T06:40:26.380Z"
 };

@@ -9,6 +9,9 @@
   const monthly = window.DIESTROYERS_TV_INCENTIVES;
   const december = window.DIESTROYERS_DECEMBER;
   const resultEdits = window.ScorebladResultEdits;
+  const archive = window.ScorebladArchief;
+  const archiveReady = !base?.archiefVersie || archive.apply(window);
+  let storedArchive = archiveReady && window.DIESTROYERS_ARCHIEF || {format:1,versie:"",maanden:{}};
   const configEndpoint = "https://api.github.com/repos/michske86/VDB208Tools/contents/Diestroyers/assets/config-data.js";
   const tokenKey = "diestroyers.admin.github-token";
   const adminCookie = "diestroyers_admin_open";
@@ -283,6 +286,14 @@
     (row.verwacht ||= {})[field]=resultEdits.imported(entity,per,field);
   }
 
+  function isArchived(period) {
+    return Object.hasOwn(storedArchive.maanden,period);
+  }
+
+  function archivedDrafts() {
+    return corrections().filter(row=>isArchived(row.periode));
+  }
+
   function isResults() { return $("adminSection").value==="resultaten"; }
   function catalog() {
     return isResults() ? resultEdits.kpis : resultEdits.kpis.filter(kpi=>kpi.target);
@@ -315,7 +326,7 @@
     const resultFields=kpi.fields.map(field=>{
       const imported=resultEdits.imported(entity,per,field.key);
       const manual=correction?.waarden?.[field.key], expected=correction?.verwacht?.[field.key];
-      return {...field,original:imported,value:manual ?? imported,overridden:manual!==undefined,
+      return {...field,original:imported,value:manual ?? imported,overridden:manual!==undefined,archived:isArchived(per),
         conflict:manual!==undefined && imported!==manual && expected!==imported};
     });
     return {
@@ -372,13 +383,17 @@
     $("editorEntityField").hidden=byKpi || items.length<2;
     $("editorTitle").textContent=mode?"Resultaten aanpassen":"Targets";
     $("targetCopy").hidden=mode;
-    const locked=mode && per>=resultEdits.closedMonth();
+    const active=per>=resultEdits.closedMonth();
+    const locked=mode && (active || Boolean(base?.archiefVersie && !isArchived(per)));
     const regional=mode && scope==="district";
     $("saveData").hidden=locked || regional;
     $("editorSource").textContent=mode
-      ? locked ? "De lopende maand en toekomstige maanden zijn alleen-lezen. Kies een afgesloten maand om cijfers aan te passen."
-        : regional ? "Districtsresultaten komen uit de actieve maand. Voor de eigen winkel kun je historische resultaten invullen."
-        : "Opgeslagen correcties gaan bij de volgende Dagstart of website-update naar Excel. NPS blijft gebaseerd op de enquêtes."
+      ? regional ? "Districtsresultaten komen uit de actieve maand."
+        : active ? "Resultaten voor de lopende en toekomstige maanden komen via Dagstart en zijn alleen-lezen."
+        : !archiveReady ? "Het maandarchief kon niet worden geladen. Vernieuw Admin om resultaten te bewerken."
+        : isArchived(per) ? "Correcties komen rechtstreeks in het maandarchief. NPS blijft gebaseerd op de enquêtes."
+        : locked ? "Sluit deze maand eerst af in Archief om resultaten te bewerken."
+        : "Opgeslagen correcties gaan bij de volgende Dagstart of website-update naar Excel."
       : "Vul meerdere targets achter elkaar in. Eigen winkel en dezelfde winkel in Districtswinkels delen één target.";
     $("editorPrev").disabled=$("editorNext").disabled=!periodFormat.test(per);
     if (!periodFormat.test(per) || !items.length) {
@@ -462,7 +477,8 @@
     }
   }
   function fieldOrigin(field, mode) {
-    if (!field.overridden) return field.value===null ? "Ontbreekt" : (field.source || "Excel");
+    if (!field.overridden) return field.value===null ? "Ontbreekt" : (field.source || (mode && field.archived?"Archief":"Excel"));
+    if (mode && field.archived) return "Nog op te slaan in Archief";
     if (mode && field.conflict) return "Bron gewijzigd · "+(field.original===null?"leeg":formatNumber.format(field.original));
     if (mode) return field.value===field.original ? "Verwerkt in Excel"
       : field.original===null ? "Wacht op Excel" : "Wacht op Excel · bron "+formatNumber.format(field.original);
@@ -575,6 +591,7 @@
     updateShop();
     const errors = [];
     if (!base) errors.push("De bestaande configuratie is niet geladen.");
+    if (!archiveReady) errors.push("Het maandarchief kon niet worden ingelezen. Vernieuw Admin.");
     if (!state.shop.shopNr || !state.shop.naam) errors.push("Vul de winkelnaam en het winkelnummer in.");
     for (const [kind,definition] of Object.entries(listDefinitions)) {
       const keys = new Set(), names = new Set();
@@ -665,42 +682,98 @@
   function serialize(data) {
     return "window.DIESTROYERS_CONFIG_DATA = "+JSON.stringify(data,null,2)+";\n";
   }
+  async function publishArchive(headers,saved,changes) {
+    const repo="https://api.github.com/repos/michske86/VDB208Tools";
+    const request=async url=>{
+      const response=await fetch(url,{headers,cache:"no-store"});
+      checkResponse(response);
+      return response.json();
+    };
+    const head=(await request(repo+"/git/ref/heads/main")).object?.sha;
+    if (!/^[a-f0-9]{40}$/.test(head||"")) throw new Error("De GitHub-versie kon niet worden gecontroleerd.");
+    const pinned=await request(configEndpoint+"?ref="+head);
+    if (parseConfig(pinned)!==published) throw new Error("De configuratie is intussen gewijzigd. Vernieuw Admin.");
+    const stamp=new Date();
+    const next=structuredClone(storedArchive);
+    next.versie=stamp.toISOString();
+    for (const draft of changes) archive.update(next.maanden[draft.periode],draft,resultEdits,String(state.shop.shopNr),stamp);
+    saved.archiefVersie=next.versie;
+    const periods=new Set(changes.map(row=>row.periode));
+    const files=[
+      ["assets/config-data.js",serialize(saved)],["assets/archief-data.js",archive.project(next)],
+      ...[...periods].map(period=>["archief/"+period+".json",JSON.stringify(next.maanden[period],null,2)+"\n"])
+    ];
+    const response=await fetch("https://api.github.com/graphql",{method:"POST",headers:{...headers,"Content-Type":"application/json"},
+      body:JSON.stringify({
+        query:"mutation($input:CreateCommitOnBranchInput!){createCommitOnBranch(input:$input){commit{oid}}}",
+        variables:{input:{branch:{repositoryNameWithOwner:"michske86/VDB208Tools",branchName:"main"},expectedHeadOid:head,
+          message:{headline:"Corrigeer Diestroyers-maandarchief"},
+          fileChanges:{additions:files.map(([path,content])=>({path:"Diestroyers/"+path,contents:base64(content)}))}}}
+      })});
+    checkResponse(response);
+    const result=await response.json();
+    if (!result.data?.createCommitOnBranch?.commit?.oid) throw new Error("GitHub kon het archief niet opslaan. Vernieuw Admin als er intussen nieuwe cijfers zijn.");
+    storedArchive=next;
+    window.DIESTROYERS_ARCHIEF=next;
+    window.DIESTROYERS_CONFIG_DATA=saved;
+    archive.apply(window);
+    state.archiefVersie=next.versie;
+  }
   async function save(event) {
     const buttons=[$("saveConfig"),$("saveData")];
     if (buttons.some(button=>button.disabled)) return;
     const output=event?.currentTarget?.id==="saveData"?$("editorSaveStatus"):$("saveStatus"), errors=validate();
     if (errors.length) { status(output,errors); return; }
     buttons.forEach(button=>{button.disabled=true;});
+    $("targetEditor").inert=true;
     try {
       const token = remembered || await requestToken();
       if (!token) return;
       output.textContent="Configuratie wordt opgeslagen op GitHub…";
       const headers={Authorization:"Bearer "+token,Accept:"application/vnd.github+json"};
-      const current=await fetch(configEndpoint+"?ref=main",{headers,cache:"no-store"});
-      checkResponse(current);
-      const file=await current.json();
-      if (parseConfig(file)!==published) throw new Error("De configuratie is intussen gewijzigd. Download je versie en herlaad Admin.");
       const pendingErrors = validate();
       if (pendingErrors.length) { status(output,pendingErrors); return; }
-      const saved=snapshot();
+      const saved=structuredClone(snapshot());
       const submittedDrafts=state.verkopers.filter(person=>sellerDrafts.has(person));
+      const items=archivedDrafts();
+      if (items.length) {
+        const keep=corrections().filter(row=>!items.includes(row));
+        if (keep.length) saved.resultaatCorrecties=keep;
+        else delete saved.resultaatCorrecties;
+        await publishArchive(headers,saved,items);
+        if (keep.length) state.resultaatCorrecties=keep;
+        else delete state.resultaatCorrecties;
+      } else {
+        const current=await fetch(configEndpoint+"?ref=main",{headers,cache:"no-store"});
+        checkResponse(current);
+        const file=await current.json();
+        if (parseConfig(file)!==published) throw new Error("De configuratie is intussen gewijzigd. Download je versie en herlaad Admin.");
+        const response=await fetch(configEndpoint,{method:"PUT",headers:{...headers,"Content-Type":"application/json"},
+          body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(serialize(saved))})});
+        checkResponse(response);
+      }
       const sent=JSON.stringify(saved);
-      const response=await fetch(configEndpoint,{method:"PUT",headers:{...headers,"Content-Type":"application/json"},
-        body:JSON.stringify({branch:"main",sha:file.sha,message:"Update Diestroyers configuration from Admin",content:base64(serialize(saved))})});
-      checkResponse(response);
       published=sent;
       publishedCorrections=JSON.parse(sent).resultaatCorrecties || [];
       submittedDrafts.forEach(person=>sellerDrafts.delete(person));
       renderRecords("verkopers");
       if (["targets","resultaten"].includes($("adminSection").value)) renderTargets();
+      if ($("adminSection").value==="archief") renderArchive();
       rememberToken(token);
-      status(output,[isResults()?"Opgeslagen op GitHub. Na de volgende Dagstart of website-update zie je welke correcties in Excel verwerkt zijn."
-        :"Opgeslagen op GitHub. De wijziging wordt zichtbaar nadat GitHub Pages de configuratie heeft gepubliceerd."],true);
+      status(output,[items.length?"Opgeslagen in het maandarchief. De website en TV lezen dit na de publicatie van GitHub Pages."
+        : "Opgeslagen op GitHub. De wijziging wordt zichtbaar nadat GitHub Pages de configuratie heeft gepubliceerd."],true);
     } catch (error) {
       status(output,[error.message || "Opslaan op GitHub is mislukt."]);
-    } finally { buttons.forEach(button=>{button.disabled=false;}); }
+    } finally {
+      $("targetEditor").inert=false;
+      buttons.forEach(button=>{button.disabled=false;});
+    }
   }
   function download() {
+    if (archivedDrafts().length) {
+      status($("saveStatus"),["Sla de archiefcorrecties op en download de maand daarna via Archief."]);
+      return;
+    }
     const errors = validate();
     if (errors.length) { status($("saveStatus"),errors); return; }
     const link = document.createElement("a");
@@ -708,6 +781,61 @@
     link.download="config-data.js";
     link.click();
     setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+  }
+
+  function awaitingExcel(period) {
+    return publishedCorrections.some(row=>row.periode===period && Object.entries(row.waarden || {}).some(([key,value])=>
+      resultEdits.imported({id:row.id,type:row.type,name:row.naam},period,key)!==value));
+  }
+
+  function renderArchive() {
+    const container=$("archiveMonths");
+    if (!archiveReady) {
+      container.innerHTML='<p class="admin-warning">Het archief kon niet worden ingelezen. Vernieuw Admin.</p>';
+      return;
+    }
+    const label=new Intl.DateTimeFormat("nl-BE",{month:"long",year:"numeric",timeZone:"UTC"});
+    const current=archive.currentMonth();
+    const periods=[...new Set([...archive.periods(),...Object.keys(storedArchive.maanden)])].sort().reverse();
+    const publishedTo=window.DIESTROYERS_IMPORT_STATUS?.winkelTot;
+    container.innerHTML=(publishedTo?`<p class="score-muted">Laatste gepubliceerde winkelstand t.e.m. ${escape(publishedTo)}.</p>`:"")+
+      (periods.length?'<div class="admin-records">'+periods.map(period=>{
+        const item=storedArchive.maanden[period];
+        const name=label.format(new Date(period+"-01T00:00:00Z"));
+        const waiting=awaitingExcel(period);
+        const descriptor=item?`Afgesloten · ${item.resultaten.length} resultaatrijen · ${item.wijzigingen.length} correcties`
+          : period>=current?"Lopende maand · via Dagstart":waiting?"Wacht op oudere Excel-correctie":"Wacht op afsluiting via Dagstart";
+        const recent=item?.wijzigingen.slice(-10).reverse()||[];
+        const history=recent.length?`<div class="admin-editor"><strong>Laatste correcties</strong><ul>${recent.map(change=>{
+          const member=item.resultaten.find(row=>change.type==="Winkel"
+            ? norm(row.EntiteitType)==="winkel"
+            : String(row.PersoneelsNr||row.personeelsNr)===change.id);
+          const previous=change.van===null?"leeg":formatNumber.format(change.van);
+          return `<li>${escape((member?.Naam||change.id)+" · "+change.kpiVeld+" · "+previous+" → "+formatNumber.format(change.naar)+" · "+change.op.slice(0,10))}</li>`;
+        }).join("")}</ul></div>`:"";
+        return `<details class="admin-record"><summary>${escape(name)} <small>${escape(descriptor)}</small></summary>
+          <div class="admin-editor admin-actions">
+          <a class="score-button" href="home.html#resultaten?periode=${period}">Bekijk resultaten</a>
+          ${item?`<button type="button" class="score-button primary" data-edit-month="${period}">Bewerk resultaten</button>
+            <button type="button" class="score-button" data-download-month="${period}">Download JSON</button>
+            <small class="score-muted">Afgesloten op ${escape(item.afgeslotenOp.slice(0,10))}.</small>`:""}
+          </div>${history}</details>`;
+      }).join("")+"</div>":'<p class="score-empty">Er zijn nog geen resultaten.</p>');
+    for (const button of container.querySelectorAll("[data-edit-month]")) button.onclick=()=>{
+      $("adminSection").value="resultaten";
+      $("editorPeriod").value=button.dataset.editMonth;
+      $("targetMode").value="winkel";
+      $("editorFilter").value="all";
+      showSection();
+    };
+    for (const button of container.querySelectorAll("[data-download-month]")) button.onclick=()=>{
+      const period=button.dataset.downloadMonth;
+      const link=document.createElement("a");
+      link.href=URL.createObjectURL(new Blob([JSON.stringify(storedArchive.maanden[period],null,2)+"\n"],{type:"application/json"}));
+      link.download="Diestroyers-"+period+".json";
+      link.click();
+      setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+    };
   }
 
   function renderQuality() {
@@ -764,7 +892,7 @@
       ${qualityList("Ontbrekende targets",missingTargets,missingTargets.length>0)}
       ${resultsAvailable?qualityList("Ontbrekende gepubliceerde resultaten",missingResults,missingResults.length>0):
         '<p class="score-muted">Districtsresultaten zijn beschikbaar voor de laatst gepubliceerde maand.</p>'}
-      ${qualityList("Correcties in Excel",statuses,statuses.length>0)}</div>`;
+      ${qualityList(isArchived(per)?"Correcties in het archief":"Correcties in Excel",statuses,statuses.length>0)}</div>`;
   }
 
   function openQualityItem(event) {
@@ -791,9 +919,10 @@
     const current = $("adminSection").value;
     const editor=current==="targets" || current==="resultaten";
     for (const panel of document.querySelectorAll(".admin-section")) panel.hidden=panel.id!==(editor?"targets":current);
-    $("saveConfig").hidden=editor || current==="datakwaliteit";
+    $("saveConfig").hidden=editor || ["datakwaliteit","archief"].includes(current);
     if (editor) { updateShop(); renderTargets(); }
     if (current==="datakwaliteit") renderQuality();
+    if (current==="archief") renderArchive();
     if (current==="tv-incentives") { updateShop(); showIncentives(); }
     if (current==="validatie") validate();
   }
@@ -845,6 +974,7 @@
     renderRecords("verkopers");
     renderRecords("district");
     bindDecember();
+    if (new URLSearchParams(location.search).get("sectie")==="archief") $("adminSection").value="archief";
     showSection();
     showEntry();
   }

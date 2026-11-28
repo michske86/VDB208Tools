@@ -3,9 +3,7 @@
   "use strict";
   const w = window;
   const config = w.DIESTROYERS_CONFIG_DATA || {};
-  const outcomes = w.DIESTROYERS_RESULTATEN || [];
   const district = w.DIESTROYERS_DISTRICT || [];
-  const histories = [...(w.DIESTROYERS_HISTORIEK_MAAND || []),...(w.DIESTROYERS_KPI_DETAIL || [])];
   const initialNps = w.DIESTROYERS_NPS || {};
   const now = text(config.shop?.shopNr || "208");
   const currency = (key,label) => ({key,label,step:"any"});
@@ -72,7 +70,7 @@
     return rawType(row)==="winkel" && (shopId(row) ? shopId(row)===text(entity.id) : text(entity.id)===now);
   }
   function importedRow(entity,per) {
-    return (entity.type==="DistrictWinkel" ? district : outcomes).find(row => sameRow(row,entity,per));
+    return (entity.type==="DistrictWinkel" ? district : w.DIESTROYERS_RESULTATEN || []).find(row => sameRow(row,entity,per));
   }
   function hasActivity(row) {
     return ["Omzet","Life","InsuranceKansen","AboKansen","DSPKansen","SPGKansen","SRPKansen","LinkPct","SRatio"].some(key=>get(row,key));
@@ -93,8 +91,8 @@
     if (entity.type==="DistrictWinkel") return null;
     const kpi=kpis.find(item=>item.fields.some(entry=>entry.key===field));
     if (!kpi) return null;
-    const detail=histories.find(item=>sameRow(item,entity,per) &&
-      norm(item.KPI)===norm(kpi.key) && ["","totaal"].includes(norm(item.SubKPI)));
+    const matchesDetail=item=>sameRow(item,entity,per) && norm(item.KPI)===norm(kpi.key) && ["","totaal"].includes(norm(item.SubKPI));
+    const detail=w.DIESTROYERS_HISTORIEK_MAAND?.find(matchesDetail) || w.DIESTROYERS_KPI_DETAIL?.find(matchesDetail);
     if (!detail) return null;
     const matches={SRatio:"WaardePct",SStuks:"Stuks",SEuro:"Waarde",LinkPct:"WaardePct"};
     const detailKey=matches[field] || (field.endsWith("Stuks")?"Stuks":field.endsWith("Kansen")?"Kansen":"Waarde");

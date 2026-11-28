@@ -35,11 +35,17 @@
           <option value="verkopers" selected>Verkopers</option>
           <option value="targets">Targets</option>
           <option value="resultaten">Resultaten aanpassen</option>
+          <option value="archief">Archief</option>
           <option value="datakwaliteit">Datakwaliteit</option>
           <option value="tv-incentives">Incentives</option>
           <option value="validatie">Validatie</option>
         </select>
       </label>
+      <section id="archief" class="admin-section" hidden aria-labelledby="archiveTitle">
+        <h2 id="archiveTitle">Maandarchief</h2>
+        <p class="score-muted">Bij de eerste succesvolle Dagstart met cijfers van de nieuwe maand wordt de vorige maand automatisch afgesloten.</p>
+        <div id="archiveMonths"></div>
+      </section>
       <section id="datakwaliteit" class="admin-section" hidden aria-labelledby="qualityTitle">
         <h2 id="qualityTitle">Datakwaliteit</h2>
         <div class="admin-grid admin-editor-filters">
@@ -164,9 +170,10 @@
   </dialog>
   <script src="assets/config-data.js"></script>
   <script src="assets/dashboard-data.js"></script>
-  <script src="assets/resultaat-correcties.js"></script>
+  <script src="assets/archief.js?v=1" data-load-archive></script>
+  <script src="assets/resultaat-correcties.js?v=2"></script>
   <script src="assets/tv-incentives-data.js"></script>
   <script src="assets/december-incentive.js?v=4"></script>
-  <script src="assets/admin.js?v=13"></script>
+  <script src="assets/admin.js?v=14"></script>
 </body>
 </html>

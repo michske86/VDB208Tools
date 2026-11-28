@@ -142,7 +142,7 @@
         value = number(row?.[def.key]) ?? number(detail?.Waarde);
         if (def.type === "stuks") count = value;
       }
-      if (!hasActivity && !value && !count && !euro) value = count = euro = null;
+      if (!hasActivity && !value && !count && !euro && norm(detail?.Bron)!=="admin") value = count = euro = null;
     }
     const prior = number(detail?.[["percentage","ratio"].includes(def.type) ? "VorigJaarPct" : "VorigJaar"]);
     return {value,target,count,chances,euro,targetRate,revenue,prior:prior || null,coverage:value === null ? 0 : 1};
